@@ -7,19 +7,21 @@
 int main(int argc, char **argv){
     int n, myid, numprocs, i;
     int new_myid, new_size;
-    MPI_Comm comm1, comm2;
+    MPI_Comm comm1, comm2, parentcomm;
     int color, key;
     FILE *fp;
     char filename[100];
     int data[4];
     int num_memofgroup=1, call_final;
-    char command[]="./print";
+    char command[]="./add";
     char **option;
     int maxprocs=2;
     
     MPI_Init(&argc,&argv);
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+
+    MPI_Comm_get_parent(&parentcomm);
 
     option = (char **)malloc(sizeof(char*) * 4);
     for(i=0;i<4;i++){
@@ -62,12 +64,13 @@ int main(int argc, char **argv){
 
     printf("test for comm spawn\n");
     //test for comm_spawn
-    printf("my original ID = %d, start the mpi comm spawn section\n",myid);
-    MPI_Comm_spawn(command, option, 2, MPI_INFO_NULL, 0, comm1, &comm2, MPI_ERRCODES_IGNORE);
+    //printf("my original ID = %d, start the mpi comm spawn section\n",myid);
+    MPI_Comm_spawn(command, option, 4, MPI_INFO_NULL, 0, comm1, &comm2, MPI_ERRCODES_IGNORE);
+    //printf("finish comm spawn\n");
     fflush(stdout);
     MPI_Comm_free(&comm2);
     
-    printf("my original ID = %d, finish the mpi comm spawn section\n",myid);
+    //printf("my original ID = %d, finish the mpi comm spawn section\n",myid);
     /*test for broadcast*/
     /* if(new_myid==1){ */
     /* 	for(i=0;i<4;i++){ */

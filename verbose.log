@@ -1,0 +1,306 @@
+host: alicegawa-VPCZ23AJ
+
+==================================================================================================
+mpiexec options:
+----------------
+  Base path: /home/alicegawa/mpich3/bin/
+  Launcher: (null)
+  Debug level: 1
+  Enable X: -1
+
+  Global environment:
+  -------------------
+    XDG_VTNR=8
+    SSH_AGENT_PID=1976
+    XDG_SESSION_ID=c1
+    CLUTTER_IM_MODULE=xim
+    GPG_AGENT_INFO=/run/user/1000/keyring-rk6OYI/gpg:0:1
+    TERM=xterm
+    SHELL=/bin/bash
+    VTE_VERSION=3409
+    XDG_SESSION_COOKIE=c5bafe4ae0cd0fa084e89718550515fb-1450242087.522589-1359636452
+    GJS_DEBUG_OUTPUT=stderr
+    WINDOWID=48234503
+    GNOME_KEYRING_CONTROL=/run/user/1000/keyring-rk6OYI
+    GJS_DEBUG_TOPICS=JS ERROR;JS LOG
+    USER=alicegawa
+    LD_LIBRARY_PATH=:/home/alicegawa/NS2/ns-allinone-2.35/otcl-1.14:/home/alicegawa/NS2/ns-allinone-2.35/lib:/usr/local/lib:/usr/local/include
+    LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lz=01;31:*.xz=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.axv=01;35:*.anx=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.axa=00;36:*.oga=00;36:*.spx=00;36:*.xspf=00;36:
+    TCL_LIBRARY=/home/alicegawa/NS2/ns-allinone-2.35/tcl8.5.10/library
+    SSH_AUTH_SOCK=/run/user/1000/keyring-rk6OYI/ssh
+    SESSION_MANAGER=local/alicegawa-VPCZ23AJ:@/tmp/.ICE-unix/1905,unix/alicegawa-VPCZ23AJ:/tmp/.ICE-unix/1905
+    USERNAME=alicegawa
+    DEFAULTS_PATH=/usr/share/gconf/default.default.path
+    XDG_CONFIG_DIRS=/etc/xdg/xdg-default:/etc/xdg
+    PATH=/usr/local/bin:/home/alicegawa/workspace/nest/nest/nest-2.8.0-install/bin:/home/alicegawa/workspace/github/knewrite/knewrite:/home/alicegawa/v3d/vaa3d_tools/bin:/usr/local/Trolltech/Qt-4.7.1/bin:/home/alicegawa/deep/pylearn2/pylearn2/scripts:/home/alicegawa/neuron_kplus/specials/x86_64:/home/alicegawa/neuron/iv/x86_64/bin:/home/alicegawa/neuron/nrn/x86_64/bin:/home/alicegawa/mpich3/bin:/home/alicegawa/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/alicegawa/NS2/ns-allinone-2.35/bin:/home/alicegawa/aics/nakashima/ParaView-4.3.1-Linux-64bit/bin:/usr/local/Vtools/bin:/usr/local/include:/usr/lib/jvm/java-7-openjdk-amd64/bin:/home/alicegawa/tensorflow/bazel/output
+    DESKTOP_SESSION=default
+    QT_IM_MODULE=xim
+    GDM_XSERVER_LOCATION=local
+    PWD=/home/alicegawa/workspace/github/optimizePara
+    JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+    XMODIFIERS=@im=fcitx
+    GNOME_KEYRING_PID=1828
+    LANG=ja_JP.UTF-8
+    MANDATORY_PATH=/usr/share/gconf/default.mandatory.path
+    MDM_XSERVER_LOCATION=local
+    GDMSESSION=default
+    CINNAMON_VERSION=2.4.8
+    SHLVL=1
+    XDG_SEAT=seat0
+    HOME=/home/alicegawa
+    GNOME_DESKTOP_SESSION_ID=this-is-deprecated
+    PYLEARN2_DATA_PATH=/home/alicegawa/data
+    PYTHONPATH=/home/alicegawa/workspace/nest/nest/nest-2.8.0-install/lib/python2.7/site-packages:/home/alicegawa/.local/lib/python2.7/site-packages:/home/alicegawa/deep/pylearn2:
+    XDG_SESSION_DESKTOP=default
+    LOGNAME=alicegawa
+    PYLEARN2_VIEWER_COMMAND=eog --new-instance
+    QT4_IM_MODULE=xim
+    XDG_DATA_DIRS=/usr/share/default:/usr/share/gnome:/usr/local/share/:/usr/share/:/usr/share/mdm/
+    DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-QGgMvouzYR,guid=0e313f258a06879fd7c766bf5670f027
+    MDMSESSION=default
+    TEXTDOMAIN=im-config
+    WINDOWPATH=8
+    XDG_RUNTIME_DIR=/run/user/1000
+    MDM_LANG=ja_JP.UTF-8
+    XDG_CURRENT_DESKTOP=X-Cinnamon
+    GTK_IM_MODULE=fcitx
+    TEXTDOMAINDIR=/usr/share/locale/
+    COLORTERM=gnome-terminal
+    XAUTHORITY=/home/alicegawa/.Xauthority
+    _=/home/alicegawa/mpich3/bin/mpiexec
+
+  Hydra internal environment:
+  ---------------------------
+    GFORTRAN_UNBUFFERED_PRECONNECTED=y
+
+
+    Proxy information:
+    *********************
+      [1] proxy: alicegawa-VPCZ23AJ (1 cores)
+      Exec list: ./mpi_opt (4 processes); 
+
+
+==================================================================================================
+
+[mpiexec@alicegawa-VPCZ23AJ] Timeout set to -1 (-1 means infinite)
+[mpiexec@alicegawa-VPCZ23AJ] Got a control port string of alicegawa-VPCZ23AJ:46949
+
+Proxy launch args: /home/alicegawa/mpich3/bin/hydra_pmi_proxy --control-port alicegawa-VPCZ23AJ:46949 --debug --rmk user --launcher ssh --demux poll --pgid 0 --retries 10 --usize -2 --proxy-id 
+
+Arguments being passed to proxy 0:
+--version 3.1.4 --iface-ip-env-name MPIR_CVAR_CH3_INTERFACE_HOSTNAME --hostname alicegawa-VPCZ23AJ --global-core-map 0,1,1 --pmi-id-map 0,0 --global-process-count 4 --auto-cleanup 1 --pmi-kvsname kvs_7177_0 --pmi-process-mapping (vector,(0,1,1)) --ckpoint-num -1 --global-inherited-env 58 'XDG_VTNR=8' 'SSH_AGENT_PID=1976' 'XDG_SESSION_ID=c1' 'CLUTTER_IM_MODULE=xim' 'GPG_AGENT_INFO=/run/user/1000/keyring-rk6OYI/gpg:0:1' 'TERM=xterm' 'SHELL=/bin/bash' 'VTE_VERSION=3409' 'XDG_SESSION_COOKIE=c5bafe4ae0cd0fa084e89718550515fb-1450242087.522589-1359636452' 'GJS_DEBUG_OUTPUT=stderr' 'WINDOWID=48234503' 'GNOME_KEYRING_CONTROL=/run/user/1000/keyring-rk6OYI' 'GJS_DEBUG_TOPICS=JS ERROR;JS LOG' 'USER=alicegawa' 'LD_LIBRARY_PATH=:/home/alicegawa/NS2/ns-allinone-2.35/otcl-1.14:/home/alicegawa/NS2/ns-allinone-2.35/lib:/usr/local/lib:/usr/local/include' 'LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lz=01;31:*.xz=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.axv=01;35:*.anx=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.axa=00;36:*.oga=00;36:*.spx=00;36:*.xspf=00;36:' 'TCL_LIBRARY=/home/alicegawa/NS2/ns-allinone-2.35/tcl8.5.10/library' 'SSH_AUTH_SOCK=/run/user/1000/keyring-rk6OYI/ssh' 'SESSION_MANAGER=local/alicegawa-VPCZ23AJ:@/tmp/.ICE-unix/1905,unix/alicegawa-VPCZ23AJ:/tmp/.ICE-unix/1905' 'USERNAME=alicegawa' 'DEFAULTS_PATH=/usr/share/gconf/default.default.path' 'XDG_CONFIG_DIRS=/etc/xdg/xdg-default:/etc/xdg' 'PATH=/usr/local/bin:/home/alicegawa/workspace/nest/nest/nest-2.8.0-install/bin:/home/alicegawa/workspace/github/knewrite/knewrite:/home/alicegawa/v3d/vaa3d_tools/bin:/usr/local/Trolltech/Qt-4.7.1/bin:/home/alicegawa/deep/pylearn2/pylearn2/scripts:/home/alicegawa/neuron_kplus/specials/x86_64:/home/alicegawa/neuron/iv/x86_64/bin:/home/alicegawa/neuron/nrn/x86_64/bin:/home/alicegawa/mpich3/bin:/home/alicegawa/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/alicegawa/NS2/ns-allinone-2.35/bin:/home/alicegawa/aics/nakashima/ParaView-4.3.1-Linux-64bit/bin:/usr/local/Vtools/bin:/usr/local/include:/usr/lib/jvm/java-7-openjdk-amd64/bin:/home/alicegawa/tensorflow/bazel/output' 'DESKTOP_SESSION=default' 'QT_IM_MODULE=xim' 'GDM_XSERVER_LOCATION=local' 'PWD=/home/alicegawa/workspace/github/optimizePara' 'JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64' 'XMODIFIERS=@im=fcitx' 'GNOME_KEYRING_PID=1828' 'LANG=ja_JP.UTF-8' 'MANDATORY_PATH=/usr/share/gconf/default.mandatory.path' 'MDM_XSERVER_LOCATION=local' 'GDMSESSION=default' 'CINNAMON_VERSION=2.4.8' 'SHLVL=1' 'XDG_SEAT=seat0' 'HOME=/home/alicegawa' 'GNOME_DESKTOP_SESSION_ID=this-is-deprecated' 'PYLEARN2_DATA_PATH=/home/alicegawa/data' 'PYTHONPATH=/home/alicegawa/workspace/nest/nest/nest-2.8.0-install/lib/python2.7/site-packages:/home/alicegawa/.local/lib/python2.7/site-packages:/home/alicegawa/deep/pylearn2:' 'XDG_SESSION_DESKTOP=default' 'LOGNAME=alicegawa' 'PYLEARN2_VIEWER_COMMAND=eog --new-instance' 'QT4_IM_MODULE=xim' 'XDG_DATA_DIRS=/usr/share/default:/usr/share/gnome:/usr/local/share/:/usr/share/:/usr/share/mdm/' 'DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-QGgMvouzYR,guid=0e313f258a06879fd7c766bf5670f027' 'MDMSESSION=default' 'TEXTDOMAIN=im-config' 'WINDOWPATH=8' 'XDG_RUNTIME_DIR=/run/user/1000' 'MDM_LANG=ja_JP.UTF-8' 'XDG_CURRENT_DESKTOP=X-Cinnamon' 'GTK_IM_MODULE=fcitx' 'TEXTDOMAINDIR=/usr/share/locale/' 'COLORTERM=gnome-terminal' 'XAUTHORITY=/home/alicegawa/.Xauthority' '_=/home/alicegawa/mpich3/bin/mpiexec' --global-user-env 0 --global-system-env 1 'GFORTRAN_UNBUFFERED_PRECONNECTED=y' --proxy-core-count 1 --exec --exec-appnum 0 --exec-proc-count 4 --exec-local-env 0 --exec-wdir /home/alicegawa/workspace/github/optimizePara --exec-args 1 ./mpi_opt 
+
+[mpiexec@alicegawa-VPCZ23AJ] Launch arguments: /home/alicegawa/mpich3/bin/hydra_pmi_proxy --control-port alicegawa-VPCZ23AJ:46949 --debug --rmk user --launcher ssh --demux poll --pgid 0 --retries 10 --usize -2 --proxy-id 0 
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 0): init
+pmi_version=1 pmi_subversion=1 
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=response_to_init pmi_version=1 pmi_subversion=1 rc=0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 0): get_maxes
+
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=maxes kvsname_max=256 keylen_max=64 vallen_max=1024
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 0): get_appnum
+
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=appnum appnum=0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 0): get_my_kvsname
+
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=my_kvsname kvsname=kvs_7177_0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 0): get_my_kvsname
+
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=my_kvsname kvsname=kvs_7177_0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 0): get
+kvsname=kvs_7177_0 key=PMI_process_mapping 
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=get_result rc=0 msg=success value=(vector,(0,1,1))
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 0): put
+kvsname=kvs_7177_0 key=sharedFilename[0] value=/dev/shm/mpich_shar_tmpuwmmaz 
+[proxy:0:0@alicegawa-VPCZ23AJ] cached command: sharedFilename[0]=/dev/shm/mpich_shar_tmpuwmmaz
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=put_result rc=0 msg=success
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 0): barrier_in
+
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 6): init
+pmi_version=1 pmi_subversion=1 
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=response_to_init pmi_version=1 pmi_subversion=1 rc=0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 6): get_maxes
+
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=maxes kvsname_max=256 keylen_max=64 vallen_max=1024
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 6): get_appnum
+
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=appnum appnum=0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 6): get_my_kvsname
+
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=my_kvsname kvsname=kvs_7177_0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 6): get_my_kvsname
+
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=my_kvsname kvsname=kvs_7177_0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 8): init
+pmi_version=1 pmi_subversion=1 
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=response_to_init pmi_version=1 pmi_subversion=1 rc=0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 6): get
+kvsname=kvs_7177_0 key=PMI_process_mapping 
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=get_result rc=0 msg=success value=(vector,(0,1,1))
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 6): barrier_in
+
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 8): get_maxes
+
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=maxes kvsname_max=256 keylen_max=64 vallen_max=1024
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 13): init
+pmi_version=1 pmi_subversion=1 
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=response_to_init pmi_version=1 pmi_subversion=1 rc=0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 8): get_appnum
+
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=appnum appnum=0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 13): get_maxes
+
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=maxes kvsname_max=256 keylen_max=64 vallen_max=1024
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 8): get_my_kvsname
+
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=my_kvsname kvsname=kvs_7177_0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 13): get_appnum
+
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=appnum appnum=0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 8): get_my_kvsname
+
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=my_kvsname kvsname=kvs_7177_0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 13): get_my_kvsname
+
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=my_kvsname kvsname=kvs_7177_0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 8): get
+kvsname=kvs_7177_0 key=PMI_process_mapping 
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=get_result rc=0 msg=success value=(vector,(0,1,1))
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 13): get_my_kvsname
+
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=my_kvsname kvsname=kvs_7177_0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 8): barrier_in
+
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 13): get
+kvsname=kvs_7177_0 key=PMI_process_mapping 
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=get_result rc=0 msg=success value=(vector,(0,1,1))
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 13): barrier_in
+
+[proxy:0:0@alicegawa-VPCZ23AJ] flushing 1 put command(s) out
+[proxy:0:0@alicegawa-VPCZ23AJ] forwarding command (cmd=put sharedFilename[0]=/dev/shm/mpich_shar_tmpuwmmaz) upstream
+[mpiexec@alicegawa-VPCZ23AJ] [pgid: 0] got PMI command: cmd=put sharedFilename[0]=/dev/shm/mpich_shar_tmpuwmmaz
+[proxy:0:0@alicegawa-VPCZ23AJ] forwarding command (cmd=barrier_in) upstream
+[mpiexec@alicegawa-VPCZ23AJ] [pgid: 0] got PMI command: cmd=barrier_in
+[mpiexec@alicegawa-VPCZ23AJ] PMI response to fd 6 pid 13: cmd=keyval_cache sharedFilename[0]=/dev/shm/mpich_shar_tmpuwmmaz 
+[mpiexec@alicegawa-VPCZ23AJ] PMI response to fd 6 pid 13: cmd=barrier_out
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=barrier_out
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=barrier_out
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=barrier_out
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=barrier_out
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 8): get
+kvsname=kvs_7177_0 key=sharedFilename[0] 
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=get_result rc=0 msg=success value=/dev/shm/mpich_shar_tmpuwmmaz
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 6): get
+kvsname=kvs_7177_0 key=sharedFilename[0] 
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=get_result rc=0 msg=success value=/dev/shm/mpich_shar_tmpuwmmaz
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 13): get
+kvsname=kvs_7177_0 key=sharedFilename[0] 
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=get_result rc=0 msg=success value=/dev/shm/mpich_shar_tmpuwmmaz
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 0): put
+kvsname=kvs_7177_0 key=P0-businesscard value=description#alicegawa-VPCZ23AJ$port#42625$ifname#127.0.1.1$ 
+[proxy:0:0@alicegawa-VPCZ23AJ] cached command: P0-businesscard=description#alicegawa-VPCZ23AJ$port#42625$ifname#127.0.1.1$
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=put_result rc=0 msg=success
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 6): put
+kvsname=kvs_7177_0 key=P1-businesscard value=description#alicegawa-VPCZ23AJ$port#38663$ifname#127.0.1.1$ 
+[proxy:0:0@alicegawa-VPCZ23AJ] cached command: P1-businesscard=description#alicegawa-VPCZ23AJ$port#38663$ifname#127.0.1.1$
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=put_result rc=0 msg=success
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 8): put
+kvsname=kvs_7177_0 key=P2-businesscard value=description#alicegawa-VPCZ23AJ$port#37663$ifname#127.0.1.1$ 
+[proxy:0:0@alicegawa-VPCZ23AJ] cached command: P2-businesscard=description#alicegawa-VPCZ23AJ$port#37663$ifname#127.0.1.1$
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=put_result rc=0 msg=success
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 13): put
+kvsname=kvs_7177_0 key=P3-businesscard value=description#alicegawa-VPCZ23AJ$port#45468$ifname#127.0.1.1$ 
+[proxy:0:0@alicegawa-VPCZ23AJ] cached command: P3-businesscard=description#alicegawa-VPCZ23AJ$port#45468$ifname#127.0.1.1$
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=put_result rc=0 msg=success
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 0): barrier_in
+
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 6): barrier_in
+
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 8): barrier_in
+
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 13): barrier_in
+
+[proxy:0:0@alicegawa-VPCZ23AJ] flushing 4 put command(s) out
+[proxy:0:0@alicegawa-VPCZ23AJ] forwarding command (cmd=put P0-businesscard=description#alicegawa-VPCZ23AJ$port#42625$ifname#127.0.1.1$ P1-businesscard=description#alicegawa-VPCZ23AJ$port#38663$ifname#127.0.1.1$ P2-businesscard=description#alicegawa-VPCZ23AJ$port#37663$ifname#127.0.1.1$ P3-businesscard=description#alicegawa-VPCZ23AJ$port#45468$ifname#127.0.1.1$) upstream
+[mpiexec@alicegawa-VPCZ23AJ] [pgid: 0] got PMI command: cmd=put P0-businesscard=description#alicegawa-VPCZ23AJ$port#42625$ifname#127.0.1.1$ P1-businesscard=description#alicegawa-VPCZ23AJ$port#38663$ifname#127.0.1.1$ P2-businesscard=description#alicegawa-VPCZ23AJ$port#37663$ifname#127.0.1.1$ P3-businesscard=description#alicegawa-VPCZ23AJ$port#45468$ifname#127.0.1.1$
+[proxy:0:0@alicegawa-VPCZ23AJ] forwarding command (cmd=barrier_in) upstream
+[mpiexec@alicegawa-VPCZ23AJ] [pgid: 0] got PMI command: cmd=barrier_in
+[mpiexec@alicegawa-VPCZ23AJ] PMI response to fd 6 pid 13: cmd=keyval_cache P0-businesscard=description#alicegawa-VPCZ23AJ$port#42625$ifname#127.0.1.1$ P1-businesscard=description#alicegawa-VPCZ23AJ$port#38663$ifname#127.0.1.1$ P2-businesscard=description#alicegawa-VPCZ23AJ$port#37663$ifname#127.0.1.1$ P3-businesscard=description#alicegawa-VPCZ23AJ$port#45468$ifname#127.0.1.1$ 
+[mpiexec@alicegawa-VPCZ23AJ] PMI response to fd 6 pid 13: cmd=barrier_out
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=barrier_out
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=barrier_out
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=barrier_out
+[proxy:0:0@alicegawa-VPCZ23AJ] PMI response: cmd=barrier_out
+test for comm spawntest for comm spawn
+test for comm spawn
+test for comm spawn
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 6): spawn
+nprocs=4 execname=./add totspawns=1 spawnssofar=1 arg1=5 arg2=6 arg3=7 
+arg4=8 argcnt=4 preput_num=1 preput_key_0=PARENT_ROOT_PORT_NAME preput_val_0=tag#0$description#alicegawa-VPCZ23AJ$port#38663$ifname#127.0.1.1$ info_num=0 endcmd 
+[proxy:0:0@alicegawa-VPCZ23AJ] we don't understand this command spawn; forwarding upstream
+[mpiexec@alicegawa-VPCZ23AJ] [pgid: 0] got PMI command: mcmd=spawn
+nprocs=4
+execname=./add
+totspawns=1
+spawnssofar=1
+arg1=5
+arg2=6
+arg3=7
+arg4=8
+argcnt=4
+preput_num=1
+preput_key_0=PARENT_ROOT_PORT_NAME
+preput_val_0=tag#0$description#alicegawa-VPCZ23AJ$port#38663$ifname#127.0.1.1$
+info_num=0
+endcmd
+[mpiexec@alicegawa-VPCZ23AJ] Got a control port string of alicegawa-VPCZ23AJ:55766
+
+Proxy launch args: /home/alicegawa/mpich3/bin/hydra_pmi_proxy --control-port alicegawa-VPCZ23AJ:55766 --debug --rmk user --launcher ssh --demux poll --pgid 1 --retries 10 --usize -2 --proxy-id 
+
+Arguments being passed to proxy 0:
+--version 3.1.4 --iface-ip-env-name MPIR_CVAR_CH3_INTERFACE_HOSTNAME --hostname alicegawa-VPCZ23AJ --global-core-map 0,1,1 --pmi-id-map 0,0 --global-process-count 4 --auto-cleanup 1 --pmi-kvsname kvs_7177_1 --pmi-spawner-kvsname kvs_7177_0 --pmi-process-mapping (vector,(0,1,1)) --ckpoint-num -1 --global-inherited-env 58 'XDG_VTNR=8' 'SSH_AGENT_PID=1976' 'XDG_SESSION_ID=c1' 'CLUTTER_IM_MODULE=xim' 'GPG_AGENT_INFO=/run/user/1000/keyring-rk6OYI/gpg:0:1' 'TERM=xterm' 'SHELL=/bin/bash' 'VTE_VERSION=3409' 'XDG_SESSION_COOKIE=c5bafe4ae0cd0fa084e89718550515fb-1450242087.522589-1359636452' 'GJS_DEBUG_OUTPUT=stderr' 'WINDOWID=48234503' 'GNOME_KEYRING_CONTROL=/run/user/1000/keyring-rk6OYI' 'GJS_DEBUG_TOPICS=JS ERROR;JS LOG' 'USER=alicegawa' 'LD_LIBRARY_PATH=:/home/alicegawa/NS2/ns-allinone-2.35/otcl-1.14:/home/alicegawa/NS2/ns-allinone-2.35/lib:/usr/local/lib:/usr/local/include' 'LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lz=01;31:*.xz=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.axv=01;35:*.anx=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.axa=00;36:*.oga=00;36:*.spx=00;36:*.xspf=00;36:' 'TCL_LIBRARY=/home/alicegawa/NS2/ns-allinone-2.35/tcl8.5.10/library' 'SSH_AUTH_SOCK=/run/user/1000/keyring-rk6OYI/ssh' 'SESSION_MANAGER=local/alicegawa-VPCZ23AJ:@/tmp/.ICE-unix/1905,unix/alicegawa-VPCZ23AJ:/tmp/.ICE-unix/1905' 'USERNAME=alicegawa' 'DEFAULTS_PATH=/usr/share/gconf/default.default.path' 'XDG_CONFIG_DIRS=/etc/xdg/xdg-default:/etc/xdg' 'PATH=/usr/local/bin:/home/alicegawa/workspace/nest/nest/nest-2.8.0-install/bin:/home/alicegawa/workspace/github/knewrite/knewrite:/home/alicegawa/v3d/vaa3d_tools/bin:/usr/local/Trolltech/Qt-4.7.1/bin:/home/alicegawa/deep/pylearn2/pylearn2/scripts:/home/alicegawa/neuron_kplus/specials/x86_64:/home/alicegawa/neuron/iv/x86_64/bin:/home/alicegawa/neuron/nrn/x86_64/bin:/home/alicegawa/mpich3/bin:/home/alicegawa/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/alicegawa/NS2/ns-allinone-2.35/bin:/home/alicegawa/aics/nakashima/ParaView-4.3.1-Linux-64bit/bin:/usr/local/Vtools/bin:/usr/local/include:/usr/lib/jvm/java-7-openjdk-amd64/bin:/home/alicegawa/tensorflow/bazel/output' 'DESKTOP_SESSION=default' 'QT_IM_MODULE=xim' 'GDM_XSERVER_LOCATION=local' 'PWD=/home/alicegawa/workspace/github/optimizePara' 'JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64' 'XMODIFIERS=@im=fcitx' 'GNOME_KEYRING_PID=1828' 'LANG=ja_JP.UTF-8' 'MANDATORY_PATH=/usr/share/gconf/default.mandatory.path' 'MDM_XSERVER_LOCATION=local' 'GDMSESSION=default' 'CINNAMON_VERSION=2.4.8' 'SHLVL=1' 'XDG_SEAT=seat0' 'HOME=/home/alicegawa' 'GNOME_DESKTOP_SESSION_ID=this-is-deprecated' 'PYLEARN2_DATA_PATH=/home/alicegawa/data' 'PYTHONPATH=/home/alicegawa/workspace/nest/nest/nest-2.8.0-install/lib/python2.7/site-packages:/home/alicegawa/.local/lib/python2.7/site-packages:/home/alicegawa/deep/pylearn2:' 'XDG_SESSION_DESKTOP=default' 'LOGNAME=alicegawa' 'PYLEARN2_VIEWER_COMMAND=eog --new-instance' 'QT4_IM_MODULE=xim' 'XDG_DATA_DIRS=/usr/share/default:/usr/share/gnome:/usr/local/share/:/usr/share/:/usr/share/mdm/' 'DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-QGgMvouzYR,guid=0e313f258a06879fd7c766bf5670f027' 'MDMSESSION=default' 'TEXTDOMAIN=im-config' 'WINDOWPATH=8' 'XDG_RUNTIME_DIR=/run/user/1000' 'MDM_LANG=ja_JP.UTF-8' 'XDG_CURRENT_DESKTOP=X-Cinnamon' 'GTK_IM_MODULE=fcitx' 'TEXTDOMAINDIR=/usr/share/locale/' 'COLORTERM=gnome-terminal' 'XAUTHORITY=/home/alicegawa/.Xauthority' '_=/home/alicegawa/mpich3/bin/mpiexec' --global-user-env 0 --global-system-env 1 'GFORTRAN_UNBUFFERED_PRECONNECTED=y' --proxy-core-count 1 --exec --exec-appnum 0 --exec-proc-count 4 --exec-local-env 1 'PMI_SPAWNED=1' --exec-wdir /home/alicegawa/workspace/github/optimizePara --exec-args 5 ./add 5 6 7 8 
+
+[mpiexec@alicegawa-VPCZ23AJ] Launch arguments: /home/alicegawa/mpich3/bin/hydra_pmi_proxy --control-port alicegawa-VPCZ23AJ:55766 --debug --rmk user --launcher ssh --demux poll --pgid 1 --retries 10 --usize -2 --proxy-id 0 
+[mpiexec@alicegawa-VPCZ23AJ] PMI response to fd 6 pid 6: cmd=spawn_result rc=0
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 8): spawn
+nprocs=4 execname=./add totspawns=1 spawnssofar=1 arg1=9 arg2=10 arg3=11 arg4=12 argcnt=4 preput_num=1 preput_key_0=PARENT_ROOT_PORT_NAME preput_val_0=tag#0$description#alicegawa-VPCZ23AJ$port#37663$ifname#127.0.1.1$ info_num=0 endcmd 
+[proxy:0:0@alicegawa-VPCZ23AJ] we don't understand this command spawn; forwarding upstream
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 0): spawn
+nprocs=4 execname=./add totspawns=1 spawnssofar=1 arg1=13 mcmd=spawn nprocs=4 execname=./add totspawns=1 spawnssofar=1 arg1=1 arg2=2 arg3=3 arg4=4 argcnt=4 preput_num=1 preput_key_0=PARENT_ROOT_PORT_NAME preput_val_0=tag#0$description#alicegawa-VPCZ23AJ$port#42625$ifname#127.0.1.1$ info_num=0 endcmd 
+[proxy:0:0@alicegawa-VPCZ23AJ] we don't understand this command spawn; forwarding upstream
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 13): 
+
+[proxy:0:0@alicegawa-VPCZ23AJ] we don't understand this command ; forwarding upstream
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 13): 15
+
+[proxy:0:0@alicegawa-VPCZ23AJ] we don't understand this command 15; forwarding upstream
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 13): 
+
+[proxy:0:0@alicegawa-VPCZ23AJ] we don't understand this command ; forwarding upstream
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 13): 4
+
+[proxy:0:0@alicegawa-VPCZ23AJ] we don't understand this command 4; forwarding upstream
+[proxy:0:0@alicegawa-VPCZ23AJ] got pmi command (from 13): (null)
+
+[mpiexec@alicegawa-VPCZ23AJ] [pgid: 0] got PMI command: mcmd=spawn
+nprocs=4
+execname=./add
+totspawns=1
+spawnssofar=1
+arg1=9
+arg2=10
+arg3=11
+arg4=12
+argcnt=4
+preput_num=1
+preput_key_0=PARENT_ROOT_PORT_NAME
+preput_val_0=tag#0$description#alicegawa-VPCZ23AJ$port#37663$ifname#127.0.1.1$
+info_num=0
+endcmd
+[mpiexec@alicegawa-VPCZ23AJ] Got a control port string of alicegawa-VPCZ23AJ:39390
+
+Proxy launch args: /home/alicegawa/mpich3/bin/hydra_pmi_proxy --control-port alicegawa-VPCZ23AJ:39390 --debug --rmk user --launcher ssh --demux poll --pgid 2 --retries 10 --usize -2 --proxy-id 
+
+Arguments being passed to proxy 0:
+--version 3.1.4 --iface-ip-env-name MPIR_CVAR_CH3_INTERFACE_HOSTNAME --hostname alicegawa-VPCZ23AJ --global-core-map 0,1,1 --pmi-id-map 0,0 --global-process-count 4 --auto-cleanup 1 --pmi-kvsname kvs_7177_2 --pmi-spawner-kvsname kvs_7177_0 --pmi-process-mapping (vector,(0,1,1)) --ckpoint-num -1 --global-inherited-env 58 'XDG_VTNR=8' 'SSH_AGENT_PID=1976' 'XDG_SESSION_ID=c1' 'CLUTTER_IM_MODULE=xim' 'GPG_AGENT_INFO=/run/user/1000/keyring-rk6OYI/gpg:0:1' 'TERM=xterm' 'SHELL=/bin/bash' 'VTE_VERSION=3409' 'XDG_SESSION_COOKIE=c5bafe4ae0cd0fa084e89718550515fb-1450242087.522589-1359636452' 'GJS_DEBUG_OUTPUT=stderr' 'WINDOWID=48234503' 'GNOME_KEYRING_CONTROL=/run/user/1000/keyring-rk6OYI' 'GJS_DEBUG_TOPICS=JS ERROR;JS LOG' 'USER=alicegawa' 'LD_LIBRARY_PATH=:/home/alicegawa/NS2/ns-allinone-2.35/otcl-1.14:/home/alicegawa/NS2/ns-allinone-2.35/lib:/usr/local/lib:/usr/local/include' 'LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lz=01;31:*.xz=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.axv=01;35:*.anx=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.axa=00;36:*.oga=00;36:*.spx=00;36:*.xspf=00;36:' 'TCL_LIBRARY=/home/alicegawa/NS2/ns-allinone-2.35/tcl8.5.10/library' 'SSH_AUTH_SOCK=/run/user/1000/keyring-rk6OYI/ssh' 'SESSION_MANAGER=local/alicegawa-VPCZ23AJ:@/tmp/.ICE-unix/1905,unix/alicegawa-VPCZ23AJ:/tmp/.ICE-unix/1905' 'USERNAME=alicegawa' 'DEFAULTS_PATH=/usr/share/gconf/default.default.path' 'XDG_CONFIG_DIRS=/etc/xdg/xdg-default:/etc/xdg' 'PATH=/usr/local/bin:/home/alicegawa/workspace/nest/nest/nest-2.8.0-install/bin:/home/alicegawa/workspace/github/knewrite/knewrite:/home/alicegawa/v3d/vaa3d_tools/bin:/usr/local/Trolltech/Qt-4.7.1/bin:/home/alicegawa/deep/pylearn2/pylearn2/scripts:/home/alicegawa/neuron_kplus/specials/x86_64:/home/alicegawa/neuron/iv/x86_64/bin:/home/alicegawa/neuron/nrn/x86_64/bin:/home/alicegawa/mpich3/bin:/home/alicegawa/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/alicegawa/NS2/ns-allinone-2.35/bin:/home/alicegawa/aics/nakashima/ParaView-4.3.1-Linux-64bit/bin:/usr/local/Vtools/bin:/usr/local/include:/usr/lib/jvm/java-7-openjdk-amd64/bin:/home/alicegawa/tensorflow/bazel/output' 'DESKTOP_SESSION=default' 'QT_IM_MODULE=xim' 'GDM_XSERVER_LOCATION=local' 'PWD=/home/alicegawa/workspace/github/optimizePara' 'JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64' 'XMODIFIERS=@im=fcitx' 'GNOME_KEYRING_PID=1828' 'LANG=ja_JP.UTF-8' 'MANDATORY_PATH=/usr/share/gconf/default.mandatory.path' 'MDM_XSERVER_LOCATION=local' 'GDMSESSION=default' 'CINNAMON_VERSION=2.4.8' 'SHLVL=1' 'XDG_SEAT=seat0' 'HOME=/home/alicegawa' 'GNOME_DESKTOP_SESSION_ID=this-is-deprecated' 'PYLEARN2_DATA_PATH=/home/alicegawa/data' 'PYTHONPATH=/home/alicegawa/workspace/nest/nest/nest-2.8.0-install/lib/python2.7/site-packages:/home/alicegawa/.local/lib/python2.7/site-packages:/home/alicegawa/deep/pylearn2:' 'XDG_SESSION_DESKTOP=default' 'LOGNAME=alicegawa' 'PYLEARN2_VIEWER_COMMAND=eog --new-instance' 'QT4_IM_MODULE=xim' 'XDG_DATA_DIRS=/usr/share/default:/usr/share/gnome:/usr/local/share/:/usr/share/:/usr/share/mdm/' 'DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-QGgMvouzYR,guid=0e313f258a06879fd7c766bf5670f027' 'MDMSESSION=default' 'TEXTDOMAIN=im-config' 'WINDOWPATH=8' 'XDG_RUNTIME_DIR=/run/user/1000' 'MDM_LANG=ja_JP.UTF-8' 'XDG_CURRENT_DESKTOP=X-Cinnamon' 'GTK_IM_MODULE=fcitx' 'TEXTDOMAINDIR=/usr/share/locale/' 'COLORTERM=gnome-terminal' 'XAUTHORITY=/home/alicegawa/.Xauthority' '_=/home/alicegawa/mpich3/bin/mpiexec' --global-user-env 0 --global-system-env 1 'GFORTRAN_UNBUFFERED_PRECONNECTED=y' --proxy-core-count 1 --exec --exec-appnum 0 --exec-proc-count 4 --exec-local-env 1 'PMI_SPAWNED=1' --exec-wdir /home/alicegawa/workspace/github/optimizePara --exec-args 5 ./add 9 10 11 12 
+
+[mpiexec@alicegawa-VPCZ23AJ] Launch arguments: /home/alicegawa/mpich3/bin/hydra_pmi_proxy --control-port alicegawa-VPCZ23AJ:39390 --debug --rmk user --launcher ssh --demux poll --pgid 2 --retries 10 --usize -2 --proxy-id 0 

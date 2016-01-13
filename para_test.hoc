@@ -1,0 +1,18 @@
+{load_file("nrngui.hoc")}
+
+objref pc
+{pc = new ParallelContext()}
+
+objref file
+strdef filename
+
+{sprint(filename,"testfile_%d.txt",pc.id)}
+
+{file = new File()}
+{file.wopen(filename)}
+{printf("There are %d processes. My rank is %d\n", pc.nhost, pc.id)}
+{file.printf("There are %d processes. My rank is %d\n", pc.nhost, pc.id)}
+{file.close()}
+{pc.runworker()}
+{pc.done()}
+quit()

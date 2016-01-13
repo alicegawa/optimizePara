@@ -7,14 +7,17 @@
 int main(int argc, char **argv){
     int n, myid, numprocs, i;
     int new_myid, new_size;
-    MPI_Comm comm1, comm2, parentcomm;
+    MPI_Comm comm1, comm2, parentcomm, nrn_comm;
     int color, key;
     FILE *fp;
     char filename[100];
     int data[4];
     int num_memofgroup=1, call_final;
     char command[]="./add";
+    char specials[]="./special";
     char **option;
+    char *neuron_argv[] = {"-mpi", "-nobanner", "para_test.hoc", NULL};
+    char option_mpi[] ="-mpi", HOCFILE[] = "para_test.hoc", option_nobanner[]="-nobanner";
     int maxprocs=2;
     
     MPI_Init(&argc,&argv);
@@ -26,7 +29,7 @@ int main(int argc, char **argv){
     option = (char **)malloc(sizeof(char*) * 4);
     for(i=0;i<4;i++){
 	option[i] = (char *)malloc(sizeof(char) * 10);
-    }
+    }    
 
     if(argc>1){
 	num_memofgroup = atoi(argv[1]);
@@ -37,7 +40,7 @@ int main(int argc, char **argv){
     }
         
     key = 0;
-    color = myid/num_memofgroup;
+    color = myid%num_memofgroup;
     call_final = numprocs/num_memofgroup;
 
     MPI_Comm_split(MPI_COMM_WORLD, color, key, &comm1);
@@ -65,38 +68,17 @@ int main(int argc, char **argv){
     printf("test for comm spawn\n");
     //test for comm_spawn
     //printf("my original ID = %d, start the mpi comm spawn section\n",myid);
-    MPI_Comm_spawn(command, option, 4, MPI_INFO_NULL, 0, comm1, &comm2, MPI_ERRCODES_IGNORE);
-    //printf("finish comm spawn\n");
+    //MPI_Comm_spawn(command, option, 4, MPI_INFO_NULL, 0, comm1, &comm2, MPI_ERRCODES_IGNORE);
+    //printf("finish mpi spawn test for \"add\"\n");
+    MPI_Comm_spawn(specials, neuron_argv, 4, MPI_INFO_NULL, 0, comm1, &comm2, MPI_ERRCODES_IGNORE);
+    MPI_Intercomm_merge(comm2,0, &nrn_comm);
+    printf("finish comm spawn\n");
     fflush(stdout);
-    MPI_Comm_free(&comm2);
     
-    //printf("my original ID = %d, finish the mpi comm spawn section\n",myid);
-    /*test for broadcast*/
-    /* if(new_myid==1){ */
-    /* 	for(i=0;i<4;i++){ */
-    /* 	    printf("num:1 of each group color is %d, data[%d] = %d\n", color, i, data[i]); */
-    /* 	} */
-    /* } */
-    /* MPI_Barrier(MPI_COMM_WORLD); */
-    /* printf("\n"); */
-
-    /* MPI_Bcast(data, 4, MPI_INT, new_myid, comm1); */
-    
-    /* if(new_myid==0){ */
-    /* 	for(i=0;i<4;i++){ */
-    /* 	    printf("root of each group color is %d, data[%d] = %d\n", color, i, data[i]); */
-    /* 	} */
-    /* } */
-    /* if(new_myid==1){ */
-    /* 	for(i=0;i<4;i++){ */
-    /* 	    printf("num:1 of each group color is %d, data[%d] = %d\n", color, i, data[i]); */
-    /* 	} */
-    /* } */
-
     for(i=0;i<4;i++){
 	free(option[i]);
     }
     free(option);
-    
+
     MPI_Finalize();
 }

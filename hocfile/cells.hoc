@@ -1,0 +1,73 @@
+load_file("nrngui.hoc")
+
+begintemplate HH_single
+
+public soma, makeSyn, synlist
+create soma
+objref esyn
+objref synlist
+
+proc init(){local x, y, z, i
+    x = $1
+    y = $2
+    z = $3
+    soma {
+	pt3dclear() pt3dadd(0+x, 0+y, 0+z, 12) pt3dadd(15+x, 0+y, 0+z, 12)
+    }
+    
+    soma {
+	L = 30
+	diam = 30
+	nseg = 10
+	cm = 1
+	insert GPeA
+	gnabar_GPeA = 0.12//0.12//0.19
+	
+	gkdrbar_GPeA = 0.005//0.06
+	gl_GPeA = 0.0003//0.0001
+	gcatbar_GPeA = 0.0001//0.005
+	gkcabar_GPeA = 0.002//0.004
+	ena_GPeA = 55
+	ek_GPeA = -70		
+	el_GPeA = -50//-54.3
+	eca_GPeA = 124
+    }
+    synlist = new List()
+    soma {
+	esyn = new Exp2Syn(0.5)
+	synlist.append(esyn)//for stimulating by IClamp or Netstim
+    }
+}
+
+objref syn_
+
+obfunc makeSyn(){local postid, preid, reversal_v
+    postid = $1
+    preid = $2
+    reversal_v = $3
+    
+    soma {
+	syn_ = new Exp2Syn(0.5)
+	synlist.append(syn_)
+	syn_.e = reversal_v
+    }
+}
+
+endtemplate HH_single
+
+objref cells
+objref recordSpike
+
+proc makeCells(){local i, num_cell localobj cell, nc, nil
+    num_cell = $1
+    cells = new List()
+    
+    for(i=pc.id; i<num_cell; i=i+pc.host){
+	cell = new HH_single(160*int(i/10), 20*(i%10),0)
+	cells.append(cell)
+	pc.set_gid2node(i,pc.id)
+	nc = cell.connect2target(nil)
+	nc.weight = 1
+	pc.cell(i, nc)
+    }
+}

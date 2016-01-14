@@ -1,12 +1,15 @@
 {load_file("nrngui.hoc")}
 
+{if(!name_declared("COLOR")){ COLOR=-1}}
+
+
 objref pc
 {pc = new ParallelContext()}
 
 objref file
 strdef filename
 
-{sprint(filename,"testfile_%d.txt",pc.id)}
+{sprint(filename,"testfile_%d_%d.txt",COLOR,pc.id)}
 
 {file = new File()}
 {file.wopen(filename)}

@@ -9,10 +9,10 @@ tstop = 100
 objref pc
 pc = new ParallelContext()
 
-{load_file("read.hoc")}
-{load_file("cells.hoc")}
-{load_file("connectCells.hoc")}
-{load_file("record.hoc")}
+{load_file("../hocfile/read.hoc")}
+{load_file("../hocfile/cells.hoc")}
+{load_file("../hocfile/connectCells.hoc")}
+{load_file("../hocfile/record.hoc")}
 
 read_settings(NCELL)
 {makeCells(NCELL)}

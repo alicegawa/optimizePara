@@ -10,7 +10,7 @@ proc setSpikeRecord(){local i, num_cell
     num_cell = $1
     for i=0, num_cell-1{
 	if(pc.gid_exists(i)){
-	    pc.spike_recored(i, tvec, idvec)
+	    pc.spike_record(i, tvec, idvec)
 	}
     }
 }
@@ -31,7 +31,7 @@ proc writeSpike(){local i, rank, pc_id, pc_nhost, num_cell
     for rank=0, pc_nhost-1{
 	if(rank == pc_id){
 	    savSpike = new File()
-	    sprint(filename, "./result/spike_%d_%d.dat", COLOR, pc_id)
+	    sprint(filename, "../result/spike_%d_%d.dat", COLOR, pc_id)
 	    savSpike.wopen(filename)
 	    for i=0, tvec.size()-1{
 		if(idvec.x(i) < NCELL){
@@ -51,7 +51,7 @@ proc writeWeight(){ local i, rank, pc_id, pc_nhost, num_cell
     for rank=0, pc_nhost-1 {
 	if(rank==pc_id){
 	    savWeight = new File()
-	    sprint(filename,"./result/nclist_%d_%d.dat", COLOR, pc_id)
+	    sprint(filename,"../result/nclist_%d_%d.dat", COLOR, pc_id)
 	    savWeight.wopen(filename)
 	    for i=0, nclist.count-1{
 		savWeight.printf("%g\t", nclist.o(i).weight)

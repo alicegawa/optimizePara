@@ -4,24 +4,31 @@ objref weight, delay, syn_reversal
 objref f
 strdef filename
 
-proc read_settings{local i, j, num_cell
+proc read_settings(){local i, j, num_cell
     num_cell = $1
     
     weight = new Matrix()
     f = new File()
-    f.ropen("weight.dat")
+    f.ropen("../data/weight.dat")
     weight.scanf(f, num_cell, num_cell)
     f.close()
     
     delay = new Matrix()
     f = new File()
-    f.ropen("delay.dat")
+    f.ropen("../data/delay.dat")
     delay.scanf(f, num_cell, num_cell)
     f.close()
     
     syn_reversal = new Matrix()
     f = new File()
-    f.ropen("rev_potential.dat")
+    f.ropen("../data/rev_potential.dat")
     syn_reversal.scanf(f, num_cell, num_cell)
     f.close()
+    
+    // for i=0, num_cell-1{
+    // 	for j=0, num_cell-1{
+    // 	    printf("%d\t",weight.x[i][j])
+    // 	}
+    // 	printf("\n")
+    // }
 }

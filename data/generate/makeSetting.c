@@ -29,7 +29,7 @@ int main(int argc, char **argv){
 	for(j=0;j<num_cell;j++){
 	    weight[i][j] = 0;
 	    rev_e[i][j] = 10;
-	    delay[i][j] = rand()%1000 * 0.02;
+	    delay[i][j] = (rand()%1000) * 0.02 + 1;
 	}
     }
 

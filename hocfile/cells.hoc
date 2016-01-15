@@ -2,7 +2,7 @@ load_file("nrngui.hoc")
 
 begintemplate HH_single
 
-public soma, makeSyn, synlist
+public soma, makeSyn, synlist, connect2target
 create soma
 objref esyn
 objref synlist
@@ -39,18 +39,25 @@ proc init(){local x, y, z, i
     }
 }
 
+obfunc connect2target(){localobj nc
+    soma nc = new NetCon(&v(0.5), $o1)
+    nc.threshold = 10
+    if(numarg()==2){ $o2 = nc }
+    return nc
+}
+
 objref syn_
 
-obfunc makeSyn(){local postid, preid, reversal_v
-    postid = $1
-    preid = $2
-    reversal_v = $3
+obfunc makeSyn(){local reversal_v
+    
+    reversal_v = $1
     
     soma {
 	syn_ = new Exp2Syn(0.5)
 	synlist.append(syn_)
 	syn_.e = reversal_v
     }
+    return syn_
 }
 
 endtemplate HH_single
@@ -62,7 +69,7 @@ proc makeCells(){local i, num_cell localobj cell, nc, nil
     num_cell = $1
     cells = new List()
     
-    for(i=pc.id; i<num_cell; i=i+pc.host){
+    for(i=pc.id; i<num_cell; i=i+pc.nhost){
 	cell = new HH_single(160*int(i/10), 20*(i%10),0)
 	cells.append(cell)
 	pc.set_gid2node(i,pc.id)

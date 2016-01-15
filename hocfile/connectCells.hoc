@@ -4,11 +4,11 @@ objref nclist
 
 proc connectCells(){local i, j localobj syn, nc, nil
     num_cell = $1
-    
-    for i=0, num_cell{
+    nclist = new List()
+    for i=0, num_cell-1{
 	if(pc.gid_exists(i)){
-	    for j=0, num_cell{
-		syn = pc.gid2cell(i).makeSyn(i,j, syn_reversal.x[i][j])
+	    for j=0, num_cell-1{
+		syn = pc.gid2cell(i).makeSyn(syn_reversal.x[i][j])
 		nc = pc.gid_connect(j, syn)
 		nclist.append(nc)
 		nc.threshold = 0

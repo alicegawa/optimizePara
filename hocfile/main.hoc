@@ -4,17 +4,17 @@
 NCELL = 86
 
 v_init = -65
-tstop = 10000
+tstop = 100
 
 objref pc
 pc = new ParallelContext()
 
+{load_file("read.hoc")}
 {load_file("cells.hoc")}
 {load_file("connectCells.hoc")}
-{load_file("read.hoc")}
 {load_file("record.hoc")}
 
-{read_settings(NCELL)}
+read_settings(NCELL)
 {makeCells(NCELL)}
 {pc.barrier()}
 {connectCells(NCELL)}

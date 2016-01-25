@@ -11,6 +11,8 @@
 #PJM --mpi "use-rankdir"
 #PJM --stgout "rank=* %r:./filib_rtinfo* ./"
 #PJM --stgout "rank=0 %r:../flib_rtinfo* ./"
+#PJM --stgout "rank=* %r:./color_* ./"
+#PJM --stgout "rank=0 %r:../color_* ./"
 #PJM -s
 #
 

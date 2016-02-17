@@ -4,3 +4,5 @@
 *.sh.*
 flib_*
 color_*
+todolist
+cma_tweann_test/*

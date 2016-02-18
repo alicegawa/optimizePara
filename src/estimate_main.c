@@ -5,6 +5,7 @@
 #include <time.h>
 #include <mpi.h>
 #include "cmaes_interface.h"
+#include "my_boundary_transformation.h"
 
 #define I_AM_ROOT_IN_MAIN (main_myid == root_process_main)
 #define I_AM_ROOT_IN_SPLIT (split_myid == root_process_split)
@@ -32,7 +33,8 @@ int main(int argc, char **argv){
     int num_of_pop_per_procs;
     int num_of_procs_nrn = 8;
     double t_start, t_end;
-
+    int send_count;
+    
     cmaes_t evo;
     double *arFunvals, *arFunvals_buf1, *arFunvals_buf2, *const*pop, *xfinal;
     double *initialX, *initialSigma;
@@ -49,11 +51,12 @@ int main(int argc, char **argv){
     
     int i,j;
     double util;
-/* initialize MPI settings*/
+
+    /* initialize MPI settings*/
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &main_size);
     MPI_Comm_rank(MPI_COMM_WORLD, &main_myid);
-
+    
     MPI_Comm_get_parent(&parentcomm);
 
     neuron_argv = (char **)malloc(sizeof(char *) * 6);
@@ -70,10 +73,10 @@ int main(int argc, char **argv){
 	}else{
 	}
     }
-
+    
     /*initialize for/and cmaes settings*/
     num_of_pop_per_procs = num_of_pop / num_of_procs_nrn;
-    offset = num_of_pop_per_process;
+    offset = num_of_pop_per_procs;
     pop_sendbuf = (double *)calloc((num_of_pop + offset) * dimension, sizeof(double));
     pop_rcvbuf = (double *)malloc(num_of_pop_per_procs * dimension * sizeof(double));
     arFunvals_buf1 = (double *)calloc(num_of_pop_per_procs, sizeof(double));
@@ -114,17 +117,17 @@ int main(int argc, char **argv){
 	MPI_Comm_spawn(specials, neuron_argv, 4, MPI_INFO_NULL, 0, splitcomm, &intercomm, MPI_ERRCODES_IGNORE);
 	MPI_Intercomm_merge(intercomm, 0, &nrn_comm);
 	MPI_Comm_size(nrn_comm, &spawn_size);
-	MPI_Comm_rank(nrn_comm, &spawn_id);
+	MPI_Comm_rank(nrn_comm, &spawn_myid);
     }
     /*if you want to send information to NEURON in setting, send here*/
     if( I_AM_ROOT_IN_SPLIT){
 	send_count = 3;/*template*/
 	double info[] = {1,0, 1.0, 1.0};/*template*/
-	MPI_BCast_to_NEURON(info, send_count, MPI_DOUBLE, root_process_spawn, nrn_comm);
+	MPI_Bcast_to_NEURON(info, send_count, MPI_DOUBLE, root_process_spawn, nrn_comm);
     }
     fflush(stdout);
 
-    tstart = MPI_Wtime();
+    t_start = MPI_Wtime();
     while(1){
 	if(I_AM_ROOT_IN_SPLIT){
 	    pop = cmaes_SamplePopulation(&evo);/*do not change content of pop*/
@@ -140,7 +143,7 @@ int main(int argc, char **argv){
 	    MPI_Gather(arFunvals_buf1, num_of_pop_per_procs, MPI_DOUBLE, arFunvals_buf2, num_of_pop_per_procs, MPI_DOUBLE, root_process_spawn, nrn_comm);
 
 	    for(i=0;i<num_of_pop; ++i){
-		arFunvals[i] = arFunvals_buf[i + offset];
+		arFunvals[i] = arFunvals_buf2[i + offset];
 	    }
 	    /*update the search distribution used for cmaes_sampleDistribution()*/
 	    cmaes_UpdateDistribution(&evo, arFunvals); /*assume that pop[] has not been modified*/

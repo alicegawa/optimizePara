@@ -13,12 +13,14 @@ pc = new ParallelContext()
 {load_file("../hocfile/cells.hoc")}
 {load_file("../hocfile/connectCells.hoc")}
 {load_file("../hocfile/record.hoc")}
+{load_file("../hocfile/setStim.hoc")}
 
-read_settings(NCELL)
+{read_settings(NCELL)}
 {makeCells(NCELL)}
 {pc.barrier()}
 {connectCells(NCELL)}
 {pc.barrier()}
+{setStim(NCELL, tstop)}
 {setSpikeRecord(NCELL)}
 {finitialize(v_init)}
 {fcurrent()}

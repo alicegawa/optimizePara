@@ -1,0 +1,16 @@
+{load_file("nrngui.hoc")}
+{load_file("stdlib.hoc")}
+
+proc receiveInfo(){ local root localobj vec
+    //[num_of_pop_per_procs, targetNum, paramfile_suf]
+    root = 0
+    vec = new Vector()
+    pc.broadcast(vec, root)
+    
+    NUM_OF_POP_PER_PROCS = int(vec.x(0))
+    SETTINGFILE_SUF = int(vec.x(1))
+    // TARGETFILE_SUF = int(vec.x(1))
+    // PARAMFILE_SUF = int(vec.x(2))
+    // CURRENTFILE_SUF = int(vec.x(3))
+    // ELECTRODEFILE_SUF = int(vec.x(4))
+}

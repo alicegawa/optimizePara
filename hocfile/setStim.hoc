@@ -1,0 +1,27 @@
+{load_file("nrngui.hoc")}
+
+objref stimlist
+
+proc setStim(){ local cellCounter, num_cell, nNumber, tempIave, tempSigma, longingTime localobj stimFile, noiseStim
+    
+    num_cell = $1
+    longingTime = $2
+    stimlist = new List()
+    stimFile = new File()
+    stimFile.ropen("StimEvents.txt")
+    for cellCounter = 0, num_cell - 1{
+	nNumber = stimFile.scanvar()
+	tempIave = stimFile.scanvar()
+	tempSigma = stimFile.scanvar()
+	
+	cells.o(cellCounter).soma{
+	    noiseStim = new preNoisyI(0.5)
+	    noiseStim.iave = tempIave
+	    noiseStim.sigma = tempSigma
+	    noiseStim.del = 0
+	    noiseStim.dur = longingTime
+	    stimlist.append(noiseStim)
+	}
+    }
+    stimFile.close()
+}

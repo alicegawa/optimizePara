@@ -11,6 +11,34 @@
 #define I_AM_ROOT_IN_SPLIT (split_myid == root_process_split)
 #define I_AM_ROOT_IN_NRN (spawn_myid == root_process_spawn)
 
+#define TEXT_BUFFER_SIZE 2048
+#define MAX_NUM_PARAM 150
+#define MAX_NUM_TARGET 5
+
+/* under construction*/
+int loadRangeFile(char *filename, my_boundary_transformation_t *t){
+    int dimension = 0;
+    char buf[TEXT_BUFFER_SIZE];
+    double lowerBounds[MAX_NUM_PARAM];
+    double upperBounds[MAX_NUM_PARAM];
+    unsigned char flg_log[MAX_NUM_PARAM];
+
+    FILE *fp;
+    if((fp=fopen(filename, "r"))==NULL){
+	printf("file open eror\n");
+	exit(EXIT_FAILURE);
+    }
+    while( fgets(buf, TEXT_BUFFER_SIZE, fp) != NULL){
+	//write read program following to my setting files
+	//sscanf(buf, "%*s\t%lf\t%lf\t%*lf\t%c\n", &lowerBounds[dimension], &upperBound[dimension], &flg_log[dimension]);
+	//flg_log[dim] = (unsigned char)atoi((const char*)&flg_log[dimension]);
+	dimension++;//make the dimension information here
+    }
+    my_boundary_transformation_init(t, lowerBounds, upperBounds, flg_log, dimension);
+    fclose(fp);
+    return 0;
+}
+
 /*definition of the wrapper of MPI_Bcast (function for communication with NEURON) */
 void MPI_Bcast_to_NEURON(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm){
     /* datatype: now support MPI_DOUBLE only*/
@@ -18,6 +46,15 @@ void MPI_Bcast_to_NEURON(void *buffer, int count, MPI_Datatype datatype, int roo
     MPI_Bcast(buffer, count, datatype, root, comm);
     fflush(stdout);
 }/*MPI_Bcast_to_NEURON*/
+
+/*print gene data to file*/
+int printGene(FILE *fp, const double *x, int dimension){
+    int i;
+    for(i=0; i<dimension; ++i){
+	fprintf(fp, "%f\t", x[i]);
+    }
+    return 0;
+}/*printGene()*/
 
 int main(int argc, char **argv){
     int main_myid, main_size;
@@ -40,7 +77,7 @@ int main(int argc, char **argv){
     double *initialX, *initialSigma;
     int mu = -1;
     unsigned int seed = 0;
-    unsigned int dimension = 10;/* provisional definition. This must be changed based on boundary setting*/
+    unsigned int dimension;
     int max_eval = -1, max_iter = -1;
     char initfile[] = "cmaes_initials.par";
     unsigned int num_of_pop = 8;
@@ -48,6 +85,8 @@ int main(int argc, char **argv){
     double *x_temp;
     int offset;
     double flg_termination = 0;
+    my_boundary_transformation_t my_boundaries;
+    char range_filename[] = "hogehoge%d.txt";
     
     int i,j;
     double util;
@@ -75,6 +114,10 @@ int main(int argc, char **argv){
     }
     
     /*initialize for/and cmaes settings*/
+
+    loadRangeFile(range_filename, &my_boundaries);//you must modify the filename of setting file
+    dimension = my_boundaries.dimension;
+    
     num_of_pop_per_procs = num_of_pop / num_of_procs_nrn;
     offset = num_of_pop_per_procs;
     pop_sendbuf = (double *)calloc((num_of_pop + offset) * dimension, sizeof(double));
@@ -132,7 +175,7 @@ int main(int argc, char **argv){
 	if(I_AM_ROOT_IN_SPLIT){
 	    pop = cmaes_SamplePopulation(&evo);/*do not change content of pop*/
 	    for(i=0;i<num_of_pop;++i){
-		/*write the boundary transformation here, under construction*/
+		my_boundary_transformation(&my_boundaries, pop[i], x_temp);
 		for(j=0;j<dimension;++j){
 		    pop_sendbuf[(i + offset) * dimension + j] = x_temp[j];
 		}
@@ -169,10 +212,13 @@ int main(int argc, char **argv){
     if( I_AM_ROOT_IN_SPLIT){
 	printf("#Stop:\n%s\n", cmaes_TestForTermination(&evo)); /*print termination reason*/
 	printf("\n# operation finished.\n# elapsed time: %f\n #fbest: %f\n #xbest:", t_end - t_start, cmaes_Get(&evo, "fbestever"));
-	/*exec "my boundary transformation" and print out "xbest"*/
+	my_boundary_transformation(&my_boundaries, (double *)cmaes_GetPtr(&evo, "xbestever"), x_temp);
 	fflush(stdout);
     }
 
+    /* finalize the process (free the memory)*/
+    cmaes_exit(&evo);
+    my_boundary_transformation_exit(&my_boundaries);
     free(x_temp);
     free(initialX);
     free(initialSigma);

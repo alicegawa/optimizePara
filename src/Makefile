@@ -1,15 +1,13 @@
 #Makefile for cmaes_mpi
 
 TARGET = \
-	estimation_main \
-	estimation_main_restart \
-	landscape2d \
+	estimate_main \
 
 #CC = mpifccpx
 CC = mpicc
 #CFLAGS = -Kfast
 CFLAGS = 
-LDFLAGS =
+LDFLAGS = -lm
 INCLUDES = -I.
 LIBS = -lm
 OBJS = cmaes.o my_boundary_transformation.o boundary_transformation.o
@@ -18,7 +16,7 @@ TOBJS = $(addsuffix .o, $(TARGET))
 all: $(TARGET)
 
 $(TARGET): $(TOBJS) $(OBJS)
-	$(CC) $(CFLAGS) -o ../bin/$@ $@.o $(OBJS) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o ./$@ $@.o $(OBJS) $(LDFLAGS)
 
 .c.o: 
 	$(CC) $(CFLAGS) $(INCLUDES) $(LIBS) -c $<

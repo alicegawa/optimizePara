@@ -4,31 +4,154 @@
 NCELL = 86
 
 v_init = -65
-tstop = 100
+tstop = 5
 
 objref pc
 pc = new ParallelContext()
 
+
+{load_file("nrngui.hoc")}
 {load_file("../hocfile/read.hoc")}
 {load_file("../hocfile/cells.hoc")}
 {load_file("../hocfile/connectCells.hoc")}
 {load_file("../hocfile/record.hoc")}
 {load_file("../hocfile/setStim.hoc")}
+{load_file("../hocfile/rcv_info_from_CMA.hoc")}
 
-{read_settings(NCELL)}
-{makeCells(NCELL)}
-{pc.barrier()}
-{connectCells(NCELL)}
-{pc.barrier()}
-{setStim(NCELL, tstop)}
-{setSpikeRecord(NCELL)}
-{finitialize(v_init)}
-{fcurrent()}
+func evalFitness(){ local sum, scaleFactor, n localobj hoge
+    //define fitness function. under construction
+    sum = 0.0
+    scaleFactor  = 0.3 //temporarily
+    
+    // calc the fitness here under construction
+    
+    return sum * scaleFactor
+}
 
-{pc.set_maxstep(10)}
-{stdinit()}
-{pc.psolve(tstop)}
+proc execSimulation(){ local i, j, root, fitness, tempfit, flg_cmaes_terminate, num_of_pop_per_procs, dim_cmaes, num_of_targetfile, timestep, log_fitness localobj rcv_pop_vec, send_fit_vec, nullvec, tempvec, vec
+    
+    num_of_pop_per_procs = $1
+    dim_cmaes = $2
+    num_of_targetfile = $3
+    timestep = $4
+    log_fitness = $5
+    
+    {pc.set_parent_comm()}
+    
+    receiveInfo()
+    
+    root = 0
+    nullvec = new Vector()
+    tempvec = new Vector()
+    
+    {pc.set_parent_comm()}
+    {pc.barrier()}
+    
+    while(1) {
+	{pc.set_parent_comm()}
+	
+	rcv_pop_vec = new Vector()
+	send_fit_vec = new Vector(num_of_pop_per_procs)
+	
+	pc.scatter_d(nullvec, rcv_pop_vec, dim_cmaes * num_of_pop_per_procs, root)
+	
+	{pc.set_world_comm()}
+	//the number of loop = the number of particle this process has..
+	for(i=0; i<num_of_pop_per_procs; i+=1){
+	    fitness = 0.0
+	    //updatePrams
+	    for(j=0; j<num_of_targetfile; j+=1){
+		//setIClamp
+		//initModel
+		pc.psolve(timestep)//timestep = tstop in original file
+		tempfit = evalFitness()
+		//if fitness converted to log_fitness, write here like below
+		if(log_fitness == 1){
+		    if(tempfit == 0){
+			tempfit = -1e100
+		    }else{
+			tempfit = log10(tempfit)
+		    }
+		}
+		fitness += tempfit
+	    }
+	    send_fit_vec.x(i) = fitness
+	}
+	
+	{pc.set_parent_comm()}
+	pc.gather_d(send_fit_vec, nullvec, num_of_pop_per_procs, root)
+	
+	//check whether terminal criterion of cmaes holds
+	pc.broadcast(tempvec, root)
+	flg_cmaes_terminate = int(tempvec.x(0))
+	//flg_cmaes_termination = 1 //for break test, inevitably breaking the loop
+	if(flg_cmaes_terminate != 0) {break}
+    }
+}
+
+proc testStop(){local i, root, counter, flg_cmaes_terminates localobj nullvec, rcv_pop_vec, send_fit_vec, tempvec
+    
+    root = 0
+    counter = 0
+    flg_cmaes_terminates = 0
+    nullvec = new Vector()
+    tempvec = new Vector()
+    
+    {pc.set_parent_comm()}
+    {pc.barrier()}
+    
+    while(1){
+	rcv_pop_vec = new Vector()
+	send_fit_vec = new Vector(3)
+	
+	{pc.set_parent_comm()}
+	
+	printf("start of scatter in NEURON\n")
+	pc.scatter_d(nullvec, rcv_pop_vec, 3, root)
+	printf("end of scatter in NEURON\n")
+	
+	{pc.set_world_comm()}
+	
+	for(i=0; i<3; i+=1){
+	    //{pc.psolve(tstop)}
+	    send_fit_vec.x(i) = i
+	}
+	
+	{pc.set_world_comm()}
+	
+	{pc.set_parent_comm()}
+	printf("start of gather in NEURON\n")
+	//pc.gather_d(send_fit_vec, nullvec, 3, root)
+	printf("end of gather in NEURON\n")
+	
+	pc.broadcast(tempvec, root)
+	flg_cmaes_terminates = int(tempvec.x(0))
+	//In test section, process of CMAES absolutely sends '1' to NEURON process (setting in C file)
+	if(flg_cmaes_terminates != 0 ){
+	    break
+	}
+	counter += 1
+	printf("counter: %d times in while(1)loop\n",counter)
+    }
+}
+
+
+
+// {read_settings(NCELL)}
+// {makeCells(NCELL)}
+// {pc.barrier()}
+// {connectCells(NCELL)}
+// {pc.barrier()}
+//{setStim(NCELL, tstop)}
+//{setSpikeRecord(NCELL)}
+//{finitialize(v_init)}
+//{fcurrent()}
+//{pc.set_maxstep(10)}
+//{stdinit()}
+testStop()
+printf("end of test stop\n")
+//{pc.psolve(tstop)}
 {pc.barrier()}
-{writeFiles(pc.id, pc.nhost, NCELL)}
+//{writeFiles(pc.id, pc.nhost, NCELL)}
 {pc.runworker()}
 {pc.done()}

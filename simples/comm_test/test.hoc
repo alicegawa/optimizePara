@@ -1,0 +1,54 @@
+load_file("nrngui.hoc")
+
+objref pc
+pc = new ParallelContext()
+
+root = 0
+counter = 0
+flg_cmaes_terminates = 0
+
+objref nullvec, rcv_pop_vec, send_fit_vec, tempvec
+objref file
+
+nullvec = new Vector()
+tempvec = new Vector()
+
+pc.set_parent_comm()
+pc.barrier()
+
+while(1){
+    rcv_pop_vec = new Vector()
+    send_fit_vec = new Vector(3)
+    
+    pc.set_parent_comm()
+    
+    pc.scatter_d(nullvec, rcv_pop_vec, 3, root)
+    
+    pc.set_world_comm()
+    
+    for(i=0;i<3;i+=1){
+	send_fit_vec.x(i) = i
+    }
+    
+    pc.set_world_comm()
+    pc.set_parent_comm()
+    
+    //pc.gather_d(send_fit_vec, nullvec, 3, root)
+    
+    pc.broadcast(tempvec, root)
+    flg_cmaes_terminates = int(tempvec.x(0))
+    
+    
+    if(flg_cmaes_terminates !=0){
+	break
+    }
+    counter += 1
+    printf("loop is not finished in %d times\n",counter)
+    if(counter>100){
+	break
+    }
+}
+tstop = 5
+pc.set_maxstep(10)
+pc.runworker()
+pc.done()

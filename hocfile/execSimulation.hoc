@@ -1,4 +1,10 @@
 {load_file("nrngui.hoc")}
+{load_file("../hocfile/read.hoc")}
+{load_file("../hocfile/cells.hoc")}
+{load_file("../hocfile/connectCells.hoc")}
+{load_file("../hocfile/record.hoc")}
+{load_file("../hocfile/setStim.hoc")}
+
 
 func evalFitness(){ local sum, scaleFactor, n localobj hoge
     //define fitness function. under construction
@@ -22,6 +28,7 @@ proc execSimulation(){ local i, j, root, fitness, tempfit, flg_cmaes_terminate, 
     
     receiveInfo()
     //read the setting file here. merge with the main.hoc. list up the contents below
+    
     // make cells
     // init model
     // setStim()

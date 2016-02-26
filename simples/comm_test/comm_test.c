@@ -40,29 +40,25 @@ int main(int argc, char** argv){
     key = 0;
     color = main_myid;
 
-    /* MPI_Comm_split(MPI_COMM_WORLD, color, key, &splitcomm); */
-    /* MPI_Comm_rank(splitcomm, &split_myid); */
-    /* MPI_Comm_size(splitcomm, &split_size); */
+    MPI_Comm_split(MPI_COMM_WORLD, color, key, &splitcomm);
+    MPI_Comm_rank(splitcomm, &split_myid);
+    MPI_Comm_size(splitcomm, &split_size);
 
-    if(main_myid == 0){
-	/* printf("start of comm spawn\n"); */
-	MPI_Comm_spawn(specials, option_mpi, 4, MPI_INFO_NULL, 0, MPI_COMM_SELF, &intercomm, MPI_ERRCODES_IGNORE);
-	/* printf("end of comm spawn\n"); */
+    if(split_myid == 0){
+	MPI_Comm_spawn(specials, option_mpi, 4, MPI_INFO_NULL, 0, splitcomm, &intercomm, MPI_ERRCODES_IGNORE);
 	MPI_Intercomm_merge(intercomm, 0, &nrn_comm);
 	MPI_Comm_size(nrn_comm, &spawn_size);
 	MPI_Comm_rank(nrn_comm, &spawn_myid);
     }
 
-    /* scatter1 = (double *)malloc(sizeof(double)*12); */
+   
     scatter1 = (double *)calloc(20, sizeof(double));
     scatter2 = (double *)malloc(sizeof(double)*4);
-    /* gather1 = (double *)malloc(sizeof(double)*3); */
-    /* gather2 = (double *)malloc(sizeof(double)*12); */
     gather1 = (double *)calloc(4, sizeof(double));
     gather2 = (double *)calloc(20, sizeof(double));
     
     while(1){
-	if(main_myid==0){
+	if(split_myid==0){
 	    for(i=0;i<20;i++){
 		scatter1[i] = i + 10;
 	    }
@@ -74,12 +70,12 @@ int main(int argc, char** argv){
 	    }
 	    printf("end of mpi gather\n");
 	}
-	if(main_myid==0){
+	if(split_myid==0){
 	    flg_termination = 1;
 	    send_count = 1;
 	    MPI_Bcast_to_NEURON(&flg_termination, 1, MPI_DOUBLE, root_process_spawn, nrn_comm);
 	}
-	MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, root_process_main, MPI_COMM_WORLD);
+	MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, root_process_main, splitcomm);
 	if((int)flg_termination){
 	    break;
 	}

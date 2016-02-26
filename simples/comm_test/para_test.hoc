@@ -6,15 +6,6 @@
 objref pc
 {pc = new ParallelContext()}
 
-objref file
-strdef filename
-
-{sprint(filename,"testfile_%d_%d.txt",COLOR,pc.id)}
-
-{file = new File()}
-{file.wopen(filename)}
-{printf("There are %d processes. My rank is %d\n", pc.nhost, pc.id)}
-{file.printf("There are %d processes. My rank is %d\n", pc.nhost, pc.id)}
 objref tempvec, sendvec, rcvvec, nullvec
 root = 0
 counter = 0
@@ -56,7 +47,7 @@ while(1){
 	break
     }
 }
-{file.close()}
+
 {pc.runworker()}
 {pc.done()}
 quit()

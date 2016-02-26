@@ -47,7 +47,6 @@ while(1){
 	break
     }
 }
-
 {pc.runworker()}
 {pc.done()}
 quit()

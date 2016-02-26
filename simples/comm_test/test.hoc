@@ -13,30 +13,30 @@ objref file
 nullvec = new Vector()
 tempvec = new Vector()
 
-pc.set_parent_comm()
+{ pc.set_parent_comm() }
 pc.barrier()
 
-while(1){
+//while(1){
     rcv_pop_vec = new Vector()
-    send_fit_vec = new Vector(3)
+    send_fit_vec = new Vector(4)
     
-    pc.set_parent_comm()
+    { pc.set_parent_comm() }
     
-    pc.scatter_d(nullvec, rcv_pop_vec, 3, root)
+    //pc.scatter_d(nullvec, rcv_pop_vec, 4, root)
     
-    pc.set_world_comm()
+    { pc.set_world_comm() }
     
-    for(i=0;i<3;i+=1){
+    for(i=0;i<4;i+=1){
 	send_fit_vec.x(i) = i
     }
     
-    pc.set_world_comm()
-    pc.set_parent_comm()
+    { pc.set_world_comm() }
+    { pc.set_parent_comm() }
     
     //pc.gather_d(send_fit_vec, nullvec, 3, root)
     
-    pc.broadcast(tempvec, root)
-    flg_cmaes_terminates = int(tempvec.x(0))
+    //pc.broadcast(tempvec, root)
+    //flg_cmaes_terminates = int(tempvec.x(0))
     
     
     if(flg_cmaes_terminates !=0){
@@ -47,8 +47,9 @@ while(1){
     if(counter>100){
 	break
     }
-}
+//}
 tstop = 5
-pc.set_maxstep(10)
-pc.runworker()
+//pc.set_maxstep(10)
+//pc.runworker()
 pc.done()
+quit()

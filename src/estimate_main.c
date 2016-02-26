@@ -68,7 +68,7 @@ int main(int argc, char **argv){
     char **neuron_argv;
     char option_mpi[] = "-mpi", option_nobanner[] = "-nobanner", HOCFILE[] = "../hocfile/main.hoc";
     int num_of_pop_per_procs;
-    int num_of_procs_nrn = 8;
+    int num_of_procs_nrn = 4;//for test
     double t_start, t_end;
     int send_count;
     
@@ -80,7 +80,7 @@ int main(int argc, char **argv){
     unsigned int dimension;
     int max_eval = -1, max_iter = -1;
     char initfile[] = "cmaes_initials.par";
-    unsigned int num_of_pop = 8;
+    unsigned int num_of_pop = 16;//for test
     double *pop_sendbuf, *pop_rcvbuf;
     double *x_temp;
     int offset;
@@ -218,31 +218,26 @@ int main(int argc, char **argv){
     /* } */
 
     /* for communication test between nrncomms*/
-    test_sendbuf = (double *)malloc(sizeof(double) * 3);
-    test_rcvbuf = (double *)malloc(sizeof(double) * 3);
-    test_arFunval1 = (double *)malloc(sizeof(double) * 3);
-    test_arFunval2 = (double *)malloc(sizeof(double) * 12);
-    if(I_AM_ROOT_IN_SPLIT){
-	printf("start communication test\n");
-	printf("my color is %d\n", main_myid);
-    }
+    test_sendbuf = (double *)calloc(20, sizeof(double));
+    test_rcvbuf = (double *)malloc(sizeof(double) * 4);
+    test_arFunval1 = (double *)calloc(4, sizeof(double));
+    test_arFunval2 = (double *)calloc(20, sizeof(double));
     while(1){
 	if(I_AM_ROOT_IN_SPLIT){
-	    for(i=0;i<3;i++){
-		test_sendbuf[i] = i;
+	    for(i=0;i<20;i++){
+		test_sendbuf[i] = i + 10;
 	    }
-	    printf("start scatter in MAIN\n");
-	    MPI_Scatter(test_sendbuf, 3, MPI_DOUBLE, test_rcvbuf, 3, MPI_DOUBLE, root_process_spawn, nrn_comm);
-	    printf("end scatter in MAIN\n");
+	    MPI_Scatter(test_sendbuf, 4, MPI_DOUBLE, test_rcvbuf, 4, MPI_DOUBLE, root_process_spawn, nrn_comm);
 
-	    printf("start gather in MAIN\n");
-	    //MPI_Gather(test_arFunval1, 3, MPI_DOUBLE, test_arFunval2, 3, MPI_DOUBLE, root_process_spawn, nrn_comm);
-	    printf("end gather in MAIN\n");
+	    MPI_Gather(test_arFunval1, 4, MPI_DOUBLE, test_arFunval2, 4, MPI_DOUBLE, root_process_spawn, nrn_comm);
+	    for(i=0;i<20;i++){
+		printf("test_arFunval2[%d] = %lf\n",i, test_arFunval2[i]);
+	    }
 	}
 	if(I_AM_ROOT_IN_SPLIT){
 	    flg_termination = 1;
 	    send_count = 1;
-	    MPI_Bcast_to_NEURON(&flg_termination, 1, MPI_DOUBLE, root_process_split, splitcomm);/*before splitcomm -> after nrn_comm*/
+	    MPI_Bcast_to_NEURON(&flg_termination, 1, MPI_DOUBLE, root_process_split, nrn_comm);/*before splitcomm -> after nrn_comm*/
 	}
 	printf("start MPI_Bcast\n");
 	MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, root_process_split, splitcomm);
@@ -250,15 +245,24 @@ int main(int argc, char **argv){
 	    break;
 	}
     }/*end of communication test loop*/
+    /*free the allocate memory for test loop*/
+    free(test_sendbuf);
+    free(test_rcvbuf);
+    free(test_arFunval1);
+    free(test_arFunval2);
+    /*end of free test memory*/
 
     printf("end of loop\n");
+    fflush(stdout);
     
     MPI_Barrier(MPI_COMM_WORLD);
     t_end = MPI_Wtime();
 
+    printf("exec loop time is %lf\n", t_end - t_start);
+    
     /* finalize the process (free the memory)*/
     cmaes_exit(&evo);
-    my_boundary_transformation_exit(&my_boundaries);
+    //my_boundary_transformation_exit(&my_boundaries);//after define loadRangefile, uncomment!!
     free(x_temp);
     free(initialX);
     free(initialSigma);
@@ -266,13 +270,15 @@ int main(int argc, char **argv){
     free(pop_rcvbuf);
     free(arFunvals_buf1);
     free(arFunvals_buf2);
-    
+
+
     for(i=0;i<6;i++){
 	free(neuron_argv[i]);
     }
     free(neuron_argv);
 
-
+    printf("end of the free memory section\n");
+    
     MPI_Finalize();
 
     return 0;

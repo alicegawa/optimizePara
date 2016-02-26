@@ -6,47 +6,52 @@
 objref pc
 {pc = new ParallelContext()}
 
-objref tempvec, sendvec, rcvvec, nullvec
-root = 0
-counter = 0
-tempvec = new Vector()
-nullvec = new Vector()
-sendvec = new Vector(4)
-rcvvec = new Vector()
-break_loop = 0
-confirm_scatter = 0
 
-while(1){
-    printf("infinit loop\n")
-    { pc.set_parent_comm() }
-    pc.scatter_d(nullvec, rcvvec, 4, root)
-    confirm_scatter = int(rcvvec.x(0))
-    if(confirm_scatter!=0){
-	printf("success for scatter %d\n", confirm_scatter)
-    }else{
-	printf("fail for scatter\n")
-    }
+
+proc stopTest(){local break_loop, confirm_scatter, root, counter localobj nullvec, tempvec, sendvec, rcvvec
+    tempvec = new Vector()
+    nullvec = new Vector()
+    sendvec = new Vector(4)
+    rcvvec = new Vector()
+    break_loop = 0
+    confirm_scatter = 0
+    root = 0
+    counter = 0
     
-    { pc.set_world_comm() }
-    for i=0, 3{
-	sendvec.x(i) = 5.0
-    }
-    { pc.set_parent_comm() }
-    
-    pc.gather_d(sendvec, nullvec, 4, root)
-    
-    pc.broadcast(tempvec, root)
-    break_loop = int(tempvec.x(0))
-    if(break_loop!=0){
-	printf("break with broadcast\n")
-	break
-    }
-    counter += 1
-    if(counter > 1000){
-	printf("break with max iter\n")
-	break
+    while(1){
+	printf("infinit loop\n")
+	{ pc.set_parent_comm() }
+	pc.scatter_d(nullvec, rcvvec, 4, root)
+	confirm_scatter = int(rcvvec.x(0))
+	if(confirm_scatter!=0){
+	    printf("success for scatter %d\n", confirm_scatter)
+	}else{
+	    printf("fail for scatter\n")
+	}
+	
+	{ pc.set_world_comm() }
+	for i=0, 3{
+	    sendvec.x(i) = 5.0
+	}
+	{ pc.set_parent_comm() }
+	
+	pc.gather_d(sendvec, nullvec, 4, root)
+	
+	pc.broadcast(tempvec, root)
+	break_loop = int(tempvec.x(0))
+	if(break_loop!=0){
+	    printf("break with broadcast\n")
+	    break
+	}
+	counter += 1
+	if(counter > 1000){
+	    printf("break with max iter\n")
+	    break
+	}
     }
 }
+
+stopTest()
 {pc.runworker()}
 {pc.done()}
 quit()

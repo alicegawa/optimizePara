@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import os
 import sys
 
-olf_dur = 0.5
 bin_width = 0.25
 
 def make_filelist(filepath):
@@ -23,22 +22,28 @@ def show_olf_strength(olf):
     for i in range(0, len(olf)):
         #if olf[i] > ave_olf and olf[i-1]==olf[i] and olf[i]==olf[i+1]:
         if olf[i] > ave_olf:
-                print '%f' %olf[i]
-                return olf[i]
+                print '%f' %olf[i+600]
+                return olf[i+600]
     print 'failure'
     return -1
 
 def get_spike_threshold(res, start, end):
+    #print 'start = %d, end = %d, ref(lenght of res) = %d\n' %(start, end, len(res))
     max_v_in_range = np.max(res[start:(end + 1)])
     min_v_in_range = np.min(res[start:(end + 1)])
     threshold_tmp_in_range = (max_v_in_range + min_v_in_range) * 0.5
     threshold_tmp_whole = (np.max(res) + np.min(res)) * 0.5
+    # voltage_range = np.max(res) - np.min(res)
+    # if voltage_range < 15:
+    #     return np.max(res) + 1
     if threshold_tmp_in_range > threshold_tmp_whole:
         return threshold_tmp_in_range
     else:
         return threshold_tmp_whole
 
 def spike_detect(res, start, end):
+    if start == -1 or end == -1:
+        return -1
     spike_counter = 0
     threshold = get_spike_threshold(res, start, end)
     for i in range(start, end):
@@ -51,28 +56,56 @@ def get_index_of_time(time, target_time):
     for i in range(0, len(time)):
         if time[i] >= target_time:
             return i
-
-def detect_olf_timing(olf, start, olf_judge_strength):
-    for i in range(start, len(olf)):
-        if olf_judge_strength == -1:
-            return -1
-        else:
-            if olf[i] > olf_judge_strength:
-                return i
+    print 'too short experiment time'
     return -1
 
+def detect_olf_timing(olf, start, olf_judge_strength):
+    def detect_olf_start_timing(olf, start, olf_judge_strength):
+        for i in range(start, len(olf)):
+            if olf_judge_strength == -1:
+                return -1
+            else:
+                if olf[i] > olf_judge_strength:
+                    return i
+        return -1
+
+    def detect_olf_end_timing(olf, start, olf_judge_strength):
+        for i in range(start, len(olf)):
+            if olf_judge_strength == -1:
+                return -1
+            else:
+                if olf[i] <= olf_judge_strength:
+                    return i
+        return -1
+    
+    start_index = detect_olf_start_timing(olf, start, olf_judge_strength)
+    end_index = detect_olf_end_timing(olf, start_index, olf_judge_strength)
+    return (start_index, end_index)
+
 def calc_spike_and_frequence(time, res, olf, olf_judge_strength, start_index, num_of_call, spike_counter_spon_tmp, spon_time_tmp, filename_tmp):
-    t_start_olf_index = detect_olf_timing(olf, start_index, olf_judge_strength)
+    t_start_olf_index, t_end_olf_index = detect_olf_timing(olf, start_index, olf_judge_strength)
+    #print 't_end_olf_index = %d, olf_judge_strength = %f\n' % (t_end_olf_index, olf_judge_strength)
     if t_start_olf_index != -1:
         f1 = open("freqs.csv", "a")
         f2 = open("spikenum.csv", "a")
         t_start_olf = time[t_start_olf_index]
-        t_end_olf_index = get_index_of_time(time, t_start_olf + olf_dur)
-        t_between_olf = get_index_of_time(time, t_start_olf + olf_dur * 0.5)
-        t_after_olf_part1 = get_index_of_time(time, t_start_olf + olf_dur + bin_width)
-        t_after_olf_part2 = get_index_of_time(time, t_start_olf + olf_dur + bin_width * 2)
-        t_after_olf_part3 = get_index_of_time(time, t_start_olf + olf_dur + bin_width * 3)
-        t_after_olf_part4 = get_index_of_time(time, t_start_olf + olf_dur + bin_width * 4)
+        if t_end_olf_index != -1:
+            continue_loop_flag = 1
+            t_end_olf = time[t_end_olf_index]
+            # print 't_end_olf_index = %d, time is %f' % (t_end_olf_index, t_start_olf)
+            # t_end_olf_index_ref = get_index_of_time(time, t_start_olf + 0.5)
+            # print 'reference = %d, time is %f' % (t_end_olf_index_ref, t_end_olf)
+            
+        else:
+            continue_loop_flag = 0
+            t_end_olf_index = get_index_of_time(time, t_start_olf + bin_width)
+            t_end_olf = time[t_end_olf_index]
+
+        t_between_olf = get_index_of_time(time, t_end_olf - bin_width)
+        t_after_olf_part1 = get_index_of_time(time, t_end_olf + bin_width)
+        t_after_olf_part2 = get_index_of_time(time, t_end_olf + bin_width * 2)
+        t_after_olf_part3 = get_index_of_time(time, t_end_olf + bin_width * 3)
+        t_after_olf_part4 = get_index_of_time(time, t_end_olf + bin_width * 4)
 
         if start_index == 0:
             spike_counter_spontaneous = spike_detect(res, 0, t_start_olf_index)
@@ -87,7 +120,7 @@ def calc_spike_and_frequence(time, res, olf, olf_judge_strength, start_index, nu
         spike_counter_part3 = spike_detect(res, t_after_olf_part2, t_after_olf_part3)
         spike_counter_part4 = spike_detect(res, t_after_olf_part3, t_after_olf_part4)
 
-        ave_f_between_stim = spike_counter_between_stim / (olf_dur * 0.5)
+        ave_f_between_stim = spike_counter_between_stim / bin_width
         ave_f_part1 = spike_counter_part1 / bin_width
         ave_f_part2 = spike_counter_part2 / bin_width
         ave_f_part3 = spike_counter_part3 / bin_width
@@ -105,6 +138,8 @@ def calc_spike_and_frequence(time, res, olf, olf_judge_strength, start_index, nu
         f2.write('%s\t%d\t%f\t%d\t%d\t%d\t%d\t%d\t%d\n' %(filename_tmp, num_of_call, spon_time, spike_counter_spontaneous, spike_counter_between_stim, spike_counter_part1, spike_counter_part2, spike_counter_part3, spike_counter_part4))
         f1.close()
         f2.close()
+        if continue_loop_flag == 0:
+            t_after_olf_part4 = -1
         return (t_after_olf_part4, spike_counter_spontaneous, spon_time)
     else:
         return (-1, spike_counter_spon_tmp, spon_time_tmp)
@@ -147,7 +182,7 @@ def main():
             start_index, spike_counter_spon_tmp, spon_time_tmp = calc_spike_and_frequence(time, response, olfactory, olf_judge_strength, start_index, counter, spike_counter_spon_tmp, spon_time_tmp, filelist_tmp[i])
             if start_index == -1:
                 break
-        fig = plt.figure(figsize=(15,6))
+        fig = plt.figure(figsize=(22,9))
         ax1 = fig.add_subplot(211)
         plt.xticks(fontsize=16)
         plt.yticks(fontsize=16)

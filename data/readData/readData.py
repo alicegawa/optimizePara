@@ -1,18 +1,19 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import sys
 
 olf_dur = 0.5
 bin_width = 0.25
 
-def make_filelist():
+def make_filelist(filepath):
     def find_all_files(directory):
         for root, dirs, files in os.walk(directory):
             yield root
             for file in files:
                 yield os.path.join(root, file)
     filelist = []
-    for file in find_all_files('./'):
+    for file in find_all_files(filepath):
         if '.dat' in file:
             filelist.append(file)
     return filelist
@@ -89,7 +90,13 @@ def calc_spike_and_frequence(time, res, threshold, olf, olf_judge_strength, star
         return (-1, spike_counter_spon_tmp)
 
 def main():
-    filelist = make_filelist()
+    argvs = sys.argv
+    argc = len(argvs)
+    if argc != 2:
+        print 'Usage: #python %s <directory name>' % argvs[0]
+        quit()
+    filename = argvs[1]
+    filelist = make_filelist(filename)
     print filelist
     filelist_tmp = []
     for i in range(0, len(filelist)):

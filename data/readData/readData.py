@@ -21,7 +21,8 @@ def make_filelist(filepath):
 def show_olf_strength(olf):
     ave_olf = np.average(olf)
     for i in range(0, len(olf)):
-        if olf[i] > ave_olf and olf[i-1]==olf[i] and olf[i]==olf[i+1]:
+        #if olf[i] > ave_olf and olf[i-1]==olf[i] and olf[i]==olf[i+1]:
+        if olf[i] > ave_olf:
                 print '%f' %olf[i]
                 return olf[i]
     print 'failure'

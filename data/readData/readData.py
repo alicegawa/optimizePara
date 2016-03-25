@@ -27,8 +27,19 @@ def show_olf_strength(olf):
     print 'failure'
     return -1
 
-def spike_detect(res, start, end, threshold):
+def get_spike_threshold(res, start, end):
+    max_v_in_range = np.max(res[start:(end + 1)])
+    min_v_in_range = np.min(res[start:(end + 1)])
+    threshold_tmp_in_range = (max_v_in_range + min_v_in_range) * 0.5
+    threshold_tmp_whole = (np.max(res) + np.min(res)) * 0.5
+    if threshold_tmp_in_range > threshold_tmp_whole:
+        return threshold_tmp_in_range
+    else:
+        return threshold_tmp_whole
+
+def spike_detect(res, start, end):
     spike_counter = 0
+    threshold = get_spike_threshold(res, start, end)
     for i in range(start, end):
         if res[i] > threshold:
             if res[i-1] < res[i] and res[i] > res[i+1]:
@@ -49,45 +60,53 @@ def detect_olf_timing(olf, start, olf_judge_strength):
                 return i
     return -1
 
-def calc_spike_and_frequence(time, res, threshold, olf, olf_judge_strength, start_index, spike_counter_spon_tmp, filename_tmp):
+def calc_spike_and_frequence(time, res, olf, olf_judge_strength, start_index, num_of_call, spike_counter_spon_tmp, spon_time_tmp, filename_tmp):
     t_start_olf_index = detect_olf_timing(olf, start_index, olf_judge_strength)
     if t_start_olf_index != -1:
-        f = open("freqs.csv", "a")
+        f1 = open("freqs.csv", "a")
+        f2 = open("spikenum.csv", "a")
         t_start_olf = time[t_start_olf_index]
         t_end_olf_index = get_index_of_time(time, t_start_olf + olf_dur)
+        t_between_olf = get_index_of_time(time, t_start_olf + olf_dur * 0.5)
         t_after_olf_part1 = get_index_of_time(time, t_start_olf + olf_dur + bin_width)
         t_after_olf_part2 = get_index_of_time(time, t_start_olf + olf_dur + bin_width * 2)
         t_after_olf_part3 = get_index_of_time(time, t_start_olf + olf_dur + bin_width * 3)
         t_after_olf_part4 = get_index_of_time(time, t_start_olf + olf_dur + bin_width * 4)
 
         if start_index == 0:
-            spike_counter_spontaneous = spike_detect(res, 0, t_start_olf_index, threshold)
+            spike_counter_spontaneous = spike_detect(res, 0, t_start_olf_index)
+            spon_time = t_start_olf - time[0]
         else:
             spike_counter_spontaneous = spike_counter_spon_tmp
-        spike_counter_part1 = spike_detect(res, t_end_olf_index, t_after_olf_part1, threshold)
-        spike_counter_part2 = spike_detect(res, t_after_olf_part1, t_after_olf_part2, threshold)
-        spike_counter_part3 = spike_detect(res, t_after_olf_part2, t_after_olf_part3, threshold)
-        spike_counter_part4 = spike_detect(res, t_after_olf_part3, t_after_olf_part4, threshold)
+            spon_time = spon_time_tmp
 
-        ave_f_spontaneous = spike_counter_spontaneous / (0 - time[0])
+        spike_counter_between_stim = spike_detect(res, t_between_olf, t_end_olf_index)
+        spike_counter_part1 = spike_detect(res, t_end_olf_index, t_after_olf_part1)
+        spike_counter_part2 = spike_detect(res, t_after_olf_part1, t_after_olf_part2)
+        spike_counter_part3 = spike_detect(res, t_after_olf_part2, t_after_olf_part3)
+        spike_counter_part4 = spike_detect(res, t_after_olf_part3, t_after_olf_part4)
+
+        ave_f_between_stim = spike_counter_between_stim / (olf_dur * 0.5)
         ave_f_part1 = spike_counter_part1 / bin_width
         ave_f_part2 = spike_counter_part2 / bin_width
         ave_f_part3 = spike_counter_part3 / bin_width
         ave_f_part4 = spike_counter_part4 / bin_width
+        ave_f_spontaneous = spike_counter_spontaneous / spon_time
         
         #print 'firing rate: spontaneous\tsection1\tsection2\tsection3\tsection4\n'
-        print '%f\t%f\t%f\t%f\t%f\n' %(ave_f_spontaneous, ave_f_part1, ave_f_part2, ave_f_part3, ave_f_part4)
+        print '%f\t%f\t%f\t%f\t%f\t%f\n' %(ave_f_spontaneous, ave_f_between_stim, ave_f_part1, ave_f_part2, ave_f_part3, ave_f_part4)
         #print 'spike num: spontaneous\tsection1\tsection2\tsection3\tsection4\n'
-        print '%d\t%d\t%d\t%d\t%d\n' %(spike_counter_spontaneous, spike_counter_part1, spike_counter_part2, spike_counter_part3, spike_counter_part4)
-        ave_f_full = (ave_f_part1 + ave_f_part2 + ave_f_part3 + ave_f_part4) * 0.25
+        print '%d\t%d\t%d\t%d\t%d\t%d\n' %(spike_counter_spontaneous, spike_counter_between_stim, spike_counter_part1, spike_counter_part2, spike_counter_part3, spike_counter_part4)
+        ave_f_full = (ave_f_between_stim + ave_f_part1 + ave_f_part2 + ave_f_part3 + ave_f_part4) * 0.2
         print 'firing rate of full section after 1(sec) of olfactory stimulus = %f\n' % ave_f_full
 
-        f.write('%s\t%f\t%f\t%f\t%f\t%f\n' %(filename_tmp, ave_f_spontaneous, ave_f_part1, ave_f_part2, ave_f_part3, ave_f_part4))
-        f.write('%s\t%d\t%d\t%d\t%d\t%d\n' %(filename_tmp, spike_counter_spontaneous, spike_counter_part1, spike_counter_part2, spike_counter_part3, spike_counter_part4))
-        f.close()
-        return (t_after_olf_part4, spike_counter_spontaneous)
+        f1.write('%s\t%d\t%f\t%f\t%f\t%f\t%f\t%f\n' %(filename_tmp, num_of_call, ave_f_spontaneous, ave_f_between_stim, ave_f_part1, ave_f_part2, ave_f_part3, ave_f_part4))
+        f2.write('%s\t%d\t%f\t%d\t%d\t%d\t%d\t%d\t%d\n' %(filename_tmp, num_of_call, spon_time, spike_counter_spontaneous, spike_counter_between_stim, spike_counter_part1, spike_counter_part2, spike_counter_part3, spike_counter_part4))
+        f1.close()
+        f2.close()
+        return (t_after_olf_part4, spike_counter_spontaneous, spon_time)
     else:
-        return (-1, spike_counter_spon_tmp)
+        return (-1, spike_counter_spon_tmp, spon_time_tmp)
 
 def main():
     argvs = sys.argv
@@ -103,24 +122,28 @@ def main():
         filelist_tmp.append(filelist[i].replace('.dat',''))
     print filelist_tmp
     for i in range(0, len(filelist)):
+        print 'start %s' % filelist[i]
         data = np.loadtxt(filelist[i], skiprows=1)
     
         time = data[:,0]
         response =  data[:,1]
         olfactory = data[:,2]
-
-        response = 1000 * response
+        if response[0] < 1:
+            response = 1000 * response
+        #for graph drawing
         max_v = np.max(response)
         min_v = np.min(response)
         ave_v = np.average(response)
 
-        threshold = max_v * 0.9
         olf_judge_strength = (show_olf_strength(olfactory) + np.average(olfactory)) * 0.5
  
         start_index = 0
         spike_counter_spon_tmp = 0
+        spon_time_tmp = 1
+        counter = 0
         while True:
-            start_index, spike_counter_spon_tmp = calc_spike_and_frequence(time, response, threshold, olfactory, olf_judge_strength, start_index, spike_counter_spon_tmp, filelist_tmp[i])
+            counter += 1
+            start_index, spike_counter_spon_tmp, spon_time_tmp = calc_spike_and_frequence(time, response, olfactory, olf_judge_strength, start_index, counter, spike_counter_spon_tmp, spon_time_tmp, filelist_tmp[i])
             if start_index == -1:
                 break
         fig = plt.figure(figsize=(15,6))
@@ -133,7 +156,6 @@ def main():
         ax1.plot(time, response)
         ax2.plot(time, olfactory)
         ax1.axhline(y=max_v, color='red')
-        ax1.axhline(y=50, color='yellow')
         ax1.axhline(y=min_v, color='green')
         ax1.axhline(y=ave_v, color='black')
         ax2.axhline(y=olf_judge_strength, color='black')
@@ -143,6 +165,7 @@ def main():
         ax2.set_ylabel('olfactory [V]', fontsize=18)
         graphname = filelist_tmp[i] + '.png'
         plt.savefig(graphname)
+        plt.close()
         print 'max_v = %f' % max_v
         print 'min_v = %f' % min_v
         print 'ave_v = %f' % ave_v

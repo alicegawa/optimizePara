@@ -19,11 +19,14 @@ def make_filelist(filepath):
 
 def show_olf_strength(olf):
     ave_olf = np.average(olf)
+    max_olf = np.max(olf)
     for i in range(0, len(olf)):
         #if olf[i] > ave_olf and olf[i-1]==olf[i] and olf[i]==olf[i+1]:
-        if olf[i] > ave_olf:
-                print '%f' %olf[i+600]
-                return olf[i+600]
+        if olf[i] == max_olf:
+            #print '%f' %olf[i+600]
+            print '%f' %olf[i]
+            #return olf[i+600]
+            return olf[i]
     print 'failure'
     return -1
 
@@ -74,7 +77,7 @@ def detect_olf_timing(olf, start, olf_judge_strength):
             if olf_judge_strength == -1:
                 return -1
             else:
-                if olf[i] <= olf_judge_strength:
+                if olf[i] < olf_judge_strength:
                     return i
         return -1
     
@@ -85,6 +88,8 @@ def detect_olf_timing(olf, start, olf_judge_strength):
 def calc_spike_and_frequence(time, res, olf, olf_judge_strength, start_index, num_of_call, spike_counter_spon_tmp, spon_time_tmp, filename_tmp):
     t_start_olf_index, t_end_olf_index = detect_olf_timing(olf, start_index, olf_judge_strength)
     #print 't_end_olf_index = %d, olf_judge_strength = %f\n' % (t_end_olf_index, olf_judge_strength)
+    print 'start_olf_index = %d, end_olf_inex = %d\n' %(t_start_olf_index, t_end_olf_index)
+    print 'start_olf_time = %f, end_olf_time = %f\n' %(time[t_start_olf_index], time[t_end_olf_index])
     if t_start_olf_index != -1:
         f1 = open("freqs.csv", "a")
         f2 = open("spikenum.csv", "a")
@@ -160,7 +165,9 @@ def main():
     for i in range(0, len(filelist)):
         print 'start %s' % filelist[i]
         data = np.loadtxt(filelist[i], skiprows=1)
-    
+        if data.shape[1] != 3:
+            print 'incorrect data size'
+            continue
         time = data[:,0]
         response =  data[:,1]
         olfactory = data[:,2]
@@ -172,6 +179,7 @@ def main():
         ave_v = np.average(response)
 
         olf_judge_strength = (show_olf_strength(olfactory) + np.average(olfactory)) * 0.5
+        #olf_judge_strength = np.average(olfactory)
  
         start_index = 0
         spike_counter_spon_tmp = 0

@@ -11,7 +11,15 @@
 {if(!name_declared("eca_tmp")){ eca_tmp=124}}
 {if(!name_declared("stim_amp")){ stim_amp=100}}
 {if(!name_declared("cell_size_rate")){ cell_size_rate=1 }}
-
+{if(!name_declared("gA_tmp")){ gA_tmp=0.022 }}
+{if(!name_declared("a_sk_tmp")){ a_sk_tmp=0.08 }}
+{if(!name_declared("offset_tmp")){ offset_tmp=0}}
+{if(!name_declared("coef_log_tmp")){ coef_log_tmp=0.5}}
+{if(!name_declared("tau_sk_tmp")){ tau_sk_tmp=250}}
+{if(!name_declared("coef_scale_C_tmp")){ coef_scale_C_tmp=0.00005}}
+{if(!name_declared("coef_intercept_tmp")){ coef_intercept_tmp=1.120}}
+{if(!name_declared("power_q_tmp")){ power_q_tmp=2}}
+{if(!name_declared("qinf_scale_tmp")){ qinf_scale_tmp=1.15}}
 objref cell
 objref stim
 objref nclist, nc, nc2
@@ -19,10 +27,12 @@ objref tvec, idvec, nil
 
 //printf("%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\n", gnabar_tmp, gkdrbar_tmp, gl_tmp, gcatbar_tmp, gkcabar_tmp, ena_tmp, ek_tmp, el_tmp, eca_tmp, stim_amp, cell_size_rate)
 
-cell = new lal_vpc_single(0, 0, 0, gnabar_tmp, gkdrbar_tmp, gl_tmp, gcatbar_tmp, gkcabar_tmp, ena_tmp, ek_tmp, el_tmp, eca_tmp, cell_size_rate)
+cell = new lal_vpc_single(0, 0, 0, gnabar_tmp, gkdrbar_tmp, gl_tmp, gcatbar_tmp, gkcabar_tmp, ena_tmp, ek_tmp, el_tmp, eca_tmp, cell_size_rate, gA_tmp, a_sk_tmp, offset_tmp, coef_log_tmp, tau_sk_tmp, coef_scale_C_tmp, coef_intercept_tmp, power_q_tmp, qinf_scale_tmp)
+
+bin = 250
 
 stim = new IClamp(0.5)
-stim.dur = 1750
+stim.dur = bin * 7
 stim.amp = stim_amp
 stim.del = 100
 
@@ -115,6 +125,7 @@ for i=0, tvec.size()-2 {
     }
 }
 
+c7 = c7 + 1
 max_freqs = 1000.0 / min
 printf("##max frequency is %g##\n", max_freqs)
 
@@ -126,11 +137,36 @@ freq5 = 1000.0 / min5
 freq6 = 1000.0 / min6
 freq7 = 1000.0 / min7
 printf("change of freqs\n %f %f %f %f %f\n", freq1, freq2, freq3, freq4, freq5, freq6, freq7)
-ave1 = 1000/(ave1/c1)
-ave2 = 1000/(ave2/c2)
-ave3 = 1000/(ave3/c3)
-ave4 = 1000/(ave4/c4)
-ave5 = 1000/(ave5/c5)
-ave6 = 1000/(ave6/c6)
-ave7 = 1000/(ave7/c7)
-printf("average of each section\n %f %f %f %f %f %f %f\n", ave1, ave2, ave3, ave4, ave5, ave6, ave7)
+
+if(c1!=0){
+    ave1 = 1000.0/(ave1/c1)
+}
+if(c2!=0){
+    ave2 = 1000.0/(ave2/c2)
+}
+if(c3!=0){
+    ave3 = 1000.0/(ave3/c3)
+}
+if(c4!=0){
+    ave4 = 1000.0/(ave4/c4)
+}
+if(c5!=0){
+    ave5 = 1000.0/(ave5/c5)
+}
+if(c6!=0){
+    ave6 = 1000.0/(ave6/c6)
+}
+if(c7!=0){
+    ave7 = 1000.0/(ave7/c7)
+}
+
+printf("average of each section(ISI version)\n %f %f %f %f %f %f %f\n", ave1, ave2, ave3, ave4, ave5, ave6, ave7)
+
+ave1 = 1000/bin * c1
+ave2 = 1000/bin * c2
+ave3 = 1000/bin * c3
+ave4 = 1000/bin * c4
+ave5 = 1000/bin * c5
+ave6 = 1000/bin * c6
+ave7 = 1000/bin * c7
+printf("average of each section(count spike version)\n %f %f %f %f %f %f %f\n", ave1, ave2, ave3, ave4, ave5, ave6, ave7)

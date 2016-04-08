@@ -20,6 +20,9 @@ NEURON {
     RANGE gkcabar, ek, ikAHP, Csk, q_inf, C_gamma, tau_sk, a_sk                      : ca dependent SK current
     RANGE kca, vol, caGain                               : ca dynamics
     RANGE A_inf, B, B_inf, tau_B, gA, a_A, a_B, v_A, v_B :A(K) leak current
+    RANGE offset
+    RANGE coef_log, coef_scale_C, coef_intercept
+    RANGE power_q, qinf_scale
 }
 
 
@@ -78,6 +81,12 @@ PARAMETER {
     v_A = -20 (mV)
     v_B = -70 (mV)
     counter = 0 (1)
+    offset = 0 (mM)
+    coef_log = 2.508 (1)
+    coef_scale_C = 0.05
+    coef_intercept = 1.120
+    power_q = 2
+    q_inf_scale = 1.15
 }
 
 ASSIGNED {
@@ -136,12 +145,11 @@ BREAKPOINT {
     ina = gnabar * m_inf*m_inf*m_inf*(1-W) * (v - ena)
    
     ikD = gkdrbar * (W/sigma)^4 * (v - ek)
-    ikAHP = gkcabar * (v - ek)*q_inf*q_inf*q_inf:*q_inf
+    ikAHP = gkcabar * (v - ek)*q_inf^power_q:*q_inf
     iA = gA*A_inf*B*(v-ek)
     ik=ikD+ikAHP+iA
     ilk = gl * (v - el)
-    ica = gcatbar*X*(v-eca)
-    
+    ica = gcatbar*X*(v-eca)    
 }
 
 DERIVATIVE states {   
@@ -170,19 +178,22 @@ PROCEDURE evaluate_fct(v(mV)) {
     tau_W = 1/(lambda*(exp(a_W*(v-v_W))+exp(-a_W*(v-v_W))))
     X_inf = 1/(1+exp(-2*a_X*(v-v_X)))
     
-    q_inf = 1.15/(1+exp(-1.120-2.508*llog((Csk-C_gamma)/0.000050)))
-    :q_inf = 1.2/(1+exp(-1.120-2.508*llog((Csk-C_gamma)/0.005)))
+    q_inf = q_inf_scale/(1+exp(-coef_intercept - coef_log*llog((Csk-C_gamma-offset)/coef_scale_C)))
+    :q_inf = 1.2/(1+exp(-1.120-2.508*llog((Csk-C_gamma)/0.00005)))
     
     A_inf = 1/(1+exp(-2*a_A*(v-v_A)))
     B_inf = 1/(1+exp(-2*a_B*(v-v_B)))
     counter = counter + 1
     if(counter == 1 && t < 10){
 	printf("#time\tA_inf\tB_inf\tCsk\tCr\tq_inf\tcai\tica\tina\tik\tX\n")
+	printf("#setting of parmas\n")
+	printf("#a_sk = %g, gkdrbar = %g, gA = %g\n",a_sk, gkdrbar, gA)
     }
     if(counter > 40 && t >= 100 && t<= 2000){
 	:print every 1 milisecond
 	counter = 0
-	printf("%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\n", t, A_inf, B_inf, Csk, C_gamma, q_inf, cai, ica, ina, ik, X)
+	:printf("llog((Csk-C_gamma-offset)/0.050) = %g\n", llog((Csk-C_gamma-offset)/0.050))
+	:printf("%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\n", t, A_inf, B_inf, Csk, C_gamma, q_inf, cai, ica, ina, ik, X)
     }
 }
 

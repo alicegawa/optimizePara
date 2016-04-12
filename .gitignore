@@ -7,3 +7,8 @@ color_*
 todolist
 cma_tweann_test/*
 ./data/readData/data/*
+./data/readData/*.csv
+./data/readData/*.png
+./data/readData/changememo.txt
+./data/readData/bilateral_ref/*
+./data/readData/bilateral_ref_setting_dur_byHand/*

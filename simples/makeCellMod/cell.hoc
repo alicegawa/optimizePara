@@ -39,7 +39,7 @@ proc init(){local x, y, z, i
     soma {
 	printf("ga = %g, a_sK = %g, offseT = %g\n", ga, a_sK, offseT)
 	L = 100//30 * cell_size//100
-	diam = 300//30 * cell_size//4000
+	diam = 300 * cell_size//30 * cell_size//4000
 	nseg = 10
 	Ra = 100
 	cm = 1

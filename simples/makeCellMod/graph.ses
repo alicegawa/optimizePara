@@ -1,0 +1,54 @@
+{load_file("nrngui.hoc")}
+objectvar save_window_, rvp_
+objectvar scene_vector_[7]
+objectvar ocbox_, ocbox_list_, scene_, scene_list_
+{ocbox_list_ = new List()  scene_list_ = new List()}
+{pwman_place(0,0,0)}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,2000,-70,50)
+scene_vector_[2] = save_window_
+{save_window_.view(0, -70, 2000, 120, -7, 97, 1409.28, 363.52)}
+graphList[0].append(save_window_)
+save_window_.save_name("graphList[0].")
+save_window_.addexpr("v(.5)", 1, 1, 0.8, 0.9, 2)
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,2100,0,0.37)
+scene_vector_[3] = save_window_
+{save_window_.view(0, 0, 2100, 0.37, 598, 537, 618.24, 317.44)}
+graphList[2].append(save_window_)
+save_window_.save_name("graphList[2].")
+save_window_.addvar("cell.soma.Csk_GPeA_Belma_park( 0.05 )", 1, 1, 0.8, 0.9, 2)
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,2100,0,1.2)
+scene_vector_[4] = save_window_
+{save_window_.view(0, 0, 2100, 1.2, -9, 538, 581.76, 315.52)}
+graphList[2].append(save_window_)
+save_window_.save_name("graphList[2].")
+save_window_.addvar("cell.soma.q_inf_GPeA_Belma_park( 0.05 )", 1, 1, 0.8, 0.9, 2)
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,2100,0,1)
+scene_vector_[5] = save_window_
+{save_window_.view(0, 0, 2100, 1, 1256, 535, 517.44, 319.36)}
+graphList[2].append(save_window_)
+save_window_.save_name("graphList[2].")
+save_window_.addvar("cell.soma.X_GPeA_Belma_park( 0.05 )", 1, 1, 0.8, 0.9, 2)
+save_window_.addvar("cell.soma.X_inf_GPeA_Belma_park( 0.05 )", 2, 1, 0.8, 0.9, 2)
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,2100,-0.012,-1.16415e-10)
+scene_vector_[6] = save_window_
+{save_window_.view(0, -0.012, 2100, 0.012, 1027, 104, 526.08, 321.28)}
+graphList[2].append(save_window_)
+save_window_.save_name("graphList[2].")
+save_window_.addvar("cell.soma.ica_GPeA_Belma_park( 0.05 )", 3, 1, 0.8, 0.9, 2)
+}
+objectvar scene_vector_[1]
+{doNotify()}

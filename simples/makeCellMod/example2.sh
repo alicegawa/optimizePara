@@ -1,6 +1,6 @@
 NRNOPT=\
 " -c gnabar_tmp=0.12"\
-" -c gkdrbar_tmp=0.00175"\
+" -c gkdrbar_tmp=0.0175"\
 " -c gl_tmp=0.0003"\
 " -c gcatbar_tmp=0.0003"\
 " -c gkcabar_tmp=0.01"\
@@ -8,7 +8,7 @@ NRNOPT=\
 " -c ek_tmp=-70"\
 " -c el_tmp=-50"\
 " -c eca_tmp=124"\
-" -c stim_amp=50"\
+" -c stim_amp=100"\
 " -c cell_size_rate=3"\
 " -c gA_tmp=0.022"\
 " -c a_sk_tmp=11e-2"\

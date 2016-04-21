@@ -29,9 +29,9 @@ int loadRangeFile(char *filename, my_boundary_transformation_t *t){
 	exit(EXIT_FAILURE);
     }
     while( fgets(buf, TEXT_BUFFER_SIZE, fp) != NULL){
-	//write read program following to my setting files
-	//sscanf(buf, "%*s\t%lf\t%lf\t%*lf\t%c\n", &lowerBounds[dimension], &upperBound[dimension], &flg_log[dimension]);
-	//flg_log[dim] = (unsigned char)atoi((const char*)&flg_log[dimension]);
+	if(strncmp(buf, "#", 1) == 0){ continue;}
+	sscanf(buf, "%*s\t%lf\t%lf\t%*lf\t%c\n", &lowerBounds[dimension], &upperBounds[dimension], &flg_log[dimension]);
+	flg_log[dimension] = (unsigned char)atoi((const char*)&flg_log[dimension]);
 	dimension++;//make the dimension information here
     }
     my_boundary_transformation_init(t, lowerBounds, upperBounds, flg_log, dimension);
@@ -86,7 +86,7 @@ int main(int argc, char **argv){
     int offset;
     double flg_termination = 0;
     my_boundary_transformation_t my_boundaries;
-    char range_filename[] = "hogehoge%d.txt";
+    char range_filename[] = "../data/params.txt";
     
     int i,j;
     double util;
@@ -118,7 +118,7 @@ int main(int argc, char **argv){
     
     /*initialize for/and cmaes settings*/
 
-    //loadRangeFile(range_filename, &my_boundaries);//you must modify the filename of setting file
+    loadRangeFile(range_filename, &my_boundaries);//you must modify the filename of setting file
     dimension = my_boundaries.dimension;
     
     num_of_pop_per_procs = num_of_pop / num_of_procs_nrn;

@@ -2,12 +2,19 @@
 {if(!name_declared("COLOR")){ COLOR=-1}}
 
 NCELL = 86
+DIM_CMAES = 50
+
 
 v_init = -65
 tstop = 5
 
 objref pc
 pc = new ParallelContext()
+
+objref paramname_list
+paramname_list = new List()
+objref param_vec
+
 
 
 {load_file("../hocfile/read.hoc")}
@@ -17,6 +24,27 @@ pc = new ParallelContext()
 {load_file("../hocfile/setStim.hoc")}
 {load_file("../hocfile/rcv_info_from_CMA.hoc")}
 
+proc readParamFile(){ local dim, flg, val localobj f, paramname, sf, vec
+    strdef filename, line, tmp
+    //sprint(filename, "%s/params%02d.txt", DIR_TARGET, paramfile_suf.x(0))
+    sprint(filename, "../data/params.txt")
+    vec = new Vector()
+    f = new File()
+    { f.ropen(filename) }
+    sf = new StringFunctions()
+    dim = 0
+    while( f.gets(line) != -1){
+	if( sf.tail(line, "#", tmp) == 1){ continue }
+	{sscanf(line, "%s\t%*lf\t%*lf\t%lf%*c\n", tmp, &val)}
+	paramname = new String(tmp)
+	paramname_list.append(paramname)
+	vec.append(val)
+	dim += 1
+    }
+    DIM_CMAES = dim
+    return vec
+}
+
 func evalFitness(){ local sum, scaleFactor, n localobj hoge
     //define fitness function. under construction
     sum = 0.0
@@ -25,6 +53,17 @@ func evalFitness(){ local sum, scaleFactor, n localobj hoge
     // calc the fitness here under construction
     
     return sum * scaleFactor
+}
+
+proc updateParams(){ local i, idx_start localobj param_vec
+    param_vec = $o1
+    idx_start = $2
+    strdef stmt
+    
+    for(i = 0; i < DIM_CMAES; i += 1){
+	sprint(stmt, paramname_list.o(i).s, param_vec.x(idx_start+1))
+	{execute(stmt)}
+    }
 }
 
 proc execSimulation(){ local i, j, root, fitness, tempfit, flg_cmaes_terminate, num_of_pop_per_procs, dim_cmaes, num_of_targetfile, timestep, log_fitness localobj rcv_pop_vec, send_fit_vec, nullvec, tempvec, vec

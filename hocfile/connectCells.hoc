@@ -12,8 +12,9 @@ proc connectCells(){local i, j localobj syn, nc, nil
 		nc = pc.gid_connect(j, syn)
 		nclist.append(nc)
 		nc.threshold = 0
-		nc.delay = delay.x[i][j]
-		nc.weight = weight.x[i][j]
+		nc.delay = 0.5//temporary initial param
+		nc.weight = 0//temporary initial param(update by 'updateParam' immediately)
+		nclist.append(nc)
 	    }
 	}
     }

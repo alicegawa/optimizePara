@@ -1,12 +1,16 @@
 {load_file("nrngui.hoc")}
 {if(!name_declared("COLOR")){ COLOR=-1}}
 
-NCELL = 86
+NCELL = 5//86
 DIM_CMAES = 50
 
 
 v_init = -65
-tstop = 5
+tstop = 50
+
+iamp = 100
+idelay = 20
+idur = tstop - idelay
 
 objref pc
 pc = new ParallelContext()
@@ -15,7 +19,10 @@ objref paramname_list
 paramname_list = new List()
 objref param_vec
 
-
+objref weight
+objref delay
+weight = new Matrix(NCELL, NCELL)
+delay = new Matrix(NCELL, NCELL)
 
 {load_file("../hocfile/read.hoc")}
 {load_file("../hocfile/cells.hoc")}
@@ -24,7 +31,7 @@ objref param_vec
 {load_file("../hocfile/setStim.hoc")}
 {load_file("../hocfile/rcv_info_from_CMA.hoc")}
 
-proc readParamFile(){ local dim, flg, val localobj f, paramname, sf, vec
+obfunc readParamFile(){ local dim, flg, val localobj f, paramname, sf, vec
     strdef filename, line, tmp
     //sprint(filename, "%s/params%02d.txt", DIR_TARGET, paramfile_suf.x(0))
     sprint(filename, "../data/params.txt")
@@ -35,7 +42,12 @@ proc readParamFile(){ local dim, flg, val localobj f, paramname, sf, vec
     dim = 0
     while( f.gets(line) != -1){
 	if( sf.tail(line, "#", tmp) == 1){ continue }
-	{sscanf(line, "%s\t%*lf\t%*lf\t%lf%*c\n", tmp, &val)}
+	{sscanf(line, "%*s\t%*lf\t%*lf\t%lf%*c\n", &val)}
+	if(dim < (DIM_CMAES * 0.5)){
+	    sprint(tmp, "nclist.o(%d).weight", dim)
+	}else{
+	    sprint(tmp, "nclist.o(%d).delay", (dim - DIM_CMAES * 0.5))
+	}
 	paramname = new String(tmp)
 	paramname_list.append(paramname)
 	vec.append(val)
@@ -55,14 +67,24 @@ func evalFitness(){ local sum, scaleFactor, n localobj hoge
     return sum * scaleFactor
 }
 
-proc updateParams(){ local i, idx_start localobj param_vec
+proc updateParams(){ local i, start_idx localobj param_vec
     param_vec = $o1
-    idx_start = $2
+    start_idx = $2
     strdef stmt
     
     for(i = 0; i < DIM_CMAES; i += 1){
-	sprint(stmt, paramname_list.o(i).s, param_vec.x(idx_start+1))
+	sprint(stmt, paramname_list.o(i).s, param_vec.x(i+start_idex))
 	{execute(stmt)}
+    }
+}
+	
+proc updateParams_tmp(){local i localobj param_vec
+    param_vec = $o1
+    strdef stmt
+    for i=0, cells.count - 1 {
+	for j=0, NCELL-1{
+	    nclist.o(i * NCELL + j).weight = param_vec.x(NCELL*(pc.id + pc.nhost * i) + j)
+	}
     }
 }
 
@@ -77,6 +99,9 @@ proc execSimulation(){ local i, j, root, fitness, tempfit, flg_cmaes_terminate, 
     {pc.set_parent_comm()}
     
     receiveInfo()
+    
+    vec = readParamFile()
+    updateParams_tmp(vec)
     
     root = 0
     nullvec = new Vector()
@@ -97,7 +122,8 @@ proc execSimulation(){ local i, j, root, fitness, tempfit, flg_cmaes_terminate, 
 	//the number of loop = the number of particle this process has..
 	for(i=0; i<num_of_pop_per_procs; i+=1){
 	    fitness = 0.0
-	    //updatePrams
+	    //updateParams(rcv_pop_vec)
+	    updateParams_tmp(vec)
 	    for(j=0; j<num_of_targetfile; j+=1){
 		//setIClamp
 		//initModel
@@ -137,6 +163,7 @@ proc stopTest(){local break_loop, confirm_scatter, root, counter localobj nullve
     root = 0
     counter = 0
     
+    {connectCells(NCELL)}
     while(1){
 	printf("infinit loop\n")
 	{ pc.set_parent_comm() }
@@ -170,21 +197,25 @@ proc stopTest(){local break_loop, confirm_scatter, root, counter localobj nullve
     }
 }
 
-// {read_settings(NCELL)}
-// {makeCells(NCELL)}
-// {pc.barrier()}
-// {connectCells(NCELL)}
-// {pc.barrier()}
-//{setStim(NCELL, tstop)}
+{read_settings(NCELL)}
+{makeCells(NCELL)}
+{pc.barrier()}
+{connectCells(NCELL)}
+{pc.barrier()}
+objref vec_test
+{vec_test = readParamFile()}
+{updateParams_tmp(vec_test)}
+{setStimShort(NCELL, idur, iamp, idelay)}
 //{setSpikeRecord(NCELL)}
-//{finitialize(v_init)}
-//{fcurrent()}
-//{pc.set_maxstep(10)}
-//{stdinit()}
-stopTest()
+{finitialize(v_init)}
+{fcurrent()}
+{pc.set_maxstep(10)}
+{stdinit()}
+//stopTest()
 //{pc.psolve(tstop)}
 //{pc.barrier()}
 //{writeFiles(pc.id, pc.nhost, NCELL)}
+{pc.psolve(tstop)}
 {pc.runworker()}
 {pc.done()}
 quit()

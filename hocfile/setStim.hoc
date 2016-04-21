@@ -1,6 +1,7 @@
 {load_file("nrngui.hoc")}
 
 objref stimlist
+objref nclist_stim
 
 proc setStim(){ local cellCounter, num_cell, nNumber, tempIave, tempSigma, longingTime localobj stimFile, noiseStim
     
@@ -25,3 +26,24 @@ proc setStim(){ local cellCounter, num_cell, nNumber, tempIave, tempSigma, longi
     }
     stimFile.close()
 }
+
+proc setStimShort(){local num_cell, dur, amp, delay localobj stim, nc
+    num_cell = $1
+    dur = $2
+    amp = $3
+    delay = $4
+    stimlist = new List()
+    nclist_stim = new List()
+    if(pc.gid_exists(0)) {
+	pc.gid2cell(0){
+	    stim = new IClamp(0.5)
+	    stim.dur = dur
+	    stim.amp = amp
+	    stim.del = delay
+	    stimlist.append(stim)
+	    nc = new NetCon(stim, pc.gid2cell(0).synlist.o(0),0,0.1, 0.01)
+	    nclist_stim.append(nc)
+	}
+    }
+}
+	

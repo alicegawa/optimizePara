@@ -23,6 +23,20 @@ proc writeFiles(){local pc_id, pc_nhost, num_cell
     writeWeight(pc_id, pc_nhost, num_cell)
 }
 
+obfunc getFreq(){local i, start_time, counter
+    start_time = $1
+    binwidth = $2
+    counter = 0
+    for i = 0, tvec.size()-1{
+	if(idvec.x(i) == (NCELL - 1)){
+	    if(tvec.x(i) > start_time && tvec.x(i) < ( start_time + binwidth)){
+		counter = counter + 1
+	    }
+	}
+    }
+    return counter * (1000 / binwidth) //transform to frequency
+}
+
 proc writeSpike(){local i, rank, pc_id, pc_nhost, num_cell
     pc_id = $1
     pc_nhost = $2

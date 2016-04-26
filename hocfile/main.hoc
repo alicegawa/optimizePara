@@ -1,12 +1,12 @@
 {load_file("nrngui.hoc")}
 {if(!name_declared("COLOR")){ COLOR=-1}}
 
-NCELL = 5//86
+NCELL = 6//86
 DIM_CMAES = 50
 
 
 v_init = -65
-tstop = 50
+tstop = 1000
 
 iamp = 100
 idelay = 20
@@ -23,6 +23,19 @@ objref weight
 objref delay
 weight = new Matrix(NCELL, NCELL)
 delay = new Matrix(NCELL, NCELL)
+
+//make fitting Vector
+objref fittingVec
+recordBin = 125
+numFitLoop = tstop / recordBin
+fittingVec = new Vector(numFitLoop-2)
+for index = 0, fittingVec.size() - 1 {
+    if(index == 0 || index == 1 || index == (fittingVec.size() - 2) || index == (fittingVec.size() - 1)){
+	fittingVec.x(i) = 30
+    }else{
+	fittingVec.x(i) = 100
+    }
+}
 
 {load_file("../hocfile/read.hoc")}
 {load_file("../hocfile/cells.hoc")}
@@ -57,13 +70,21 @@ obfunc readParamFile(){ local dim, flg, val localobj f, paramname, sf, vec
     return vec
 }
 
-func evalFitness(){ local sum, scaleFactor, n localobj hoge
+func evalFitness(){ local sum, scaleFactor, n, i, tmpFreq localobj hoge
     //define fitness function. under construction
     sum = 0.0
-    scaleFactor  = 0.3 //temporarily
+    scaleFactor = 0.3 //temporarily
     
     // calc the fitness here under construction
-    
+    if(pc.gid_exists(NCELL-1)){
+	for i = 0, fittingVec.size() - 1  {
+	    tmpFreq = getFreq(recordBin * i, recordBin * 2)//250ms bin overlapped each 125ms
+	    printf("freq(%d ~ %d) is %d\t", recordBin * i, recordBin * (i+1), tmpFreq) 
+	    sum += (tmpFreq - fittingVec.x(i)) * (tmpFreq - fittingVec.x(i))
+	}
+	printf("\n")
+    }
+	
     return sum * scaleFactor
 }
 
@@ -84,11 +105,12 @@ proc updateParams_tmp(){local i localobj param_vec
     for i=0, cells.count - 1 {
 	for j=0, NCELL-1{
 	    nclist.o(i * NCELL + j).weight = param_vec.x(NCELL*(pc.id + pc.nhost * i) + j)
+	    nclist.o(i * NCELL + j).delay = param_vec.x(NCELL*( NCELL + pc.id + pc.nhost * i) + j)
 	}
     }
 }
 
-proc execSimulation(){ local i, j, root, fitness, tempfit, flg_cmaes_terminate, num_of_pop_per_procs, dim_cmaes, num_of_targetfile, timestep, log_fitness localobj rcv_pop_vec, send_fit_vec, nullvec, tempvec, vec
+proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num_of_pop_per_procs, dim_cmaes, num_of_targetfile, timestep, log_fitness localobj rcv_pop_vec, send_fit_vec, nullvec, tempvec, vec
     
     num_of_pop_per_procs = $1
     dim_cmaes = $2
@@ -110,7 +132,7 @@ proc execSimulation(){ local i, j, root, fitness, tempfit, flg_cmaes_terminate, 
     {pc.set_parent_comm()}
     {pc.barrier()}
     
-    while(1) {
+    while(1){
 	{pc.set_parent_comm()}
 	
 	rcv_pop_vec = new Vector()
@@ -124,21 +146,20 @@ proc execSimulation(){ local i, j, root, fitness, tempfit, flg_cmaes_terminate, 
 	    fitness = 0.0
 	    //updateParams(rcv_pop_vec)
 	    updateParams_tmp(vec)
-	    for(j=0; j<num_of_targetfile; j+=1){
-		//setIClamp
-		//initModel
-		pc.psolve(timestep)//timestep = tstop in original file
-		tempfit = evalFitness()
-		//if fitness converted to log_fitness, write here like below
-		if(log_fitness == 1){
-		    if(tempfit == 0){
-			tempfit = -1e100
-		    }else{
-			tempfit = log10(tempfit)
-		    }
+	    //setIClamp
+	    //initModel
+	    pc.psolve(timestep)//timestep = tstop in original file
+	    tempfit = evalFitness()
+	    //if fitness converted to log_fitness, write here like below
+	    if(log_fitness == 1){
+		if(tempfit == 0){
+		    tempfit = -1e100
+		}else{
+		    tempfit = log10(tempfit)
 		}
-		fitness += tempfit
 	    }
+	    fitness += tempfit
+	    
 	    send_fit_vec.x(i) = fitness
 	}
 	

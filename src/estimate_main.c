@@ -175,47 +175,58 @@ int main(int argc, char **argv){
 
     t_start = MPI_Wtime();
 
-    /* /\*Start main section of estimation*\/ */
-    /* while(1){ */
-    /* 	if(I_AM_ROOT_IN_SPLIT){ */
-    /* 	    pop = cmaes_SamplePopulation(&evo);/\*do not change content of pop*\/ */
-    /* 	    for(i=0;i<num_of_pop;++i){ */
-    /* 		my_boundary_transformation(&my_boundaries, pop[i], x_temp); */
-    /* 		for(j=0;j<dimension;++j){ */
-    /* 		    pop_sendbuf[(i + offset) * dimension + j] = x_temp[j]; */
-    /* 		} */
-    /* 	    } */
-    /* 	    /\*evaluate the new searching points*\/ */
-    /* 	    MPI_Scatter(pop_sendbuf, num_of_pop_per_procs * dimension, MPI_DOUBLE, pop_rcvbuf, num_of_pop_per_procs * dimension, MPI_DOUBLE, root_process_spawn, nrn_comm); */
-    /* 	    /\* wait for NEURON simulation in worker nodes *\/ */
-    /* 	    MPI_Gather(arFunvals_buf1, num_of_pop_per_procs, MPI_DOUBLE, arFunvals_buf2, num_of_pop_per_procs, MPI_DOUBLE, root_process_spawn, nrn_comm); */
+    /*Start main section of estimation*/
+    while(1){
+    	if(I_AM_ROOT_IN_MAIN){
+    	    pop = cmaes_SamplePopulation(&evo);/*do not change content of pop*/
+    	    for(i=0;i<num_of_pop;++i){
+    		my_boundary_transformation(&my_boundaries, pop[i], x_temp);
+    		for(j=0;j<dimension;++j){
+    		    pop_sendbuf[(i + offset) * dimension + j] = x_temp[j];
+    		}
+    	    }
+	}
+	//when you spawn, it can be that scatter in MPI_COMM_WORLD (but the line below is temporaly)
+	MPI_Scatter(pop_sendbuf_global, num_of_pop_per_split, MPI_DOUBLE, pop_rcvbuf, num_of_pop_per_split, MPI_DOUBLE, root_process_main, MPI_COMM_WORLD);
+	if(I_AM_ROOT_IN_SPLIT){
+    	    /*evaluate the new searching points*/
+    	    MPI_Scatter(pop_sendbuf, num_of_pop_per_procs * dimension, MPI_DOUBLE, pop_rcvbuf, num_of_pop_per_procs * dimension, MPI_DOUBLE, root_process_spawn, nrn_comm);
+    	    /* wait for NEURON simulation in worker nodes */
+    	    MPI_Gather(arFunvals_buf1, num_of_pop_per_procs, MPI_DOUBLE, arFunvals_buf2, num_of_pop_per_procs, MPI_DOUBLE, root_process_spawn, nrn_comm);
 
-    /* 	    for(i=0;i<num_of_pop; ++i){ */
-    /* 		arFunvals[i] = arFunvals_buf2[i + offset]; */
-    /* 	    } */
-    /* 	    /\*update the search distribution used for cmaes_sampleDistribution()*\/ */
-    /* 	    cmaes_UpdateDistribution(&evo, arFunvals); /\*assume that pop[] has not been modified*\/ */
-    /* 	} */
-    /* 	fflush(stdout); */
-    /* 	/\*terminatinn*\/ */
-    /* 	if(I_AM_ROOT_IN_SPLIT){ */
-    /* 	    if(cmaes_TestForTermination(&evo)){ */
-    /* 		flg_termination = 1; */
-    /* 	    } */
-    /* 	    send_count = 1; */
-    /* 	    MPI_Bcast_to_NEURON(&flg_termination, 1, MPI_DOUBLE, root_process_split, splitcomm); */
-    /* 	    MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, root_process_split, splitcomm); */
-    /* 	    if((int)flg_termination){ */
-    /* 		break; */
-    /* 	    } */
-    /* 	}/\*cmaes termination*\/ */
-    /* }/\*end of cmaes loop*\/ */
-        /* if( I_AM_ROOT_IN_SPLIT){ */
-    /* 	printf("#Stop:\n%s\n", cmaes_TestForTermination(&evo)); /\*print termination reason*\/ */
-    /* 	printf("\n# operation finished.\n# elapsed time: %f\n #fbest: %f\n #xbest:", t_end - t_start, cmaes_Get(&evo, "fbestever")); */
-    /* 	my_boundary_transformation(&my_boundaries, (double *)cmaes_GetPtr(&evo, "xbestever"), x_temp); */
-    /* 	fflush(stdout); */
-    /* } */
+    	    for(i=0;i<num_of_pop; ++i){
+    		arFunvals[i] = arFunvals_buf2[i + offset];
+    	    }
+	}
+	/*then collect information of all split process and update (temporaly setting parameter)*/
+	MPI_Gather(arFunvals_whole, num_of_pop_per_split, MPI_DOUBLE, arFunvals, MPI_DOUBLE, num_of_pop_per_split, MPI_DOUBLE, root_process_main, MPI_COMM_WORLD);
+	if(I_AM_ROOT_IN_MAIN){
+    	    /*update the search distribution used for cmaes_sampleDistribution()*/
+    	    cmaes_UpdateDistribution(&evo, arFunvals); /*assume that pop[] has not been modified*/
+    	}
+    	fflush(stdout);
+    	/*terminatinn*/
+    	if(I_AM_ROOT_IN_MAIN){
+    	    if(cmaes_TestForTermination(&evo)){
+    		flg_termination = 1;
+    	    }
+    	    send_count = 1;
+	    MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, root_process_main, MPI_COMM_WORLD);
+	}
+	if(I_AM_ROOT_IN_SPLIT){
+    	    MPI_Bcast_to_NEURON(&flg_termination, 1, MPI_DOUBLE, root_process_split, splitcomm);
+    	    MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, root_process_split, splitcomm);
+    	    if((int)flg_termination){
+    		break;
+    	    }
+    	}/*cmaes termination*/
+    }/*end of cmaes loop*/
+    if( I_AM_ROOT_IN_MAIN){
+    	printf("#Stop:\n%s\n", cmaes_TestForTermination(&evo)); /*print termination reason*/
+    	printf("\n# operation finished.\n# elapsed time: %f\n #fbest: %f\n #xbest:", t_end - t_start, cmaes_Get(&evo, "fbestever"));
+    	my_boundary_transformation(&my_boundaries, (double *)cmaes_GetPtr(&evo, "xbestever"), x_temp);
+    	fflush(stdout);
+    }
 
     /* for communication test between nrncomms*/
     test_sendbuf = (double *)calloc(20, sizeof(double));

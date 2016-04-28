@@ -67,26 +67,33 @@ int main(int argc, char **argv){
     char specials[] = "special";
     char **neuron_argv;
     char option_mpi[] = "-mpi", option_nobanner[] = "-nobanner", HOCFILE[] = "../hocfile/main.hoc";
-    int num_of_pop_per_procs;
-    int num_of_procs_nrn = 4;//for test
+    int num_of_pop_per_procs, num_of_pop_per_split;
+    int num_of_procs_nrn = 6;//for test
     double t_start, t_end;
     int send_count;
     
     cmaes_t evo;
-    double *arFunvals, *arFunvals_buf1, *arFunvals_buf2, *const*pop, *xfinal;
+    double *arFunvals, *arFunvals_split_buf1, *arFunvals_split_buf2, *const*pop, *xfinal;
+    double *arFunvals_whole, *arFunvals_whole_buf;
     double *initialX, *initialSigma;
-    int mu = -1;
+    int mu = 64;//-1;
     unsigned int seed = 0;
     unsigned int dimension;
+    unsigned int dimension_per_nrnprocs;
     int max_eval = -1, max_iter = -1;
     char initfile[] = "cmaes_initials.par";
-    unsigned int num_of_pop = 16;//for test
-    double *pop_sendbuf, *pop_rcvbuf;
+    unsigned int num_of_pop = 1024;//for test
+    double *pop_sendbuf_nrn_weight, *pop_sendbuf_nrn_delay, *pop_rcvbuf_nrn_weight, *pop_rcvbuf_nrn_delay;
+    double *pop_sendbuf_split_whole, *pop_sendbuf_split_weight, *pop_sendbuf_split_delay, *pop_rcvbuf_split_weight, *pop_rcvbuf_split_delay;
+    int num_sendparams;
     double *x_temp;
-    int offset;
+    int offset, offset_split_scatter;
+    int num_params_only_weight_or_delay;
     double flg_termination = 0;
     my_boundary_transformation_t my_boundaries;
     char range_filename[] = "../data/params.txt";
+    int num_of_params_per_nrnprocs;
+    int num_of_weight_delay_per_procs;
     
     int i,j;
     double util;
@@ -120,13 +127,39 @@ int main(int argc, char **argv){
 
     loadRangeFile(range_filename, &my_boundaries);//you must modify the filename of setting file
     dimension = my_boundaries.dimension;
+
     
-    num_of_pop_per_procs = num_of_pop / num_of_procs_nrn;
-    offset = num_of_pop_per_procs;
-    pop_sendbuf = (double *)calloc((num_of_pop + offset) * dimension, sizeof(double));
-    pop_rcvbuf = (double *)malloc(num_of_pop_per_procs * dimension * sizeof(double));
-    arFunvals_buf1 = (double *)calloc(num_of_pop_per_procs, sizeof(double));
-    arFunvals_buf2 = (double *)calloc(num_of_pop + offset, sizeof(double));
+    dimension_per_nrnprocs = dimension / num_of_procs_nrn; // param dimension of each nrn process(weight and delay)
+    num_params_only_weight_or_delay = dimension * num_of_pop / 2;
+    
+    num_of_pop_per_split = num_of_pop / main_size;
+    num_of_params_per_nrnprocs = dimension_per_nrnprocs * num_of_pop_per_split;
+    num_of_weight_delay_per_procs = num_of_params_per_nrnprocs / 2;
+
+    num_sendparams = dimension * num_of_pop_per_split / 2;
+//num_of_pop_per_procs = num_of_pop_per_split / num_of_procs_nrn;
+    //offset = num_of_pop_per_procs;
+    offset_split_scatter = num_of_pop_per_split;
+    offset = num_of_params_per_nrnprocs / 2;
+
+    pop_sendbuf_split_whole = (double *)calloc(dimension * (num_of_pop + offset_split_scatter), sizeof(double));
+    
+    pop_sendbuf_split_weight = (double *)calloc(dimension * (num_of_pop + num_of_pop_per_split) / 2, sizeof(double));
+    pop_sendbuf_split_delay = (double *)calloc(dimension * (num_of_pop + num_of_pop_per_split) / 2, sizeof(double));
+
+    pop_rcvbuf_split_weight = (double *)malloc(sizeof(double) * num_sendparams);
+    pop_rcvbuf_split_delay = (double *)malloc(sizeof(double) * num_sendparams);
+
+    pop_sendbuf_nrn_weight = (double *)calloc(offset + num_sendparams, sizeof(double));
+    pop_sendbuf_nrn_delay = (double *)calloc(offset + num_sendparams, sizeof(double));
+    pop_rcvbuf_nrn_weight = (double *)malloc(num_of_weight_delay_per_procs * sizeof(double));
+    pop_rcvbuf_nrn_delay= (double *)malloc(num_of_weight_delay_per_procs * sizeof(double));
+
+    arFunvals_split_buf1 = (double *)calloc(num_of_pop_per_split * num_of_procs_nrn, sizeof(double));
+    arFunvals_split_buf2 = (double *)calloc(num_of_pop_per_split * num_of_procs_nrn + num_of_pop_per_split , sizeof(double));
+
+    arFunvals_whole_buf = (double *)calloc(num_of_pop_per_split, sizeof(double));
+    arFunvals_whole = (double *)calloc(num_of_pop + num_of_pop_per_split, sizeof(double));
     x_temp = (double *)malloc(dimension * sizeof(double));
     
     initialX = (double *)malloc(sizeof(double) * dimension);
@@ -160,7 +193,7 @@ int main(int argc, char **argv){
     /*********caution********/
     /*execute MPI_Comm_spawn (from below, until sending finalize signal to nrncomm, the program should not end.*/
     if( I_AM_ROOT_IN_SPLIT){
-	MPI_Comm_spawn(specials, neuron_argv, 4, MPI_INFO_NULL, 0, splitcomm, &intercomm, MPI_ERRCODES_IGNORE);
+	MPI_Comm_spawn(specials, neuron_argv, num_of_procs_nrn, MPI_INFO_NULL, 0, splitcomm, &intercomm, MPI_ERRCODES_IGNORE);
 	MPI_Intercomm_merge(intercomm, 0, &nrn_comm);
 	MPI_Comm_size(nrn_comm, &spawn_size);
 	MPI_Comm_rank(nrn_comm, &spawn_myid);
@@ -182,25 +215,39 @@ int main(int argc, char **argv){
     	    for(i=0;i<num_of_pop;++i){
     		my_boundary_transformation(&my_boundaries, pop[i], x_temp);
     		for(j=0;j<dimension;++j){
-    		    pop_sendbuf[(i + offset) * dimension + j] = x_temp[j];
+    		    pop_sendbuf_split_whole[(i + offset_split_scatter) * dimension + j] = x_temp[j];
     		}
     	    }
+	    for(i=0;i<num_params_only_weight_or_delay;++i){
+		pop_sendbuf_split_weight[i] = pop_sendbuf_split_whole[i + offset_split_scatter * dimension];
+		pop_sendbuf_split_delay[i] = pop_sendbuf_split_whole[i + num_params_only_weight_or_delay + offset_split_scatter * dimension];
+	    }
 	}
 	//when you spawn, it can be that scatter in MPI_COMM_WORLD (but the line below is temporaly)
-	MPI_Scatter(pop_sendbuf_global, num_of_pop_per_split, MPI_DOUBLE, pop_rcvbuf, num_of_pop_per_split, MPI_DOUBLE, root_process_main, MPI_COMM_WORLD);
+	MPI_Scatter(pop_sendbuf_split_weight, num_sendparams, MPI_DOUBLE, pop_rcvbuf_split_weight, num_sendparams, MPI_DOUBLE, root_process_main, MPI_COMM_WORLD);
+	MPI_Scatter(pop_sendbuf_split_delay, num_sendparams, MPI_DOUBLE, pop_rcvbuf_split_delay, num_sendparams, MPI_DOUBLE, root_process_main, MPI_COMM_WORLD);
 	if(I_AM_ROOT_IN_SPLIT){
+	    for(i=0;i<num_sendparams;++i){
+		pop_sendbuf_nrn_weight[i+offset] = pop_rcvbuf_split_weight[i];
+		pop_sendbuf_nrn_delay[i+offset] = pop_rcvbuf_split_delay[i];
+	    }
     	    /*evaluate the new searching points*/
-    	    MPI_Scatter(pop_sendbuf, num_of_pop_per_procs * dimension, MPI_DOUBLE, pop_rcvbuf, num_of_pop_per_procs * dimension, MPI_DOUBLE, root_process_spawn, nrn_comm);
+    	    MPI_Scatter(pop_sendbuf_nrn_weight, num_of_weight_delay_per_procs, MPI_DOUBLE, pop_rcvbuf_nrn_weight, num_of_weight_delay_per_procs, MPI_DOUBLE, root_process_spawn, nrn_comm);
+	    MPI_Scatter(pop_sendbuf_nrn_delay, num_of_weight_delay_per_procs, MPI_DOUBLE, pop_rcvbuf_nrn_delay, num_of_weight_delay_per_procs, MPI_DOUBLE, root_process_spawn, nrn_comm);
+	    
     	    /* wait for NEURON simulation in worker nodes */
-    	    MPI_Gather(arFunvals_buf1, num_of_pop_per_procs, MPI_DOUBLE, arFunvals_buf2, num_of_pop_per_procs, MPI_DOUBLE, root_process_spawn, nrn_comm);
+    	    MPI_Gather(arFunvals_split_buf1, num_of_pop_per_split, MPI_DOUBLE, arFunvals_split_buf2, num_of_pop_per_split, MPI_DOUBLE, root_process_spawn, nrn_comm);
 
-    	    for(i=0;i<num_of_pop; ++i){
-    		arFunvals[i] = arFunvals_buf2[i + offset];
+    	    for(i=0;i<num_of_pop_per_split; ++i){
+    		arFunvals_whole_buf[i] = arFunvals_split_buf2[i + num_of_pop_per_split];
     	    }
 	}
 	/*then collect information of all split process and update (temporaly setting parameter)*/
-	MPI_Gather(arFunvals_whole, num_of_pop_per_split, MPI_DOUBLE, arFunvals, MPI_DOUBLE, num_of_pop_per_split, MPI_DOUBLE, root_process_main, MPI_COMM_WORLD);
+	MPI_Gather(arFunvals_whole_buf, num_of_pop_per_split, MPI_DOUBLE, arFunvals_whole, num_of_pop_per_split, MPI_DOUBLE, root_process_main, MPI_COMM_WORLD);
 	if(I_AM_ROOT_IN_MAIN){
+	    for(i=0;i<num_of_pop;++i){
+		arFunvals[i] = arFunvals_whole[num_of_pop_per_split + i];
+	    }
     	    /*update the search distribution used for cmaes_sampleDistribution()*/
     	    cmaes_UpdateDistribution(&evo, arFunvals); /*assume that pop[] has not been modified*/
     	}
@@ -277,11 +324,20 @@ int main(int argc, char **argv){
     free(x_temp);
     free(initialX);
     free(initialSigma);
-    free(pop_sendbuf);
-    free(pop_rcvbuf);
-    free(arFunvals_buf1);
-    free(arFunvals_buf2);
-
+    free(pop_sendbuf_split_whole);
+    free(pop_sendbuf_nrn_delay);
+    free(pop_sendbuf_nrn_weight);
+    free(pop_sendbuf_split_delay);
+    free(pop_sendbuf_split_weight);
+    free(pop_rcvbuf_split_delay);
+    free(pop_rcvbuf_split_weight);
+    free(pop_rcvbuf_nrn_weight);
+    free(pop_rcvbuf_nrn_delay);
+  
+    free(arFunvals_split_buf1);
+    free(arFunvals_split_buf2);
+    free(arFunvals_whole_buf);
+    free(arFunvals_whole);
 
     for(i=0;i<6;i++){
 	free(neuron_argv[i]);

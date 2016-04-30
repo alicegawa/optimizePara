@@ -2,8 +2,8 @@
 {if(!name_declared("COLOR")){ COLOR=-1}}
 
 NCELL = 6//86
-DIM_CMAES = 50
-
+DIM_CMAES = 2 * NCELL * NCELL
+NUM_OF_POP_PER_PROCS = 16//for first test...(recieve information from cmaes process properly)
 
 v_init = -65
 tstop = 1000
@@ -42,7 +42,20 @@ for index = 0, fittingVec.size() - 1 {
 {load_file("../hocfile/connectCells.hoc")}
 {load_file("../hocfile/record.hoc")}
 {load_file("../hocfile/setStim.hoc")}
-{load_file("../hocfile/rcv_info_from_CMA.hoc")}
+
+proc receiveInfo(){ local root localobj vec
+    //[num_of_pop_per_procs, targetNum, paramfile_suf]
+    root = 0
+    vec = new Vector(3)
+    pc.broadcast(vec, root)
+    
+    NUM_OF_POP_PER_PROCS = int(vec.x(0))
+    SETTINGFILE_SUF = int(vec.x(1))
+    // TARGETFILE_SUF = int(vec.x(1))
+    // PARAMFILE_SUF = int(vec.x(2))
+    // CURRENTFILE_SUF = int(vec.x(3))
+    // ELECTRODEFILE_SUF = int(vec.x(4))
+}
 
 obfunc readParamFile(){ local dim, flg, val localobj f, paramname, sf, vec
     strdef filename, line, tmp
@@ -76,7 +89,7 @@ func evalFitness(){ local sum, scaleFactor, n, i, tmpFreq localobj hoge
     scaleFactor = 0.3 //temporarily
     
     // calc the fitness here under construction
-    if(pc.gid_exists(NCELL-1)){
+    if(pc.gid_exists(NCELL-1) || pc.gid_exists(0)){
 	for i = 0, fittingVec.size() - 1  {
 	    tmpFreq = getFreq(recordBin * i, recordBin * 2)//250ms bin overlapped each 125ms
 	    printf("freq(%d ~ %d) is %d\t", recordBin * i, recordBin * (i+1), tmpFreq) 
@@ -105,12 +118,37 @@ proc updateParams_tmp(){local i localobj param_vec
     for i=0, cells.count - 1 {
 	for j=0, NCELL-1{
 	    nclist.o(i * NCELL + j).weight = param_vec.x(NCELL*(pc.id + pc.nhost * i) + j)
-	    nclist.o(i * NCELL + j).delay = param_vec.x(NCELL*( NCELL + pc.id + pc.nhost * i) + j)
+	    nclist.o(i * NCELL + j).delay = param_vec.x(NCELL*(NCELL + pc.id + pc.nhost * i) + j)
 	}
     }
 }
 
-proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num_of_pop_per_procs, dim_cmaes, num_of_targetfile, timestep, log_fitness localobj rcv_pop_vec, send_fit_vec, nullvec, tempvec, vec
+proc updateParams2(){local i, start_idx localobj param_vec_weight, param_vec_delay
+    param_vec_weight = $o1
+    param_vec_delay = $o2
+    start_idx = $3
+    for i=0, cells.count - 1 {
+	for j=0, NCELL-1{
+	    nclist.o(i * NCELL + j).weight = param_vec_weight.x(NCELL*(start_idx + pc.id + pc.nhost * i) + j)
+	    nclist.o(i * NCELL + j).delay = param_vec_delay.x(NCELL*(start_idx + pc.id + pc.nhost * i) + j)
+	}
+    }
+}
+
+func detectOutputProc(){local i, proc_id, num_cell, div, nhost
+    num_cell = $1
+    nhost = $2
+    if(num_cell <= nhost){
+	proc_id = num_cell - 1
+	return proc_id
+    }else{
+	div = int(num_cell / nhost)
+	proc_id = num_cell - div * nhost - 1
+	return proc_id
+    }
+}
+
+proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num_of_pop_per_procs, dim_cmaes, num_of_targetfile, timestep, log_fitness, output_id, start_timing localobj rcv_pop_vec_weight, rcv_pop_vec_delay, send_fit_vec, nullvec, tempvec, vec
     
     num_of_pop_per_procs = $1
     dim_cmaes = $2
@@ -119,8 +157,8 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
     log_fitness = $5
     
     {pc.set_parent_comm()}
-    
-    receiveInfo()
+        
+    {receiveInfo()}
     
     vec = readParamFile()
     updateParams_tmp(vec)
@@ -129,26 +167,47 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
     nullvec = new Vector()
     tempvec = new Vector()
     
-    {pc.set_parent_comm()}
+    {pc.set_world_comm()}
     {pc.barrier()}
     
+    output_id = detectOutputProc(NCELL, pc.nhost)
+    
+    
     while(1){
+	start_timing = 0
 	{pc.set_parent_comm()}
 	
-	rcv_pop_vec = new Vector()
+	rcv_pop_vec_weight = new Vector()
+	rcv_pop_vec_delay = new Vector()
 	send_fit_vec = new Vector(num_of_pop_per_procs)
 	
-	pc.scatter_d(nullvec, rcv_pop_vec, dim_cmaes * num_of_pop_per_procs, root)
+	//recieve weight data
+	pc.scatter_d(nullvec, rcv_pop_vec_weight, dim_cmaes * num_of_pop_per_procs, root)
+	//recieve delay data
+	pc.scatter_d(nullvec, rcv_pop_vec_delay, dim_cmaes * num_of_pop_per_procs, root)
 	
 	{pc.set_world_comm()}
 	//the number of loop = the number of particle this process has..
 	for(i=0; i<num_of_pop_per_procs; i+=1){
+	    {setStimShort(NCELL, idur, iamp, idelay, start_timing * timestep)}
 	    fitness = 0.0
 	    //updateParams(rcv_pop_vec)
-	    updateParams_tmp(vec)
-	    //setIClamp
+	    //for test
+	    // rcv_pop_vec_weight = new Vector(dim_cmaes * num_of_pop_per_procs)
+	    // rcv_pop_vec_delay = new Vector(dim_cmaes * num_of_pop_per_procs)
+	    // for test_i=0, rcv_pop_vec_weight.size()-1 {
+	    // 	rcv_pop_vec_weight.x[test_i] = 1
+	    // 	rcv_pop_vec_delay.x[test_i] = 1
+	    // }
+	    updateParams2(rcv_pop_vec_weight, rcv_pop_vec_delay, i * dim_cmaes)
+	    //setStimShort(NCELL, timestep, 100, 10)
 	    //initModel
-	    pc.psolve(timestep)//timestep = tstop in original file
+	    pc.barrier()
+	    printf("start psolove (%d times)\n",start_timing)
+	    pc.psolve(timestep*(1+start_timing))//timestep = tstop in original file
+	    printf("end psolove (%d times)\n",start_timing)
+	    start_timing += 1
+	    
 	    tempfit = evalFitness()
 	    //if fitness converted to log_fitness, write here like below
 	    if(log_fitness == 1){
@@ -162,6 +221,7 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	    
 	    send_fit_vec.x(i) = fitness
 	}
+	pc.broadcast(send_fit_vec, output_id)
 	
 	{pc.set_parent_comm()}
 	pc.gather_d(send_fit_vec, nullvec, num_of_pop_per_procs, root)
@@ -223,20 +283,19 @@ proc stopTest(){local break_loop, confirm_scatter, root, counter localobj nullve
 {pc.barrier()}
 {connectCells(NCELL)}
 {pc.barrier()}
-objref vec_test
-{vec_test = readParamFile()}
-{updateParams_tmp(vec_test)}
-{setStimShort(NCELL, idur, iamp, idelay)}
-//{setSpikeRecord(NCELL)}
+// objref vec_test
+// {vec_test = readParamFile()}
+//{updateParams_tmp(vec_test)}
+
+{setSpikeRecord(NCELL)}
 {finitialize(v_init)}
 {fcurrent()}
 {pc.set_maxstep(10)}
 {stdinit()}
 //stopTest()
-//{pc.psolve(tstop)}
-//{pc.barrier()}
 //{writeFiles(pc.id, pc.nhost, NCELL)}
-{pc.psolve(tstop)}
+{execSimulation(NUM_OF_POP_PER_PROCS, DIM_CMAES / (pc.nhost * 2), 0, tstop, 0)}
+//{pc.psolve(tstop)}
 {pc.runworker()}
 {pc.done()}
 quit()

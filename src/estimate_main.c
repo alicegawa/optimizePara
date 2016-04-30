@@ -202,7 +202,9 @@ int main(int argc, char **argv){
     if( I_AM_ROOT_IN_SPLIT){
 	send_count = 3;/*template*/
 	double info[] = {1,0, 1.0, 1.0};/*template*/
-	//MPI_Bcast_to_NEURON(info, send_count, MPI_DOUBLE, root_process_spawn, nrn_comm);
+	info[0] = num_of_pop_per_split;
+	//info[1] and info[2] are setted default now..( may change in future plan)
+	MPI_Bcast_to_NEURON(info, send_count, MPI_DOUBLE, root_process_spawn, nrn_comm);
     }
     fflush(stdout);
 
@@ -275,40 +277,40 @@ int main(int argc, char **argv){
     	fflush(stdout);
     }
 
-    /* for communication test between nrncomms*/
-    test_sendbuf = (double *)calloc(20, sizeof(double));
-    test_rcvbuf = (double *)malloc(sizeof(double) * 4);
-    test_arFunval1 = (double *)calloc(4, sizeof(double));
-    test_arFunval2 = (double *)calloc(20, sizeof(double));
-    while(1){
-	if(I_AM_ROOT_IN_SPLIT){
-	    for(i=0;i<20;i++){
-		test_sendbuf[i] = i + 10;
-	    }
-	    MPI_Scatter(test_sendbuf, 4, MPI_DOUBLE, test_rcvbuf, 4, MPI_DOUBLE, root_process_spawn, nrn_comm);
+    /* /\* for communication test between nrncomms*\/ */
+    /* test_sendbuf = (double *)calloc(20, sizeof(double)); */
+    /* test_rcvbuf = (double *)malloc(sizeof(double) * 4); */
+    /* test_arFunval1 = (double *)calloc(4, sizeof(double)); */
+    /* test_arFunval2 = (double *)calloc(20, sizeof(double)); */
+    /* while(1){ */
+    /* 	if(I_AM_ROOT_IN_SPLIT){ */
+    /* 	    for(i=0;i<20;i++){ */
+    /* 		test_sendbuf[i] = i + 10; */
+    /* 	    } */
+    /* 	    MPI_Scatter(test_sendbuf, 4, MPI_DOUBLE, test_rcvbuf, 4, MPI_DOUBLE, root_process_spawn, nrn_comm); */
 
-	    MPI_Gather(test_arFunval1, 4, MPI_DOUBLE, test_arFunval2, 4, MPI_DOUBLE, root_process_spawn, nrn_comm);
-	    for(i=0;i<20;i++){
-		printf("test_arFunval2[%d] = %lf\n",i, test_arFunval2[i]);
-	    }
-	}
-	if(I_AM_ROOT_IN_SPLIT){
-	    flg_termination = 1;
-	    send_count = 1;
-	    MPI_Bcast_to_NEURON(&flg_termination, 1, MPI_DOUBLE, root_process_split, nrn_comm);/*before splitcomm -> after nrn_comm*/
-	}
-	printf("start MPI_Bcast\n");
-	MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, root_process_split, splitcomm);
-	if((int)flg_termination){
-	    break;
-	}
-    }/*end of communication test loop*/
-    /*free the allocate memory for test loop*/
-    free(test_sendbuf);
-    free(test_rcvbuf);
-    free(test_arFunval1);
-    free(test_arFunval2);
-    /*end of free test memory*/
+    /* 	    MPI_Gather(test_arFunval1, 4, MPI_DOUBLE, test_arFunval2, 4, MPI_DOUBLE, root_process_spawn, nrn_comm); */
+    /* 	    for(i=0;i<20;i++){ */
+    /* 		printf("test_arFunval2[%d] = %lf\n",i, test_arFunval2[i]); */
+    /* 	    } */
+    /* 	} */
+    /* 	if(I_AM_ROOT_IN_SPLIT){ */
+    /* 	    flg_termination = 1; */
+    /* 	    send_count = 1; */
+    /* 	    MPI_Bcast_to_NEURON(&flg_termination, 1, MPI_DOUBLE, root_process_split, nrn_comm);/\*before splitcomm -> after nrn_comm*\/ */
+    /* 	} */
+    /* 	printf("start MPI_Bcast\n"); */
+    /* 	MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, root_process_split, splitcomm); */
+    /* 	if((int)flg_termination){ */
+    /* 	    break; */
+    /* 	} */
+    /* }/\*end of communication test loop*\/ */
+    /* /\*free the allocate memory for test loop*\/ */
+    /* free(test_sendbuf); */
+    /* free(test_rcvbuf); */
+    /* free(test_arFunval1); */
+    /* free(test_arFunval2); */
+    /* /\*end of free test memory*\/ */
 
     printf("end of loop\n");
     fflush(stdout);

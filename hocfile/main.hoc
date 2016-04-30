@@ -171,8 +171,11 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
     {pc.barrier()}
     
     output_id = detectOutputProc(NCELL, pc.nhost)
-    
-    
+    {pc.set_maxstep(10)}
+    {finitialize(v_init)}
+    {fcurrent()}
+    {stdinit()}
+    {setStimShort(NCELL, idur, iamp, idelay, 0 * timestep)}
     while(1){
 	start_timing = 0
 	{pc.set_parent_comm()}
@@ -187,9 +190,10 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	pc.scatter_d(nullvec, rcv_pop_vec_delay, dim_cmaes * num_of_pop_per_procs, root)
 	
 	{pc.set_world_comm()}
+	
 	//the number of loop = the number of particle this process has..
 	for(i=0; i<num_of_pop_per_procs; i+=1){
-	    {setStimShort(NCELL, idur, iamp, idelay, start_timing * timestep)}
+
 	    fitness = 0.0
 	    //updateParams(rcv_pop_vec)
 	    //for test
@@ -204,7 +208,13 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	    //initModel
 	    pc.barrier()
 	    printf("start psolove (%d times)\n",start_timing)
-	    pc.psolve(timestep*(1+start_timing))//timestep = tstop in original file
+	    
+	    {connectCells(NCELL)}
+	    {setSpikeRecord(NCELL)}
+
+	    stdinit()
+
+	    pc.psolve(timestep)//timestep = tstop in original file
 	    printf("end psolove (%d times)\n",start_timing)
 	    start_timing += 1
 	    
@@ -287,11 +297,7 @@ proc stopTest(){local break_loop, confirm_scatter, root, counter localobj nullve
 // {vec_test = readParamFile()}
 //{updateParams_tmp(vec_test)}
 
-{setSpikeRecord(NCELL)}
-{finitialize(v_init)}
-{fcurrent()}
-{pc.set_maxstep(10)}
-{stdinit()}
+
 //stopTest()
 //{writeFiles(pc.id, pc.nhost, NCELL)}
 {execSimulation(NUM_OF_POP_PER_PROCS, DIM_CMAES / (pc.nhost * 2), 0, tstop, 0)}

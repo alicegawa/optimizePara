@@ -43,18 +43,28 @@ for index = 0, fittingVec.size() - 1 {
 {load_file("../hocfile/record.hoc")}
 {load_file("../hocfile/setStim.hoc")}
 
+//caution
+//change of NUM_OF_POP_PER_PROCS is not reflected to global value, so receiveInfo is not available...
 proc receiveInfo(){ local root localobj vec
     //[num_of_pop_per_procs, targetNum, paramfile_suf]
     root = 0
     vec = new Vector(3)
     pc.broadcast(vec, root)
-    
     NUM_OF_POP_PER_PROCS = int(vec.x(0))
+    //printf("num_of_pop_per_procs in hocfile is %d\n", NUM_OF_POP_PER_PROCS)
     SETTINGFILE_SUF = int(vec.x(1))
     // TARGETFILE_SUF = int(vec.x(1))
     // PARAMFILE_SUF = int(vec.x(2))
     // CURRENTFILE_SUF = int(vec.x(3))
     // ELECTRODEFILE_SUF = int(vec.x(4))
+}
+
+func receiveInfoAndPassData() { local root, num_of_pop_per_split localobj vec
+    root = 0
+    vec = new Vector(3)
+    pc.broadcast(vec, root)
+    num_of_pop_per_split = int(vec.x(0))
+    return num_of_pop_per_split
 }
 
 obfunc readParamFile(){ local dim, flg, val localobj f, paramname, sf, vec
@@ -159,10 +169,8 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
     
     {pc.set_parent_comm()}
         
-    {receiveInfo()}
-    
-    vec = readParamFile()
-    updateParams_tmp(vec)
+    //{receiveInfo()}
+    num_of_pop_per_procs = receiveInfoAndPassData()
     
     root = 0
     nullvec = new Vector()
@@ -170,6 +178,10 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
     
     {pc.set_world_comm()}
     {pc.barrier()}
+    
+    vec = readParamFile()
+    updateParams_tmp(vec)
+   
     
     output_id = detectOutputProc(NCELL, pc.nhost)
     {pc.set_maxstep(10)}
@@ -187,6 +199,7 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	rcv_pop_vec_delay = new Vector()
 	send_fit_vec = new Vector(num_of_pop_per_procs)
 	
+	//printf("num_of_pop_per_procs in execSimulation (in hocfile) is %d\n", num_of_pop_per_procs) 
 	//recieve weight data
 	pc.scatter_d(nullvec, rcv_pop_vec_weight, dim_cmaes * num_of_pop_per_procs, root)
 	//recieve delay data
@@ -203,7 +216,7 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	    //setStimShort(NCELL, timestep, 100, 10)
 	    //initModel
 	    pc.barrier()
-	    printf("start psolove (%d times)\n",start_timing)
+	    //printf("start psolove (%d times)\n",start_timing)
 	    
 	    {connectCells(NCELL)}
 	    {setSpikeRecord(NCELL)}
@@ -211,7 +224,7 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	    stdinit()
 
 	    pc.psolve(timestep)//timestep = tstop in original file
-	    printf("end psolove (%d times)\n",start_timing)
+	    //printf("end psolove (%d times)\n",start_timing)
 	    start_timing += 1
 	    
 	    tempfit = evalFitness()

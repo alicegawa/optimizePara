@@ -60,7 +60,7 @@ int main(int argc, char **argv){
     int main_myid, main_size;
     int split_myid, split_size;
     int spawn_myid, spawn_size;
-    MPI_Comm splitcomm, intercomm, parentcomm, nrn_comm;
+    MPI_Comm splitcomm, intercomm, parentcomm, nrn_comm, firstTimeWorld;
     int root_process_main = 0, root_process_split = 0, root_process_spawn = 0;
     int color, key;
     FILE *fp;
@@ -184,6 +184,8 @@ int main(int argc, char **argv){
     MPI_Comm_rank(splitcomm, &split_myid);
     MPI_Comm_size(splitcomm, &split_size);
 
+    MPI_Comm_dup(MPI_COMM_WORLD, &firstTimeWorld);
+
     /*setting the argv for spawn*/
     sprintf(neuron_argv[3],"COLOR=%d",color);
     neuron_argv[5] = NULL;
@@ -226,17 +228,19 @@ int main(int argc, char **argv){
 	    }
 	}
 	//when you spawn, it can be that scatter in MPI_COMM_WORLD (but the line below is temporaly)
-	MPI_Scatter(pop_sendbuf_split_weight, num_sendparams, MPI_DOUBLE, pop_rcvbuf_split_weight, num_sendparams, MPI_DOUBLE, root_process_main, MPI_COMM_WORLD);
-	MPI_Scatter(pop_sendbuf_split_delay, num_sendparams, MPI_DOUBLE, pop_rcvbuf_split_delay, num_sendparams, MPI_DOUBLE, root_process_main, MPI_COMM_WORLD);
+	MPI_Scatter(pop_sendbuf_split_weight, num_sendparams, MPI_DOUBLE, pop_rcvbuf_split_weight, num_sendparams, MPI_DOUBLE, root_process_main, firstTimeWorld);
+	MPI_Scatter(pop_sendbuf_split_delay, num_sendparams, MPI_DOUBLE, pop_rcvbuf_split_delay, num_sendparams, MPI_DOUBLE, root_process_main, firstTimeWorld);
+	MPI_Barrier(MPI_COMM_WORLD);
 	if(I_AM_ROOT_IN_SPLIT){
 	    for(i=0;i<num_sendparams;++i){
 		pop_sendbuf_nrn_weight[i+offset] = pop_rcvbuf_split_weight[i];
 		pop_sendbuf_nrn_delay[i+offset] = pop_rcvbuf_split_delay[i];
 	    }
     	    /*evaluate the new searching points*/
+	    /*fatal error in this scatter section*/
     	    MPI_Scatter(pop_sendbuf_nrn_weight, num_of_weight_delay_per_procs, MPI_DOUBLE, pop_rcvbuf_nrn_weight, num_of_weight_delay_per_procs, MPI_DOUBLE, root_process_spawn, nrn_comm);
 	    MPI_Scatter(pop_sendbuf_nrn_delay, num_of_weight_delay_per_procs, MPI_DOUBLE, pop_rcvbuf_nrn_delay, num_of_weight_delay_per_procs, MPI_DOUBLE, root_process_spawn, nrn_comm);
-	    
+
     	    /* wait for NEURON simulation in worker nodes */
     	    MPI_Gather(arFunvals_split_buf1, num_of_pop_per_split, MPI_DOUBLE, arFunvals_split_buf2, num_of_pop_per_split, MPI_DOUBLE, root_process_spawn, nrn_comm);
 

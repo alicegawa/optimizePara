@@ -146,8 +146,8 @@ proc updateParams2(){local i, start_idx localobj param_vec_weight, param_vec_del
     start_idx = $3
     for i=0, cells.count - 1 {
 	for j=0, NCELL-1{
-	    nclist.o(i * NCELL + j).weight = param_vec_weight.x(NCELL*(start_idx + pc.id + pc.nhost * i) + j)
-	    nclist.o(i * NCELL + j).delay = param_vec_delay.x(NCELL*(start_idx + pc.id + pc.nhost * i) + j)
+	    nclist.o(i * NCELL + j).weight = param_vec_weight.x(start_idx + NCELL * i + j)
+	    nclist.o(i * NCELL + j).delay = param_vec_delay.x(start_idx + NCELL * i + j)
 	}
     }
 }
@@ -186,6 +186,7 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
     {pc.set_world_comm()}
     {pc.barrier()}
     
+    //kore iruka??
     vec = readParamFile()
     updateParams_tmp(vec)
    

@@ -10,7 +10,6 @@ proc connectCells(){local i, j localobj syn, nc, nil
 	    for j=0, num_cell-1{
 		syn = pc.gid2cell(i).makeSyn(syn_reversal.x[i][j])
 		nc = pc.gid_connect(j, syn)
-		nclist.append(nc)
 		nc.threshold = 0
 		nc.delay = 0.5//temporary initial param
 		nc.weight = 0//temporary initial param(update by 'updateParam' immediately)

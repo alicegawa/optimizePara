@@ -67,6 +67,13 @@ func receiveInfoAndPassData() { local root, num_of_pop_per_split localobj vec
     return num_of_pop_per_split
 }
 
+obfunc recieveInfoAndPassVector(){local root localobj vec
+    root = 0
+    vec = new Vector(3)
+    pc.broadcast(vec, root)
+    return vec
+}
+
 obfunc readParamFile(){ local dim, flg, val localobj f, paramname, sf, vec
     strdef filename, line, tmp
     //sprint(filename, "%s/params%02d.txt", DIR_TARGET, paramfile_suf.x(0))

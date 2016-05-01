@@ -89,7 +89,7 @@ func evalFitness(){ local sum, scaleFactor, n, i, tmpFreq localobj hoge
     scaleFactor = 0.3 //temporarily
     
     // calc the fitness here under construction
-    if(pc.gid_exists(NCELL-1) || pc.gid_exists(0)){
+    if(pc.gid_exists(NCELL-1)){
 	for i = 0, fittingVec.size() - 1  {
 	    tmpFreq = getFreq(recordBin * i, recordBin * 2)//250ms bin overlapped each 125ms
 	    printf("freq(%d ~ %d) is %d\t", recordBin * i, recordBin * (i+1), tmpFreq) 
@@ -148,6 +148,7 @@ func detectOutputProc(){local i, proc_id, num_cell, div, nhost
     }
 }
 
+
 proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num_of_pop_per_procs, dim_cmaes, num_of_targetfile, timestep, log_fitness, output_id, start_timing localobj rcv_pop_vec_weight, rcv_pop_vec_delay, send_fit_vec, nullvec, tempvec, vec
     
     num_of_pop_per_procs = $1
@@ -176,6 +177,8 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
     {fcurrent()}
     {stdinit()}
     {setStimShort(NCELL, idur, iamp, idelay, 0 * timestep)}
+    //setNetStimTest(NCELL)
+    
     while(1){
 	start_timing = 0
 	{pc.set_parent_comm()}
@@ -193,16 +196,9 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	
 	//the number of loop = the number of particle this process has..
 	for(i=0; i<num_of_pop_per_procs; i+=1){
-
+	
 	    fitness = 0.0
 	    //updateParams(rcv_pop_vec)
-	    //for test
-	    // rcv_pop_vec_weight = new Vector(dim_cmaes * num_of_pop_per_procs)
-	    // rcv_pop_vec_delay = new Vector(dim_cmaes * num_of_pop_per_procs)
-	    // for test_i=0, rcv_pop_vec_weight.size()-1 {
-	    // 	rcv_pop_vec_weight.x[test_i] = 1
-	    // 	rcv_pop_vec_delay.x[test_i] = 1
-	    // }
 	    updateParams2(rcv_pop_vec_weight, rcv_pop_vec_delay, i * dim_cmaes)
 	    //setStimShort(NCELL, timestep, 100, 10)
 	    //initModel
@@ -293,15 +289,11 @@ proc stopTest(){local break_loop, confirm_scatter, root, counter localobj nullve
 {pc.barrier()}
 {connectCells(NCELL)}
 {pc.barrier()}
-// objref vec_test
-// {vec_test = readParamFile()}
-//{updateParams_tmp(vec_test)}
-
-
 //stopTest()
-//{writeFiles(pc.id, pc.nhost, NCELL)}
+
 {execSimulation(NUM_OF_POP_PER_PROCS, DIM_CMAES / (pc.nhost * 2), 0, tstop, 0)}
-//{pc.psolve(tstop)}
+{writeFiles(pc.id, pc.nhost, NCELL)}
+
 {pc.runworker()}
 {pc.done()}
 quit()

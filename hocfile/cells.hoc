@@ -39,7 +39,7 @@ proc init(){local x, y, z, mode, i
 	ek_GPeA = -70		
 	el_GPeA = -50//-54.3
 	eca_GPeA = 124
-	gA_GPeA = 100
+	gA_GPeA = 0.022
 	a_sk_GPeA = 11e-2
 	offset_GPeA = 0.0
 	coef_log_GPeA = 3

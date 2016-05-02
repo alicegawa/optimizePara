@@ -226,11 +226,11 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	    pc.barrier()
 	    //printf("start psolove (%d times)\n",start_timing)
 	    
-	    {connectCells(NCELL)}
+	    //{connectCells(NCELL)}
 	    {setSpikeRecord(NCELL)}
 
 	    stdinit()
-
+	       
 	    pc.psolve(timestep)//timestep = tstop in original file
 	    //printf("end psolove (%d times)\n",start_timing)
 	    start_timing += 1

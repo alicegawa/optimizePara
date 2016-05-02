@@ -142,7 +142,7 @@ int main(int argc, char **argv){
     offset_split_scatter = num_of_pop_per_split;
     offset = num_of_params_per_nrnprocs / 2;
 
-    pop_sendbuf_split_whole = (double *)calloc(dimension * (num_of_pop + offset_split_scatter), sizeof(double));
+    pop_sendbuf_split_whole = (double *)calloc(dimension * num_of_pop, sizeof(double));
     
     pop_sendbuf_split_weight = (double *)calloc(dimension * (num_of_pop + num_of_pop_per_split) / 2, sizeof(double));
     pop_sendbuf_split_delay = (double *)calloc(dimension * (num_of_pop + num_of_pop_per_split) / 2, sizeof(double));
@@ -219,12 +219,14 @@ int main(int argc, char **argv){
     	    for(i=0;i<num_of_pop;++i){
     		my_boundary_transformation(&my_boundaries, pop[i], x_temp);
     		for(j=0;j<dimension;++j){
-    		    pop_sendbuf_split_whole[(i + offset_split_scatter) * dimension + j] = x_temp[j];
+    		    pop_sendbuf_split_whole[i * dimension + j] = x_temp[j];
     		}
     	    }
-	    for(i=0;i<num_params_only_weight_or_delay;++i){
-		pop_sendbuf_split_weight[i] = pop_sendbuf_split_whole[i + offset_split_scatter * dimension];
-		pop_sendbuf_split_delay[i] = pop_sendbuf_split_whole[i + num_params_only_weight_or_delay + offset_split_scatter * dimension];
+	    for(i=0; i<num_of_pop; ++i){
+		for(j=0; j<(dimension/2); ++j){
+		    pop_sendbuf_split_weight[i * dimension / 2 + j] = pop_sendbuf_split_whole[i * dimension + j];
+		    pop_sendbuf_split_delay[i * dimension / 2 + j] = pop_sendbuf_split_whole[i * dimension + j + dimension / 2];
+		}
 	    }
 	}
 	//when you spawn, it can be that scatter in MPI_COMM_WORLD (but the line below is temporaly)

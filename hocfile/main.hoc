@@ -109,10 +109,10 @@ func evalFitness(){ local sum, scaleFactor, n, i, tmpFreq localobj hoge
     if(pc.gid_exists(NCELL-1)){
 	for i = 0, fittingVec.size() - 1  {
 	    tmpFreq = getFreq(recordBin * i, recordBin * 2)//250ms bin overlapped each 125ms
-	    printf("freq(%d ~ %d) is %d\t", recordBin * i, recordBin * (i+1), tmpFreq) 
+	    //printf("freq(%d ~ %d) is %d\t", recordBin * i, recordBin * (i+1), tmpFreq) 
 	    sum += (tmpFreq - fittingVec.x(i)) * (tmpFreq - fittingVec.x(i))
 	}
-	printf("\n")
+	//printf("\n")
     }
 	
     return sum * scaleFactor

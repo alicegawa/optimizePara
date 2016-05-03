@@ -266,11 +266,11 @@ int main(int argc, char **argv){
     		flg_termination = 1;
     	    }
     	    send_count = 1;
-	    MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, root_process_main, MPI_COMM_WORLD);
+	    MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, root_process_main, firstTimeWorld);
 	}
 	if(I_AM_ROOT_IN_SPLIT){
-    	    MPI_Bcast_to_NEURON(&flg_termination, 1, MPI_DOUBLE, root_process_split, splitcomm);
-    	    MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, root_process_split, splitcomm);
+    	    MPI_Bcast_to_NEURON(&flg_termination, 1, MPI_DOUBLE, root_process_split, nrn_comm);
+    	    //MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, root_process_split, splitcomm);
     	    if((int)flg_termination){
     		break;
     	    }

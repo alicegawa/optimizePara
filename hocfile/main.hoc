@@ -219,9 +219,8 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	{pc.set_world_comm()}
 	
 	//the number of loop = the number of particle this process has..
-	//for(i=0; i<num_of_pop_per_procs; i+=1){
-	for(i=0; i<1; i+=1){
-	
+	for(i=0; i<num_of_pop_per_procs; i+=1){
+		
 	    fitness = 0.0
 	    //updateParams(rcv_pop_vec)
 	    updateParams2(rcv_pop_vec_weight, rcv_pop_vec_delay, i * dim_cmaes)
@@ -261,7 +260,7 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	flg_cmaes_terminate = int(tempvec.x(0))
 	//flg_cmaes_termination = 1 //for break test, inevitably breaking the loop
 	if(flg_cmaes_terminate != 0) {break}
-	printf("I dont still break (%d times)\n", loop_counter)
+	//printf("I dont still break (%d times)\n", loop_counter)
     }
 }
 

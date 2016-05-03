@@ -155,7 +155,7 @@ int main(int argc, char **argv){
     pop_rcvbuf_nrn_weight = (double *)malloc(num_of_weight_delay_per_procs * sizeof(double));
     pop_rcvbuf_nrn_delay= (double *)malloc(num_of_weight_delay_per_procs * sizeof(double));
 
-    arFunvals_split_buf1 = (double *)calloc(num_of_pop_per_split * num_of_procs_nrn, sizeof(double));
+    arFunvals_split_buf1 = (double *)calloc(num_of_pop_per_split, sizeof(double));
     arFunvals_split_buf2 = (double *)calloc(num_of_pop_per_split * num_of_procs_nrn + num_of_pop_per_split , sizeof(double));
 
     arFunvals_whole_buf = (double *)calloc(num_of_pop_per_split, sizeof(double));
@@ -254,7 +254,11 @@ int main(int argc, char **argv){
 	MPI_Gather(arFunvals_whole_buf, num_of_pop_per_split, MPI_DOUBLE, arFunvals_whole, num_of_pop_per_split, MPI_DOUBLE, root_process_main, MPI_COMM_WORLD);
 	if(I_AM_ROOT_IN_MAIN){
 	    for(i=0;i<num_of_pop;++i){
-		arFunvals[i] = arFunvals_whole[num_of_pop_per_split + i];
+		arFunvals[i] = arFunvals_whole[i];
+		if(arFunvals[i] == 0){
+		    printf("communication error\n");
+		    break;
+		}
 	    }
     	    /*update the search distribution used for cmaes_sampleDistribution()*/
     	    cmaes_UpdateDistribution(&evo, arFunvals); /*assume that pop[] has not been modified*/

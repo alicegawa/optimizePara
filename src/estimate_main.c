@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <time.h>
 #include <mpi.h>
+#include <math.h>
 #include "cmaes_interface.h"
 #include "my_boundary_transformation.h"
 
@@ -97,7 +98,9 @@ int main(int argc, char **argv){
     
     int i,j;
     double util;
-
+    
+    int loop_count=0;
+    
     /*test variables*/
     double *test_sendbuf, *test_rcvbuf;
     double *test_arFunval1, *test_arFunval2;
@@ -120,6 +123,33 @@ int main(int argc, char **argv){
 	}else if(i==4){
 	    sprintf(neuron_argv[i],"%s",HOCFILE);
 	}else{
+	}
+    }
+
+    /*check input params */
+    if(argc >= 2){num_of_pop = atoi(argv[1]);}
+    if(argc >= 3){max_iter = atoi(argv[2]);}
+    if(argc >= 4){max_eval = atoi(argv[3]);}
+    if(argc >= 5){num_of_procs_nrn = atoi(argv[4]);}
+    if(argc >= 6){mu = atoi(argv[5]);}
+    
+
+    if(max_iter == -1){
+	if(max_eval == -1){
+	    max_iter = 100;
+	    max_eval = max_iter * num_of_pop;
+	}else{
+	    max_iter = ceil((double)max_eval / num_of_pop);
+	}
+    }else{
+	if(max_eval == -1){
+	    max_eval = max_iter * num_of_pop;
+	}else{
+	    if(max_iter * num_of_pop < max_eval){
+		max_eval = max_iter * num_of_pop;
+	    }else{
+		max_iter = ceil((double)max_eval / num_of_pop);
+	    }
 	}
     }
     
@@ -279,12 +309,16 @@ int main(int argc, char **argv){
     		break;
     	    }
     	}/*cmaes termination*/
+	++loop_count;
+	printf("%d times loop of cmaes finished\n", loop_count);
     }/*end of cmaes loop*/
     if( I_AM_ROOT_IN_MAIN){
     	printf("#Stop:\n%s\n", cmaes_TestForTermination(&evo)); /*print termination reason*/
     	printf("\n# operation finished.\n# elapsed time: %f\n #fbest: %f\n #xbest:", t_end - t_start, cmaes_Get(&evo, "fbestever"));
     	my_boundary_transformation(&my_boundaries, (double *)cmaes_GetPtr(&evo, "xbestever"), x_temp);
-    	fflush(stdout);
+    	printGene(stdout, x_temp, dimension);
+	printf("\n");
+	fflush(stdout);
     }
 
     /* /\* for communication test between nrncomms*\/ */

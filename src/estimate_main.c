@@ -294,14 +294,16 @@ int main(int argc, char **argv){
     	    cmaes_UpdateDistribution(&evo, arFunvals); /*assume that pop[] has not been modified*/
     	}
     	fflush(stdout);
-    	/*terminatinn*/
+    	/*termination*/
     	if(I_AM_ROOT_IN_MAIN){
     	    if(cmaes_TestForTermination(&evo)){
     		flg_termination = 1;
     	    }
     	    send_count = 1;
-	    MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, root_process_main, firstTimeWorld);
 	}
+	/* broadcast flg to MAIN PROCS*/
+	MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, root_process_main, firstTimeWorld);
+		    
 	if(I_AM_ROOT_IN_SPLIT){
     	    MPI_Bcast_to_NEURON(&flg_termination, 1, MPI_DOUBLE, root_process_split, nrn_comm);
     	    //MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, root_process_split, splitcomm);

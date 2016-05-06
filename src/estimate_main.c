@@ -101,6 +101,14 @@ int main(int argc, char **argv){
     
     int loop_count=0;
     
+    /* for restart strategy*/
+    int n_run=0;
+    int countevals, generation;
+    int gen_restart[] = { 50, 100, 150};/* temporary setting */
+    double *restartX, *restartSigma;
+    double restartSigma_defaults = 2.0;
+
+    
     /*test variables*/
     double *test_sendbuf, *test_rcvbuf;
     double *test_arFunval1, *test_arFunval2;
@@ -196,11 +204,14 @@ int main(int argc, char **argv){
     if(initialX==NULL){ printf("memory allocation error for initialX \n"); return -1;}
     initialSigma = (double *)malloc(sizeof(double) * dimension);
     if(initialSigma==NULL){ printf("memory allocation error for initialSigma \n"); return -1;}
+    restartSigma = (double *)malloc( sizeof(double) * dimension);
+    if(restartSigma == NULL){ printf("memory allocation error for restartSigma\n");}
     srand((unsigned)time(NULL));
     util = 1.0 / ((double)RAND_MAX + 2.0);
     for(i=0; i<dimension; ++i){
 	initialX[i] = 3.0 + (7.0 - 3.0) * (double)(rand() + 1.0) * util;
 	initialSigma[i] = (10.0 - 0.0) * 0.25;
+	restartSigma[i] = restartSigma_defaults;
     }
     arFunvals = cmaes_init(&evo, dimension, initialX, initialSigma, seed, num_of_pop, mu, max_eval, max_iter, initfile);
     max_iter = (int)cmaes_Get(&evo, "MaxIter");
@@ -311,6 +322,24 @@ int main(int argc, char **argv){
     		break;
     	    }
     	}/*cmaes termination*/
+
+	/*for restart */
+	if(0 && (int)cmaes_Get(&evo, "generation") == gen_restart[n_run]){
+	    generation = cmaes_Get(&evo, "generation");
+	    countevals = cmaes_Get(&evo, "eval");
+	    restartX = (double *)cmaes_GetPtr(&evo, "xmean");
+	    x_temp = (double *)cmaes_GetPtr(&evo, "xbestever");
+	    arFunvals = cmaes_init(&evo, dimension, restartX, restartSigma, seed, num_of_pop, mu, max_eval, max_iter, initfile);
+	    
+	    evo.countevals = countevals;
+	    evo.gen = generation;
+	    for(i=0; i<=dimension; ++i){
+		evo.rgxbestever[i] = x_temp[i];
+		evo.rgrgx[evo.index[0]][i] = x_temp[i];
+	    }
+	    n_run++;
+	}
+	
 	++loop_count;
 	printf("%d times loop of cmaes finished\n", loop_count);
     }/*end of cmaes loop*/

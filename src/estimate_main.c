@@ -95,8 +95,9 @@ int main(int argc, char **argv){
     char range_filename[] = "../data/params.txt";
     int num_of_params_per_nrnprocs;
     int num_of_weight_delay_per_procs;
+    int num_of_one_gene_weight_or_delay;
     
-    int i,j;
+    int i,j,k;
     double util;
     
     int loop_count=0;
@@ -175,6 +176,8 @@ int main(int argc, char **argv){
     num_of_weight_delay_per_procs = num_of_params_per_nrnprocs / 2;
 
     num_sendparams = dimension * num_of_pop_per_split / 2;
+
+    num_of_one_gene_weight_or_delay = dimension / (num_of_procs_nrn * 2);
 //num_of_pop_per_procs = num_of_pop_per_split / num_of_procs_nrn;
     //offset = num_of_pop_per_procs;
     offset_split_scatter = num_of_pop_per_split;
@@ -275,9 +278,29 @@ int main(int argc, char **argv){
 	MPI_Scatter(pop_sendbuf_split_delay, num_sendparams, MPI_DOUBLE, pop_rcvbuf_split_delay, num_sendparams, MPI_DOUBLE, root_process_main, firstTimeWorld);
 	MPI_Barrier(MPI_COMM_WORLD);
 	if(I_AM_ROOT_IN_SPLIT){
-	    for(i=0;i<num_sendparams;++i){
-		pop_sendbuf_nrn_weight[i+offset] = pop_rcvbuf_split_weight[i];
-		pop_sendbuf_nrn_delay[i+offset] = pop_rcvbuf_split_delay[i];
+	    /* //type0 incorrect */
+	    /* for(i=0;i<num_sendparams;++i){ */
+	    /* 	pop_sendbuf_nrn_weight[i+offset] = pop_rcvbuf_split_weight[i]; */
+	    /* 	pop_sendbuf_nrn_delay[i+offset] = pop_rcvbuf_split_delay[i]; */
+	    /* } */
+	    /* //type1 incorrect */
+	    /* for(i=0;i<num_of_one_gene_weight_or_delay;++i){ */
+	    /* 	for(j=0;j<num_of_pop_per_split;++j){ */
+	    /* 	    for(k=0;k<num_of_one_gene_weight_or_delay;++k){ */
+	    /* 	    pop_sendbuf_nrn_weight[offset + i * num_of_one_gene_weight_or_delay + j + k] = pop_rcvbuf_split_weight[j * num_of_one_gene_weight_or_delay + i]; */
+	    /* 	    pop_sendbuf_nrn_delay[offset + i * num_of_one_gene_weight_or_delay + j] = pop_rcvbuf_split_delay[i * num_of_one_gene_weight_or_delay + j]; */
+	    /* 	} */
+	    /* } */
+
+	    /* } */
+	    //type2 under construction
+	    for(k=0;k<num_of_procs_nrn;k++){
+		for(i=0;i<num_of_pop_per_split;i++){
+		    for(j=0;j<num_of_one_gene_weight_or_delay;j++){
+			pop_sendbuf_nrn_weight[offset + (num_of_pop_per_split * num_of_one_gene_weight_or_delay) * k + (num_of_one_gene_weight_or_delay) * i + j]= pop_rcvbuf_split_weight[ (dimension / 2) * i + j + num_of_one_gene_weight_or_delay * k];
+			pop_sendbuf_nrn_delay[offset + (num_of_pop_per_split * num_of_one_gene_weight_or_delay) * k + (num_of_one_gene_weight_or_delay) * i + j]= pop_rcvbuf_split_delay[ (dimension / 2) * i + j + num_of_one_gene_weight_or_delay * k];
+		    }
+		}
 	    }
     	    /*evaluate the new searching points*/
 	    /*fatal error in this scatter section*/

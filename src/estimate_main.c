@@ -355,7 +355,7 @@ int main(int argc, char **argv){
 	    arFunvals = cmaes_init(&evo, dimension, restartX, restartSigma, seed, num_of_pop, mu, max_eval, max_iter, initfile);
 	    
 	    evo.countevals = countevals;
-	    evo.gen = generation;
+	    evo.gen = generation+1;
 	    for(i=0; i<=dimension; ++i){
 		evo.rgxbestever[i] = x_temp[i];
 		evo.rgrgx[evo.index[0]][i] = x_temp[i];

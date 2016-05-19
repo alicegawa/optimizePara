@@ -30,10 +30,12 @@ recordBin = 125
 numFitLoop = tstop / recordBin
 fittingVec = new Vector(numFitLoop-2)
 for index = 0, fittingVec.size() - 1 {
-    if(index == 0 || index == 1 || index == (fittingVec.size() - 2) || index == (fittingVec.size() - 1)){
-	fittingVec.x(i) = 30
+    if(index == 0 || index == (fittingVec.size() - 1)){
+	fittingVec.x(index) = 32
+    }else if( index == 1 || index == (fittingVec.size() - 2)){
+	fittingVec.x(index) = 64
     }else{
-	fittingVec.x(i) = 100
+	fittingVec.x(index) = 100
     }
 }
 

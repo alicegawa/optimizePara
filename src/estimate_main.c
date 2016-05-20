@@ -73,21 +73,22 @@ int main(int argc, char **argv){
     double t_start, t_end;
     int send_count;
     
-    cmaes_t evo;
+    cmaes_t evo, evo_tmp;
     double *arFunvals, *arFunvals_split_buf1, *arFunvals_split_buf2, *const*pop, *xfinal;
     double *arFunvals_whole, *arFunvals_whole_buf;
     double *initialX, *initialSigma;
-    int mu = 64;//-1;
+    int mu = -1;//64;//-1;
     unsigned int seed = 0;
     unsigned int dimension;
     unsigned int dimension_per_nrnprocs;
     int max_eval = -1, max_iter = -1;
     char initfile[] = "cmaes_initials.par";
-    unsigned int num_of_pop = 1024;//for test
+    unsigned int num_of_pop = 4;//1024;//for test
     double *pop_sendbuf_nrn_weight, *pop_sendbuf_nrn_delay, *pop_rcvbuf_nrn_weight, *pop_rcvbuf_nrn_delay;
     double *pop_sendbuf_split_whole, *pop_sendbuf_split_weight, *pop_sendbuf_split_delay, *pop_rcvbuf_split_weight, *pop_rcvbuf_split_delay;
     int num_sendparams;
     double *x_temp;
+    double *x_temp_temp;
     int offset, offset_split_scatter;
     int num_params_only_weight_or_delay;
     double flg_termination = 0;
@@ -105,7 +106,7 @@ int main(int argc, char **argv){
     /* for restart strategy*/
     int n_run=0;
     int countevals, generation;
-    int gen_restart[] = { 50, 100, 150};/* temporary setting */
+    int gen_restart[] = { 1, 50, 100, 150};/* temporary setting */
     double *restartX, *restartSigma;
     double restartSigma_defaults = 2.0;
 
@@ -145,7 +146,7 @@ int main(int argc, char **argv){
 
     if(max_iter == -1){
 	if(max_eval == -1){
-	    max_iter = 100;
+	    max_iter = 2;
 	    max_eval = max_iter * num_of_pop;
 	}else{
 	    max_iter = ceil((double)max_eval / num_of_pop);
@@ -208,7 +209,7 @@ int main(int argc, char **argv){
     initialSigma = (double *)malloc(sizeof(double) * dimension);
     if(initialSigma==NULL){ printf("memory allocation error for initialSigma \n"); return -1;}
     restartSigma = (double *)malloc( sizeof(double) * dimension);
-    if(restartSigma == NULL){ printf("memory allocation error for restartSigma\n");}
+    //if(restartSigma == NULL){ printf("memory allocation error for restartSigma\n");}
     srand((unsigned)time(NULL));
     util = 1.0 / ((double)RAND_MAX + 2.0);
     for(i=0; i<dimension; ++i){
@@ -219,6 +220,8 @@ int main(int argc, char **argv){
     arFunvals = cmaes_init(&evo, dimension, initialX, initialSigma, seed, num_of_pop, mu, max_eval, max_iter, initfile);
     max_iter = (int)cmaes_Get(&evo, "MaxIter");
     max_eval = (int)cmaes_Get(&evo, "maxeval");
+
+    printf("myid = %d, address = %p\n", main_myid, &evo);
     
     /* setting MPI_Comm_split section*/
     key = 0;
@@ -246,11 +249,11 @@ int main(int argc, char **argv){
     }
     /*if you want to send information to NEURON in setting, send here*/
     if( I_AM_ROOT_IN_SPLIT){
-	send_count = 3;/*template*/
+	send_count = 1;//3;/*template*/
 	double info[] = {1,0, 1.0, 1.0};/*template*/
 	info[0] = num_of_pop_per_split;
 	//info[1] and info[2] are setted default now..( may change in future plan)
-	MPI_Bcast_to_NEURON(info, send_count, MPI_DOUBLE, root_process_spawn, nrn_comm);
+       	MPI_Bcast_to_NEURON(info, send_count, MPI_DOUBLE, root_process_spawn, nrn_comm);
     }
     fflush(stdout);
 
@@ -347,15 +350,30 @@ int main(int argc, char **argv){
     	}/*cmaes termination*/
 
 	/*for restart */
-	if(0 && (int)cmaes_Get(&evo, "generation") == gen_restart[n_run]){
+	if((int)cmaes_Get(&evo, "generation") == gen_restart[n_run]){
 	    generation = cmaes_Get(&evo, "generation");
 	    countevals = cmaes_Get(&evo, "eval");
 	    restartX = (double *)cmaes_GetPtr(&evo, "xmean");
-	    x_temp = (double *)cmaes_GetPtr(&evo, "xbestever");
+	    /* for(k=0;k<dimension;k++){ */
+	    /* 	restartSigma[k] = cmaes_Get(&evo, "sigma"); */
+	    /* 	printf("restartSigma[%d] = %lf\n",k, restartSigma[k]); */
+	    /* }*/
+	    //x_temp = (double *)cmaes_GetPtr(&evo, "xbestever");
+	    x_temp_temp = (double *)cmaes_GetPtr(&evo, "xbestever");
+	    for(i=0;i<73;++i){
+		printf("x_temp[%d] = %lf\n", i, x_temp[i]);
+		printf("x_temp_temp[%d] = %lf\n",i, x_temp_temp[i]);
+	    }
+	    for(i=0;i<=dimension;++i){
+		x_temp[i] = x_temp_temp[i];
+	    }
 	    arFunvals = cmaes_init(&evo, dimension, restartX, restartSigma, seed, num_of_pop, mu, max_eval, max_iter, initfile);
 	    
 	    evo.countevals = countevals;
 	    evo.gen = generation+1;
+	    for(i=0;i <=dimension; ++i){
+		printf("evo.rgxbestever[%d] = %lf\n", i, evo.rgxbestever[i]);
+	    }
 	    for(i=0; i<=dimension; ++i){
 		evo.rgxbestever[i] = x_temp[i];
 		evo.rgrgx[evo.index[0]][i] = x_temp[i];
@@ -366,6 +384,9 @@ int main(int argc, char **argv){
 	++loop_count;
 	printf("%d times loop of cmaes finished\n", loop_count);
     }/*end of cmaes loop*/
+    
+    MPI_Barrier(MPI_COMM_WORLD);
+    t_end = MPI_Wtime();
     if( I_AM_ROOT_IN_MAIN){
     	printf("#Stop:\n%s\n", cmaes_TestForTermination(&evo)); /*print termination reason*/
     	printf("\n# operation finished.\n# elapsed time: %f\n #fbest: %f\n #xbest:", t_end - t_start, cmaes_Get(&evo, "fbestever"));
@@ -414,37 +435,94 @@ int main(int argc, char **argv){
     fflush(stdout);
     
     MPI_Barrier(MPI_COMM_WORLD);
-    t_end = MPI_Wtime();
+    
 
     printf("exec loop time is %lf\n", t_end - t_start);
     
     /* finalize the process (free the memory)*/
+    if(I_AM_ROOT_IN_MAIN){
+	printf("myid = %d, free %p (evo)\n", main_myid, &evo);
+
+	printf("myid = %d, x_temp = %p, initialX = %p, initialSigma = %p, pop_sendbuf_split_whole = %p, pop_sendbuf_nrn_delay = %p, pop_sendbuf_nrn_delay = %p, pop_sendbuf_split_weight = %p, pop_sendbuf_split_delay = %p, pop_rcvbuf_split_delay = %p, pop_rcvbuf_split_weight = %p, pop_rcvbuf_nrn_weight = %p, pop_rcvbuf_nrn_delay = %p, arFunvals_split_buf1 = %p, arFunvals_split_buf2 = %p, arFunvals_whole_buf = %p, arFunvals_whole = %p \n", main_myid, x_temp, initialX, initialSigma, pop_sendbuf_split_whole, pop_sendbuf_nrn_delay, pop_sendbuf_nrn_weight, pop_sendbuf_split_weight, pop_sendbuf_split_delay, pop_rcvbuf_split_delay, pop_rcvbuf_split_weight, pop_rcvbuf_nrn_weight, pop_rcvbuf_nrn_delay, arFunvals_split_buf1, arFunvals_split_buf2, arFunvals_whole_buf, arFunvals_whole);
+    }
     cmaes_exit(&evo);
+    if(main_myid == 0){
+	sleep(10);
+    }
+    printf("myid = %d, end of cmaes_exit\n", main_myid);
     //my_boundary_transformation_exit(&my_boundaries);//after define loadRangefile, uncomment!!
     free(x_temp);
+    if(I_AM_ROOT_IN_MAIN){
+	printf("1\n");
+    }
     free(initialX);
+        if(I_AM_ROOT_IN_MAIN){
+	printf("2\n");
+    }
     free(initialSigma);
+    if(I_AM_ROOT_IN_MAIN){
+	printf("3\n");
+    }
     free(pop_sendbuf_split_whole);
+    if(I_AM_ROOT_IN_MAIN){
+	printf("4\n");
+    }
     free(pop_sendbuf_nrn_delay);
+    if(I_AM_ROOT_IN_MAIN){
+	printf("5\n");
+    }
     free(pop_sendbuf_nrn_weight);
+    if(I_AM_ROOT_IN_MAIN){
+	printf("6\n");
+    }
     free(pop_sendbuf_split_delay);
+    if(I_AM_ROOT_IN_MAIN){
+	printf("7\n");
+    }
     free(pop_sendbuf_split_weight);
+    if(I_AM_ROOT_IN_MAIN){
+	printf("8\n");
+    }
     free(pop_rcvbuf_split_delay);
+    if(I_AM_ROOT_IN_MAIN){
+	printf("9\n");
+    }
     free(pop_rcvbuf_split_weight);
+    if(I_AM_ROOT_IN_MAIN){
+	printf("10\n");
+    }
     free(pop_rcvbuf_nrn_weight);
+    if(I_AM_ROOT_IN_MAIN){
+	printf("11\n");
+    }
     free(pop_rcvbuf_nrn_delay);
+    if(I_AM_ROOT_IN_MAIN){
+	printf("12\n");
+    }
   
     free(arFunvals_split_buf1);
+    if(I_AM_ROOT_IN_MAIN){
+	printf("13\n");
+    }
     free(arFunvals_split_buf2);
+    if(I_AM_ROOT_IN_MAIN){
+	printf("14\n");
+    }
     free(arFunvals_whole_buf);
+    if(I_AM_ROOT_IN_MAIN){
+	printf("15\n");
+    }
     free(arFunvals_whole);
+    if(I_AM_ROOT_IN_MAIN){
+	printf("16\n");
+    }
 
     for(i=0;i<6;i++){
 	free(neuron_argv[i]);
     }
     free(neuron_argv);
 
-    printf("end of the free memory section\n");
+    printf("end of the free memory section (myid = %d)\n", main_myid);
     
     MPI_Finalize();
 

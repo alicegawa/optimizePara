@@ -537,7 +537,7 @@ cmaes_exit(cmaes_t *t)
   free( --t->arFuncValueHist);
   */
   random_exit (&t->rand);
-  readpara_exit (&t->sp); 
+  readpara_exit (&t->sp);
 } /* cmaes_exit() */
 
 

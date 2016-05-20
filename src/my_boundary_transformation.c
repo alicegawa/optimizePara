@@ -53,6 +53,7 @@ void my_boundary_transformation(my_boundary_transformation_t *t,
 			* (t->upper_bounds_real[i] - t->lower_bounds_real[i]) 
 			/ (t->upper_bounds_cmaes[i] - t->lower_bounds_cmaes[i])
 			+ t->lower_bounds_real[i];
+		printf("y[%d] = %lf\n",i,y[i]);
 		if(t->log_or_not[i] != 0) { y[i] = exp(y[i]); }
 	}
 }

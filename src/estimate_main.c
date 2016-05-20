@@ -221,8 +221,6 @@ int main(int argc, char **argv){
     max_iter = (int)cmaes_Get(&evo, "MaxIter");
     max_eval = (int)cmaes_Get(&evo, "maxeval");
 
-    printf("myid = %d, address = %p\n", main_myid, &evo);
-    
     /* setting MPI_Comm_split section*/
     key = 0;
     color = main_myid;
@@ -360,10 +358,7 @@ int main(int argc, char **argv){
 	    /* }*/
 	    //x_temp = (double *)cmaes_GetPtr(&evo, "xbestever");
 	    x_temp_temp = (double *)cmaes_GetPtr(&evo, "xbestever");
-	    for(i=0;i<73;++i){
-		printf("x_temp[%d] = %lf\n", i, x_temp[i]);
-		printf("x_temp_temp[%d] = %lf\n",i, x_temp_temp[i]);
-	    }
+
 	    for(i=0;i<=dimension;++i){
 		x_temp[i] = x_temp_temp[i];
 	    }
@@ -371,9 +366,7 @@ int main(int argc, char **argv){
 	    
 	    evo.countevals = countevals;
 	    evo.gen = generation+1;
-	    for(i=0;i <=dimension; ++i){
-		printf("evo.rgxbestever[%d] = %lf\n", i, evo.rgxbestever[i]);
-	    }
+	 
 	    for(i=0; i<=dimension; ++i){
 		evo.rgxbestever[i] = x_temp[i];
 		evo.rgrgx[evo.index[0]][i] = x_temp[i];
@@ -440,82 +433,24 @@ int main(int argc, char **argv){
     printf("exec loop time is %lf\n", t_end - t_start);
     
     /* finalize the process (free the memory)*/
-    if(I_AM_ROOT_IN_MAIN){
-	printf("myid = %d, free %p (evo)\n", main_myid, &evo);
-
-	printf("myid = %d, x_temp = %p, initialX = %p, initialSigma = %p, pop_sendbuf_split_whole = %p, pop_sendbuf_nrn_delay = %p, pop_sendbuf_nrn_delay = %p, pop_sendbuf_split_weight = %p, pop_sendbuf_split_delay = %p, pop_rcvbuf_split_delay = %p, pop_rcvbuf_split_weight = %p, pop_rcvbuf_nrn_weight = %p, pop_rcvbuf_nrn_delay = %p, arFunvals_split_buf1 = %p, arFunvals_split_buf2 = %p, arFunvals_whole_buf = %p, arFunvals_whole = %p \n", main_myid, x_temp, initialX, initialSigma, pop_sendbuf_split_whole, pop_sendbuf_nrn_delay, pop_sendbuf_nrn_weight, pop_sendbuf_split_weight, pop_sendbuf_split_delay, pop_rcvbuf_split_delay, pop_rcvbuf_split_weight, pop_rcvbuf_nrn_weight, pop_rcvbuf_nrn_delay, arFunvals_split_buf1, arFunvals_split_buf2, arFunvals_whole_buf, arFunvals_whole);
-    }
     cmaes_exit(&evo);
-    if(main_myid == 0){
-	sleep(10);
-    }
-    printf("myid = %d, end of cmaes_exit\n", main_myid);
     //my_boundary_transformation_exit(&my_boundaries);//after define loadRangefile, uncomment!!
     free(x_temp);
-    if(I_AM_ROOT_IN_MAIN){
-	printf("1\n");
-    }
     free(initialX);
-        if(I_AM_ROOT_IN_MAIN){
-	printf("2\n");
-    }
     free(initialSigma);
-    if(I_AM_ROOT_IN_MAIN){
-	printf("3\n");
-    }
     free(pop_sendbuf_split_whole);
-    if(I_AM_ROOT_IN_MAIN){
-	printf("4\n");
-    }
     free(pop_sendbuf_nrn_delay);
-    if(I_AM_ROOT_IN_MAIN){
-	printf("5\n");
-    }
     free(pop_sendbuf_nrn_weight);
-    if(I_AM_ROOT_IN_MAIN){
-	printf("6\n");
-    }
     free(pop_sendbuf_split_delay);
-    if(I_AM_ROOT_IN_MAIN){
-	printf("7\n");
-    }
     free(pop_sendbuf_split_weight);
-    if(I_AM_ROOT_IN_MAIN){
-	printf("8\n");
-    }
     free(pop_rcvbuf_split_delay);
-    if(I_AM_ROOT_IN_MAIN){
-	printf("9\n");
-    }
     free(pop_rcvbuf_split_weight);
-    if(I_AM_ROOT_IN_MAIN){
-	printf("10\n");
-    }
     free(pop_rcvbuf_nrn_weight);
-    if(I_AM_ROOT_IN_MAIN){
-	printf("11\n");
-    }
     free(pop_rcvbuf_nrn_delay);
-    if(I_AM_ROOT_IN_MAIN){
-	printf("12\n");
-    }
-  
     free(arFunvals_split_buf1);
-    if(I_AM_ROOT_IN_MAIN){
-	printf("13\n");
-    }
     free(arFunvals_split_buf2);
-    if(I_AM_ROOT_IN_MAIN){
-	printf("14\n");
-    }
     free(arFunvals_whole_buf);
-    if(I_AM_ROOT_IN_MAIN){
-	printf("15\n");
-    }
     free(arFunvals_whole);
-    if(I_AM_ROOT_IN_MAIN){
-	printf("16\n");
-    }
 
     for(i=0;i<6;i++){
 	free(neuron_argv[i]);

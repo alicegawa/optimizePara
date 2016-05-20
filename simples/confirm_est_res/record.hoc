@@ -1,0 +1,76 @@
+load_file("nrngui.hoc")
+
+objref tvec, idvec
+objref savSpike, savWeight
+strdef filename
+
+proc setSpikeRecord(){local i, num_cell
+    tvec = new Vector()
+    idvec = new Vector()
+    num_cell = $1
+    for i=0, num_cell-1{
+	if(pc.gid_exists(i)){
+	    pc.spike_record(i, tvec, idvec)
+	}
+    }
+}
+
+proc writeFiles(){local pc_id, pc_nhost, num_cell
+    pc_id = $1
+    pc_nhost = $2
+    num_cell = $3
+    writeSpike(pc_id, pc_nhost, num_cell)
+    writeWeight(pc_id, pc_nhost, num_cell)
+}
+
+func getFreq(){local i, start_time, counter
+    start_time = $1
+    binwidth = $2
+    counter = 0
+    for i = 0, tvec.size()-1{
+	if(idvec.x(i) == (NCELL - 1)){
+	    if(tvec.x(i) > start_time && tvec.x(i) < ( start_time + binwidth)){
+		counter = counter + 1
+	    }
+	}
+    }
+    return counter * (1000 / binwidth) //transform to frequency
+}
+
+proc writeSpike(){local i, rank, pc_id, pc_nhost, num_cell
+    pc_id = $1
+    pc_nhost = $2
+    num_cell = $3
+    
+    for rank=0, pc_nhost-1{
+	if(rank == pc_id){
+	    savSpike = new File()
+	    sprint(filename, "../result/spike_%d_%d.dat", COLOR, pc_id)
+	    savSpike.wopen(filename)
+	    for i=0, tvec.size()-1{
+		if(idvec.x(i) < NCELL){
+		    savSpike.printf("%g\t%g\n",tvec.x(i), idvec.x(i))
+		}
+	    }
+	    savSpike.close()
+	}
+    }
+}
+
+proc writeWeight(){ local i, rank, pc_id, pc_nhost, num_cell
+    pc_id = $1
+    pc_nhost = $2
+    num_cell = $3
+    
+    for rank=0, pc_nhost-1 {
+	if(rank==pc_id){
+	    savWeight = new File()
+	    sprint(filename,"../result/nclist_%d_%d.dat", COLOR, pc_id)
+	    savWeight.wopen(filename)
+	    for i=0, nclist.count-1{
+		savWeight.printf("%g\t", nclist.o(i).weight)
+	    }
+	    savWeight.close()
+	}
+    }
+}

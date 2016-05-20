@@ -1,0 +1,71 @@
+{load_file("nrngui.hoc")}
+
+objref stimlist
+objref nclist_stim
+
+proc setStim(){ local cellCounter, num_cell, nNumber, tempIave, tempSigma, longingTime localobj stimFile, noiseStim
+    
+    num_cell = $1
+    longingTime = $2
+    stimlist = new List()
+    stimFile = new File()
+    stimFile.ropen("StimEvents.txt")
+    for cellCounter = 0, num_cell - 1{
+	nNumber = stimFile.scanvar()
+	tempIave = stimFile.scanvar()
+	tempSigma = stimFile.scanvar()
+	
+	cells.o(cellCounter).soma{
+	    noiseStim = new preNoisyI(0.5)
+	    noiseStim.iave = tempIave
+	    noiseStim.sigma = tempSigma
+	    noiseStim.del = 0
+	    noiseStim.dur = longingTime
+	    stimlist.append(noiseStim)
+	}
+    }
+    stimFile.close()
+}
+
+objref stimtest_list
+objref nctest_list
+proc setNetStimTest(){local num_cell, i localobj stim, nc
+    num_cell = $1
+    stimtest_list = new List()
+    nctest_list = new List()
+    for i=0, num_cell-1 {
+	if(pc.gid_exists(0)){
+	    pc.gid2cell(0).soma{
+		stim = new NetStim()
+		stim.number = 200
+		stim.interval = 10
+		stim.start = 30
+		stim.noise = 0.01
+		stimtest_list.append(stim)
+		nc = new NetCon(stim, pc.gid2cell(0).synlist.o(0),0, 0.1, 0.5)
+		nctest_list.append(nc)
+	    }
+	}
+    }
+}
+
+proc setStimShort(){local num_cell, dur, amp, delay, start localobj stim, nc
+    num_cell = $1
+    dur = $2
+    amp = $3
+    delay = $4
+    start = $5
+    stimlist = new List()
+    nclist_stim = new List()
+    if(pc.gid_exists(0)) {
+	pc.gid2cell(0).soma{
+	    stim = new IClamp(0.5)
+	    stim.dur = dur
+	    stim.amp = amp
+	    stim.del = delay + start
+	    stimlist.append(stim)
+	    nc = new NetCon(stim, pc.gid2cell(0).synlist.o(0), 0, 0.1, 0.01)
+	    nclist_stim.append(nc)
+	}
+    }
+}

@@ -17,18 +17,19 @@ typedef struct {
 	double *upper_bounds_real; /* real upper bounds */
 	double *lower_bounds_cmaes; /* real lower bounds */
 	double *upper_bounds_cmaes; /* real upper bounds */
-	unsigned char *log_or_not; /* real upper bounds */
+        //unsigned char *log_or_not; /* real upper bounds */
+        unsigned int *log_or_not; /* real upper bounds */
 	unsigned long dimension;
 } my_boundary_transformation_t;
 
 void my_boundary_transformation_init(my_boundary_transformation_t *,
 									 double const *lower_bounds, double const *upper_bounds, 
-									 unsigned char *log_or_not, unsigned long len_of_bounds);
+									 unsigned int *log_or_not, unsigned long len_of_bounds);
 
 void my_boundary_transformation_exit(my_boundary_transformation_t *);
 
 void my_boundary_transformation(my_boundary_transformation_t *,
-		double const *x, double *y); /* new value into y */
+				double const *x, double *y, int id); /* new value into y */
 
 /* under construction */
 //void my_boundary_transformation_inverse(my_boundary_transformation_t *t,

@@ -12,3 +12,4 @@ cma_tweann_test/*
 ./data/readData/changememo.txt
 ./data/readData/bilateral_ref
 ./data/readData/bilateral_ref_setting_dur_byHand
+./test*

@@ -22,7 +22,7 @@ int loadRangeFile(char *filename, my_boundary_transformation_t *t){
     char buf[TEXT_BUFFER_SIZE];
     double lowerBounds[MAX_NUM_PARAM];
     double upperBounds[MAX_NUM_PARAM];
-    unsigned char flg_log[MAX_NUM_PARAM];
+    unsigned int flg_log[MAX_NUM_PARAM];
 
     FILE *fp;
     if((fp=fopen(filename, "r"))==NULL){
@@ -31,8 +31,9 @@ int loadRangeFile(char *filename, my_boundary_transformation_t *t){
     }
     while( fgets(buf, TEXT_BUFFER_SIZE, fp) != NULL){
 	if(strncmp(buf, "#", 1) == 0){ continue;}
-	sscanf(buf, "%*s\t%lf\t%lf\t%*lf\t%c\n", &lowerBounds[dimension], &upperBounds[dimension], &flg_log[dimension]);
-	flg_log[dimension] = (unsigned char)atoi((const char*)&flg_log[dimension]);
+	sscanf(buf, "%*s\t%lf\t%lf\t%*lf\t%d\n", &lowerBounds[dimension], &upperBounds[dimension], &flg_log[dimension]);
+	//flg_log[dimension] = (unsigned char)atoi((const char*)&flg_log[dimension]);
+	//printf("flg_log[%d] = %d\n", dimension, flg_log[dimension]);
 	dimension++;//make the dimension information here
     }
     my_boundary_transformation_init(t, lowerBounds, upperBounds, flg_log, dimension);
@@ -106,7 +107,7 @@ int main(int argc, char **argv){
     /* for restart strategy*/
     int n_run=0;
     int countevals, generation;
-    int gen_restart[] = { 1, 50, 100, 150};/* temporary setting */
+    int gen_restart[] = { 1, 2, 3, 4, 50, 100, 150};/* temporary setting */
     double *restartX, *restartSigma;
     double restartSigma_defaults = 2.0;
 
@@ -146,7 +147,7 @@ int main(int argc, char **argv){
 
     if(max_iter == -1){
 	if(max_eval == -1){
-	    max_iter = 2;
+	    max_iter = 3;
 	    max_eval = max_iter * num_of_pop;
 	}else{
 	    max_iter = ceil((double)max_eval / num_of_pop);
@@ -202,7 +203,8 @@ int main(int argc, char **argv){
 
     arFunvals_whole_buf = (double *)calloc(num_of_pop_per_split, sizeof(double));
     arFunvals_whole = (double *)calloc(num_of_pop + num_of_pop_per_split, sizeof(double));
-    x_temp = (double *)malloc(dimension * sizeof(double));
+    //x_temp = (double *)malloc(dimension * sizeof(double));
+    x_temp = (double *)calloc(dimension, sizeof(double));
     
     initialX = (double *)malloc(sizeof(double) * dimension);
     if(initialX==NULL){ printf("memory allocation error for initialX \n"); return -1;}
@@ -216,6 +218,15 @@ int main(int argc, char **argv){
 	initialX[i] = 3.0 + (7.0 - 3.0) * (double)(rand() + 1.0) * util;
 	initialSigma[i] = (10.0 - 0.0) * 0.25;
 	restartSigma[i] = restartSigma_defaults;
+    }
+    //initialize x_temp for weight and delay
+    for(i=0;i<dimension;++i){
+	//printf("x_temp[%d] = %lf\n",i,x_temp[i]);
+	/* if(i<(dimension/2)){ */
+	/*     x_temp[i] = 0.5; */
+	/* }else{ */
+	/*     x_temp[i] = 25; */
+	/* } */
     }
     arFunvals = cmaes_init(&evo, dimension, initialX, initialSigma, seed, num_of_pop, mu, max_eval, max_iter, initfile);
     max_iter = (int)cmaes_Get(&evo, "MaxIter");
@@ -256,13 +267,15 @@ int main(int argc, char **argv){
     fflush(stdout);
 
     t_start = MPI_Wtime();
+    printf("main_myid = %d \n", main_myid);
 
     /*Start main section of estimation*/
     while(1){
-    	if(I_AM_ROOT_IN_MAIN){
+    	if( I_AM_ROOT_IN_MAIN ){
     	    pop = cmaes_SamplePopulation(&evo);/*do not change content of pop*/
+	    printf("x_temp\'s address is %p (myid = %d)\n", x_temp, main_myid);
     	    for(i=0;i<num_of_pop;++i){
-    		my_boundary_transformation(&my_boundaries, pop[i], x_temp);
+    		my_boundary_transformation(&my_boundaries, pop[i], x_temp, main_myid);
     		for(j=0;j<dimension;++j){
     		    pop_sendbuf_split_whole[i * dimension + j] = x_temp[j];
     		}
@@ -279,22 +292,6 @@ int main(int argc, char **argv){
 	MPI_Scatter(pop_sendbuf_split_delay, num_sendparams, MPI_DOUBLE, pop_rcvbuf_split_delay, num_sendparams, MPI_DOUBLE, root_process_main, firstTimeWorld);
 	MPI_Barrier(MPI_COMM_WORLD);
 	if(I_AM_ROOT_IN_SPLIT){
-	    /* //type0 incorrect */
-	    /* for(i=0;i<num_sendparams;++i){ */
-	    /* 	pop_sendbuf_nrn_weight[i+offset] = pop_rcvbuf_split_weight[i]; */
-	    /* 	pop_sendbuf_nrn_delay[i+offset] = pop_rcvbuf_split_delay[i]; */
-	    /* } */
-	    /* //type1 incorrect */
-	    /* for(i=0;i<num_of_one_gene_weight_or_delay;++i){ */
-	    /* 	for(j=0;j<num_of_pop_per_split;++j){ */
-	    /* 	    for(k=0;k<num_of_one_gene_weight_or_delay;++k){ */
-	    /* 	    pop_sendbuf_nrn_weight[offset + i * num_of_one_gene_weight_or_delay + j + k] = pop_rcvbuf_split_weight[j * num_of_one_gene_weight_or_delay + i]; */
-	    /* 	    pop_sendbuf_nrn_delay[offset + i * num_of_one_gene_weight_or_delay + j] = pop_rcvbuf_split_delay[i * num_of_one_gene_weight_or_delay + j]; */
-	    /* 	} */
-	    /* } */
-
-	    /* } */
-	    //type2 under construction
 	    for(k=0;k<num_of_procs_nrn;k++){
 		for(i=0;i<num_of_pop_per_split;i++){
 		    for(j=0;j<num_of_one_gene_weight_or_delay;j++){
@@ -310,6 +307,11 @@ int main(int argc, char **argv){
 
     	    /* wait for NEURON simulation in worker nodes */
     	    MPI_Gather(arFunvals_split_buf1, num_of_pop_per_split, MPI_DOUBLE, arFunvals_split_buf2, num_of_pop_per_split, MPI_DOUBLE, root_process_spawn, nrn_comm);
+	    for(i=0;i<num_of_weight_delay_per_procs;++i){
+		if(isnan(pop_rcvbuf_nrn_delay[i]) || isnan(pop_rcvbuf_nrn_weight[i])){
+		    printf("detect nan @%d of pop_rcvbuf_nrn_delay or weight\n", i);
+		}
+	    }
 
     	    for(i=0;i<num_of_pop_per_split; ++i){
     		arFunvals_whole_buf[i] = arFunvals_split_buf2[i + num_of_pop_per_split];
@@ -360,16 +362,27 @@ int main(int argc, char **argv){
 	    x_temp_temp = (double *)cmaes_GetPtr(&evo, "xbestever");
 
 	    for(i=0;i<=dimension;++i){
+		if(isnan(x_temp_temp[i])){
+		    printf("index: %d is nan (%dth loop)\n",i, loop_count);
+		}
+	    }
+	    for(i=0;i<=dimension;++i){
 		x_temp[i] = x_temp_temp[i];
+		if(isnan(x_temp[i])){
+		    printf("%d th section in x_temp is nan",i);
+		}
 	    }
 	    arFunvals = cmaes_init(&evo, dimension, restartX, restartSigma, seed, num_of_pop, mu, max_eval, max_iter, initfile);
 	    
 	    evo.countevals = countevals;
-	    evo.gen = generation+1;
+	    evo.gen = generation + 1;
 	 
 	    for(i=0; i<=dimension; ++i){
 		evo.rgxbestever[i] = x_temp[i];
 		evo.rgrgx[evo.index[0]][i] = x_temp[i];
+		if(isnan(x_temp[i])){
+		    printf("x_temp[%d] is nan\n",i);
+		}
 	    }
 	    n_run++;
 	}
@@ -383,7 +396,7 @@ int main(int argc, char **argv){
     if( I_AM_ROOT_IN_MAIN){
     	printf("#Stop:\n%s\n", cmaes_TestForTermination(&evo)); /*print termination reason*/
     	printf("\n# operation finished.\n# elapsed time: %f\n #fbest: %f\n #xbest:", t_end - t_start, cmaes_Get(&evo, "fbestever"));
-    	my_boundary_transformation(&my_boundaries, (double *)cmaes_GetPtr(&evo, "xbestever"), x_temp);
+    	my_boundary_transformation(&my_boundaries, (double *)cmaes_GetPtr(&evo, "xbestever"), x_temp, main_myid);
     	printGene(stdout, x_temp, dimension);
 	printf("\n");
 	fflush(stdout);
@@ -434,7 +447,7 @@ int main(int argc, char **argv){
     
     /* finalize the process (free the memory)*/
     cmaes_exit(&evo);
-    //my_boundary_transformation_exit(&my_boundaries);//after define loadRangefile, uncomment!!
+    my_boundary_transformation_exit(&my_boundaries);//after define loadRangefile, uncomment!!
     free(x_temp);
     free(initialX);
     free(initialSigma);

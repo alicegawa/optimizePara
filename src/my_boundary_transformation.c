@@ -5,7 +5,7 @@
 
 void my_boundary_transformation_init(my_boundary_transformation_t *t,
 									 double const *lower_bounds, double const *upper_bounds, 
-									 unsigned char *log_or_not, unsigned long len_of_bounds)
+									 unsigned int *log_or_not, unsigned long len_of_bounds)
 {
 	int i;
 
@@ -14,14 +14,16 @@ void my_boundary_transformation_init(my_boundary_transformation_t *t,
 	t->upper_bounds_real = (double*)malloc(len_of_bounds * sizeof(double));
 	t->lower_bounds_cmaes = (double*)malloc(len_of_bounds * sizeof(double));
 	t->upper_bounds_cmaes = (double*)malloc(len_of_bounds * sizeof(double));
-	t->log_or_not = (unsigned char*)malloc(len_of_bounds * sizeof(unsigned char));
+	//t->log_or_not = (unsigned char*)malloc(len_of_bounds * sizeof(unsigned char));
+	t->log_or_not = (int*)malloc(len_of_bounds * sizeof(int));
 
 	for(i = 0; i < len_of_bounds; i++) { 
 		t->log_or_not[i] = log_or_not[i];
+		//printf("t->log_or_not[%d] = %d (log_or_not[%d] = %d\n", i, t->log_or_not[i], i, log_or_not[i]);
 
 		if(t->log_or_not[i] != 0) {
-			t->lower_bounds_real[i] = log(lower_bounds[i]);
-			t->upper_bounds_real[i] = log(upper_bounds[i]);
+		    t->lower_bounds_real[i] = log(lower_bounds[i]);
+		    t->upper_bounds_real[i] = log(upper_bounds[i]);
 		} else {
 			t->lower_bounds_real[i] = lower_bounds[i];
 			t->upper_bounds_real[i] = upper_bounds[i];
@@ -44,17 +46,63 @@ void my_boundary_transformation_exit(my_boundary_transformation_t *t)
 }
 
 void my_boundary_transformation(my_boundary_transformation_t *t,
-								double const *x, double *y)
+				double const *x, double *y, int id)
 {
 	int i;
+	double temp_y;
+	double real_multiplier[t->dimension], cmaes_divider[t->dimension];
+	
+	printf("y\'s address is %p (and id = %d)\n", y, id);
+
 	boundary_transformation(&t->boundaries, x, y, t->dimension);
+
+
+	/* for(i=0; i<t->dimension; ++i){ */
+	/*     printf("t->upper_bounds_real[%d] = %lf and t->lower_bounds_real[%d] = %lf\n", i, t->upper_bounds_real[i], i, t->lower_bounds_real[i]); */
+	/* } */
+
+	for(i=0;i < t->dimension; ++i){
+		real_multiplier[i] = t->upper_bounds_real[i] - t->lower_bounds_real[i];
+		cmaes_divider[i] = t->upper_bounds_cmaes[i] - t->lower_bounds_cmaes[i];
+		cmaes_divider[i] = 1 / cmaes_divider[i];
+		if(isinf(real_multiplier[i])){
+		    printf("\n\n\n\n\n");
+		    printf("real_multiplier %dth is inf\n", i);
+		    printf("t->upper_bounds_real[%d] = %lf, t->lower_bounds_real[%d] = %lf and real_multiplier = %lf\n", i, t->upper_bounds_real[i], i, t->lower_bounds_real[i], t->upper_bounds_real[i] - t->lower_bounds_real[i]);
+		    printf("\n\n\n\n\n");
+		}
+		if(isinf(cmaes_divider[i])){
+		    printf("cmaes_divider %dth is inf \n", i);
+		}
+	}
+	
 	for(i = 0; i < t->dimension; i++) {
-		y[i] = (y[i] - t->lower_bounds_cmaes[i]) 
-			* (t->upper_bounds_real[i] - t->lower_bounds_real[i]) 
-			/ (t->upper_bounds_cmaes[i] - t->lower_bounds_cmaes[i])
-			+ t->lower_bounds_real[i];
-		//printf("y[%d] = %lf\n",i,y[i]);
-		if(t->log_or_not[i] != 0) { y[i] = exp(y[i]); }
+	    //printf("before y = %lf\n",y[i]);
+
+	    temp_y = y[i];
+	    //printf("temp_y @ %d is %lf\n",i,temp_y);
+	    //temp_y = (temp_y - t->lower_bounds_cmaes[i]) * (t->upper_bounds_real[i] - t->lower_bounds_real[i]) / (t->upper_bounds_cmaes[i] - t->lower_bounds_cmaes[i]) + t->lower_bounds_real[i];
+	    if(isnan(t->lower_bounds_real[i])){
+		printf("lower_bounds_real[%d] is nan\n", i);
+	    }
+	    if(isnan(t->lower_bounds_cmaes[i])){
+		printf("\n\n\n\n\n\nlower_bounds_cmaes[%d] is nan\n\n\n\n\n\n", i);
+	    }
+	    
+	    temp_y = (temp_y - t->lower_bounds_cmaes[i]) * real_multiplier[i] * cmaes_divider[i] + t->lower_bounds_real[i];
+	    /* if(i<36){ */
+	    /* 	printf("real_multiplier[%d] = %lf\n", i, real_multiplier[i]); */
+	    /* 	temp_y = (temp_y - t->lower_bounds_cmaes[i]) * real_multiplier[i] * 0.1; //after adding real_multiplier, y[19] became inf!! */
+	    /* }else{ */
+	    /* 	temp_y = (temp_y - t->lower_bounds_cmaes[i]) * 49 * 0.1 + t->lower_bounds_real[i]; */
+	    /* } */
+	    y[i] = temp_y;
+	    //printf("y[%d] = %lf\n",i,y[i]);
+	    //printf("after y[%d] = %lf\n", i, y[i]);
+	    if(isnan(y[i])){
+		printf("\n\n\n\n\n%dth y is nan\n\n\n\n\n",i);
+	    }
+	    if(t->log_or_not[i] != 0) { y[i] = exp(y[i]); }
 	}
 }
 

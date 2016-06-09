@@ -1,0 +1,783 @@
+boundary_transformation.c:	t->lower_bounds = lower_bounds;
+boundary_transformation.c:	t->upper_bounds = upper_bounds;
+boundary_transformation.c:	t->len_of_bounds = len_of_bounds;
+boundary_transformation.c:		t->lower_bounds = default_lower;
+boundary_transformation.c:		t->upper_bounds = default_upper;
+boundary_transformation.c:		t->lower_bounds = default_lower;
+boundary_transformation.c:		t->upper_bounds = default_upper;
+boundary_transformation.c:		t->len_of_bounds = 1;
+boundary_transformation.c:	if (t->lower_bounds == NULL || t->upper_bounds == NULL)
+boundary_transformation.c:	t->al = calloc(t->len_of_bounds, sizeof(double));
+boundary_transformation.c:	t->au = calloc(t->len_of_bounds, sizeof(double));
+boundary_transformation.c:	if (!t->al || !t->au)
+boundary_transformation.c:	lb = t->lower_bounds;
+boundary_transformation.c:	ub = t->upper_bounds;
+boundary_transformation.c:	for(i = 0; i < t->len_of_bounds; ++i) {
+boundary_transformation.c:		t->al[i] = fmin((ub[i] - lb[i]) / 2., (1. + fabs(lb[i])) / 20.);
+boundary_transformation.c:		t->au[i] = fmin((ub[i] - lb[i]) / 2., (1. + fabs(ub[i])) / 20.);
+boundary_transformation.c:	if(t->al)
+boundary_transformation.c:		free(t->al);
+boundary_transformation.c:	if(t->au)
+boundary_transformation.c:		free(t->au);
+boundary_transformation.c:		lb = t->lower_bounds[_index(t, i)];
+boundary_transformation.c:		ub = t->upper_bounds[_index(t, i)];
+boundary_transformation.c:		al = t->al[_index(t, i)];
+boundary_transformation.c:		au = t->au[_index(t, i)];
+boundary_transformation.c:		lb = t->lower_bounds[_index(t, i)];
+boundary_transformation.c:		ub = t->upper_bounds[_index(t, i)];
+boundary_transformation.c:		al = t->al[_index(t, i)];
+boundary_transformation.c:		au = t->al[_index(t, i)]; // bug?
+boundary_transformation.c:		lb = t->lower_bounds[_index(t, i)];
+boundary_transformation.c:		ub = t->upper_bounds[_index(t, i)];
+boundary_transformation.c:		al = t->al[_index(t, i)];
+boundary_transformation.c:		au = t->al[_index(t, i)]; // bug?
+boundary_transformation.c:	return i < t->len_of_bounds ? i : t->len_of_bounds - 1;
+cmaes.c:  sprintf(t->sOutString, 
+cmaes.c:          t->sp.mu, t->sp.lambda, t->sp.mueff, t->version, t->sp.N, (long)t->sp.diagonalCov,
+cmaes.c:          t->sp.seed, getTimeStr());
+cmaes.c:  return t->sOutString; 
+cmaes.c:  t->version = NULL;
+cmaes.c:  if (t->version && strcmp(version, t->version) == 0) {
+cmaes.c:  t->version = version;
+cmaes.c:  /* assign_string(&t->signalsFilename, "cmaes_signals.par"); */
+cmaes.c:  readpara_init (&t->sp, dimension, inseed, inxstart, inrgstddev, 
+cmaes.c:  t->sp.seed = random_init( &t->rand, (long unsigned int) t->sp.seed);
+cmaes.c:  N = t->sp.N; /* for convenience */
+cmaes.c:    trace += t->sp.rgInitialStds[i]*t->sp.rgInitialStds[i];
+cmaes.c:  t->sigma = sqrt(trace/N); /* t->sp.mueff/(0.2*t->sp.mueff+sqrt(N)) * sqrt(trace/N); */
+cmaes.c:  t->chiN = sqrt((double) N) * (1. - 1./(4.*N) + 1./(21.*N*N));
+cmaes.c:  t->flgEigensysIsUptodate = 1;
+cmaes.c:  t->flgCheckEigen = 0; 
+cmaes.c:  t->genOfEigensysUpdate = 0;
+cmaes.c:  timings_init(&t->eigenTimings);
+cmaes.c:  t->flgIniphase = 0; /* do not use iniphase, hsig does the job now */
+cmaes.c:  t->flgresumedone = 0;
+cmaes.c:  t->flgStop = 0;
+cmaes.c:  t->dMaxSignifKond = 1e23; // dtest / 1000.; /* not sure whether this is really save, 100 does not work well enough */
+cmaes.c:  // t->dMaxSignifKond = 1e16; // dtest / 1000.; /* not sure whether this is really save, 100 does not work well enough */
+cmaes.c:  t->gen = 0;
+cmaes.c:  t->countevals = 0;
+cmaes.c:  t->state = 0;
+cmaes.c:  t->dLastMinEWgroesserNull = 1.0;
+cmaes.c:  t->printtime = t->writetime = t->firstwritetime = t->firstprinttime = 0; 
+cmaes.c:  t->rgpc = new_double(N);
+cmaes.c:  t->rgps = new_double(N);
+cmaes.c:  t->rgdTmp = new_double(N+1);
+cmaes.c:  t->rgBDz = new_double(N);
+cmaes.c:  t->rgxmean = new_double(N+2); t->rgxmean[0] = N; ++t->rgxmean;
+cmaes.c:  t->rgxold = new_double(N+2); t->rgxold[0] = N; ++t->rgxold; 
+cmaes.c:  t->rgxbestever = new_double(N+3); t->rgxbestever[0] = N; ++t->rgxbestever; 
+cmaes.c:  t->rgout = new_double(N+2); t->rgout[0] = N; ++t->rgout;
+cmaes.c:  t->rgD = new_double(N);
+cmaes.c:  t->C = (double**)new_void(N, sizeof(double*));
+cmaes.c:  t->B = (double**)new_void(N, sizeof(double*));
+cmaes.c:  t->publicFitness = new_double(t->sp.lambda); 
+cmaes.c:  t->rgFuncValue = new_double(t->sp.lambda+1); 
+cmaes.c:  t->rgFuncValue[0]=t->sp.lambda; ++t->rgFuncValue;
+cmaes.c:  t->arFuncValueHist = new_double(10+(int)ceil(3.*10.*N/t->sp.lambda)+1);
+cmaes.c:  t->arFuncValueHist[0] = (double)(10+(int)ceil(3.*10.*N/t->sp.lambda));
+cmaes.c:  t->arFuncValueHist++; 
+cmaes.c:      t->C[i] = new_double(i+1);
+cmaes.c:      t->B[i] = new_double(N);
+cmaes.c:  t->index = (int *) new_void(t->sp.lambda, sizeof(int));
+cmaes.c:  for (i = 0; i < t->sp.lambda; ++i) 
+cmaes.c:    t->index[i] = i; /* should not be necessary */
+cmaes.c:  t->rgrgx = (double **)new_void(t->sp.lambda, sizeof(double*));
+cmaes.c:  for (i = 0; i < t->sp.lambda; ++i) {
+cmaes.c:    t->rgrgx[i] = new_double(N+2);
+cmaes.c:    t->rgrgx[i][0] = N; 
+cmaes.c:    t->rgrgx[i]++;
+cmaes.c:       t->C[i][j] = t->B[i][j] = t->B[j][i] = 0.;
+cmaes.c:      t->B[i][i] = 1.;
+cmaes.c:      t->C[i][i] = t->rgD[i] = t->sp.rgInitialStds[i] * sqrt(N / trace);
+cmaes.c:      t->C[i][i] *= t->C[i][i];
+cmaes.c:      t->rgpc[i] = t->rgps[i] = 0.;
+cmaes.c:  t->minEW = rgdouMin(t->rgD, N); t->minEW = t->minEW * t->minEW;
+cmaes.c:  t->maxEW = rgdouMax(t->rgD, N); t->maxEW = t->maxEW * t->maxEW; 
+cmaes.c:  t->maxdiagC=t->C[0][0]; for(i=1;i<N;++i) if(t->maxdiagC<t->C[i][i]) t->maxdiagC=t->C[i][i];
+cmaes.c:  t->mindiagC=t->C[0][0]; for(i=1;i<N;++i) if(t->mindiagC>t->C[i][i]) t->mindiagC=t->C[i][i];
+cmaes.c:    t->rgxmean[i] = t->rgxold[i] = t->sp.xstart[i]; 
+cmaes.c:  if (t->sp.typicalXcase) 
+cmaes.c:      t->rgxmean[i] += t->sigma * t->rgD[i] * random_Gauss(&t->rand);
+cmaes.c:  if (strcmp(t->sp.resumefile, "_no_")  != 0)
+cmaes.c:    cmaes_resume_distribution(t, t->sp.resumefile);
+cmaes.c:  return (t->publicFitness); 
+cmaes.c:  if (d != t->sp.N)
+cmaes.c:  t->rgxmean[0] = d; res = 1; 
+cmaes.c:  for(i = 1; i < t->sp.N; ++i)
+cmaes.c:    res += fscanf(fp, " %lg", &t->rgxmean[i]);
+cmaes.c:  if (res != t->sp.N)
+cmaes.c:  t->rgps[0] = d; res = 1;
+cmaes.c:  for(i = 1; i < t->sp.N; ++i)
+cmaes.c:    res += fscanf(fp, " %lg", &t->rgps[i]);
+cmaes.c:  if (res != t->sp.N)
+cmaes.c:  t->rgpc[0] = d; res = 1;
+cmaes.c:  for(i = 1; i < t->sp.N; ++i)
+cmaes.c:    res += fscanf(fp, " %lg", &t->rgpc[i]);
+cmaes.c:  if (res != t->sp.N)
+cmaes.c:  t->sigma = d;
+cmaes.c:  t->C[0][0] = d; res = 1;
+cmaes.c:  for (i = 1; i < t->sp.N; ++i)
+cmaes.c:      res += fscanf(fp, " %lg", &t->C[i][j]);
+cmaes.c:  if (res != (t->sp.N*t->sp.N+t->sp.N)/2)
+cmaes.c:  t->flgIniphase = 0;
+cmaes.c:  t->flgEigensysIsUptodate = 0;
+cmaes.c:  t->flgresumedone = 1;
+cmaes.c:  int i, N = t->sp.N;
+cmaes.c:  t->version = NULL; 
+cmaes.c:  /* free(t->signals_filename) */
+cmaes.c:  t->state = -1; /* not really useful at the moment */
+cmaes.c:  if(t->rgpc != NULL) {free( t->rgpc); t->rgpc=NULL;}
+cmaes.c:  if(t->rgps != NULL) {free( t->rgps); t->rgps=NULL;}
+cmaes.c:  if(t->rgdTmp != NULL) {free( t->rgdTmp); t->rgdTmp=NULL;}
+cmaes.c:  if(t->rgBDz != NULL) {free( t->rgBDz); t->rgBDz=NULL;}
+cmaes.c:  if(t->rgxmean != NULL) {free( --t->rgxmean); t->rgxmean=NULL;}
+cmaes.c:  if(t->rgxold != NULL) {free( --t->rgxold);  t->rgxold=NULL;}
+cmaes.c:  if(t->rgxbestever != NULL) {free( --t->rgxbestever);  t->rgxbestever=NULL;}
+cmaes.c:  if(t->rgout != NULL) {free( --t->rgout);  t->rgout=NULL;}
+cmaes.c:  if(t->rgD != NULL) {free( t->rgD); t->rgD=NULL;}
+cmaes.c:    if(t->C[i] != NULL) {free( t->C[i]); t->C[i]=NULL;}
+cmaes.c:    if(t->B[i] != NULL) {free( t->B[i]); t->B[i]=NULL;}
+cmaes.c:  for (i = 0; i < t->sp.lambda; ++i) 
+cmaes.c:    if(t->rgrgx[i] != NULL) {free( --t->rgrgx[i]); t->rgrgx[i]=NULL;}
+cmaes.c:  if(t->rgrgx != NULL) {free( t->rgrgx);  t->rgrgx=NULL;}
+cmaes.c:  if(t->C != NULL) {free( t->C); t->C=NULL;}
+cmaes.c:  if(t->B != NULL) {  free( t->B); t->B=NULL;}
+cmaes.c:  if(t->index != NULL) {  free( t->index); t->index=NULL;}
+cmaes.c:  if(t->publicFitness != NULL) {  free( t->publicFitness); t->publicFitness=NULL;}
+cmaes.c:  if(t->rgFuncValue != NULL) {  free( --t->rgFuncValue); t->rgFuncValue=NULL;}
+cmaes.c:  if(t->arFuncValueHist != NULL) {  free( --t->arFuncValueHist); t->arFuncValueHist=NULL;}
+cmaes.c:  free( t->rgpc);
+cmaes.c:  free( t->rgps);
+cmaes.c:  free( t->rgdTmp);
+cmaes.c:  free( t->rgBDz);
+cmaes.c:  free( --t->rgxmean);
+cmaes.c:  free( --t->rgxold); 
+cmaes.c:  free( --t->rgxbestever); 
+cmaes.c:  free( --t->rgout); 
+cmaes.c:  free( t->rgD);
+cmaes.c:    free( t->C[i]);
+cmaes.c:    free( t->B[i]);
+cmaes.c:  for (i = 0; i < t->sp.lambda; ++i) 
+cmaes.c:    free( --t->rgrgx[i]);
+cmaes.c:  free( t->rgrgx); 
+cmaes.c:  free( t->C);
+cmaes.c:  free( t->B);
+cmaes.c:  free( t->index);
+cmaes.c:  free( t->publicFitness);
+cmaes.c:  free( --t->rgFuncValue);
+cmaes.c:  free( --t->arFuncValueHist);
+cmaes.c:  random_exit (&t->rand);
+cmaes.c:  readpara_exit (&t->sp);
+cmaes.c:  int i, N=t->sp.N;
+cmaes.c:  if (t->state >= 1 && t->state < 3)
+cmaes.c:  if (xmean != NULL && xmean != t->rgxmean)
+cmaes.c:      t->rgxmean[i] = xmean[i];
+cmaes.c:    xmean = t->rgxmean; 
+cmaes.c:  int iNk, i, j, N=t->sp.N;
+cmaes.c:  int flgdiag = ((t->sp.diagonalCov == 1) || (t->sp.diagonalCov >= t->gen)); 
+cmaes.c:  double const *xmean = t->rgxmean; 
+cmaes.c:  if (!t->flgEigensysIsUptodate) {
+cmaes.c:          t->rgD[i] = sqrt(t->C[i][i]);
+cmaes.c:        t->minEW = douSquare(rgdouMin(t->rgD, N)); 
+cmaes.c:        t->maxEW = douSquare(rgdouMax(t->rgD, N));
+cmaes.c:        t->flgEigensysIsUptodate = 1;
+cmaes.c:        timings_start(&t->eigenTimings);
+cmaes.c:  for (iNk = 0; iNk < t->sp.lambda; ++iNk)
+cmaes.c:          t->rgrgx[iNk][i] = xmean[i] + t->sigma * t->rgD[i] * random_Gauss(&t->rand);
+cmaes.c:          t->rgdTmp[i] = t->rgD[i] * random_Gauss(&t->rand);
+cmaes.c:            sum += t->B[i][j] * t->rgdTmp[j];
+cmaes.c:          t->rgrgx[iNk][i] = xmean[i] + t->sigma * sum;
+cmaes.c:  if(t->state == 3 || t->gen == 0)
+cmaes.c:    ++t->gen;
+cmaes.c:  t->state = 1; 
+cmaes.c:  return(t->rgrgx);
+cmaes.c:  int i, j, N=t->sp.N;
+cmaes.c:    t->rgdTmp[i] = t->rgD[i] * random_Gauss(&t->rand);
+cmaes.c:      sum += t->B[i][j] * t->rgdTmp[j];
+cmaes.c:    rgx[i] = t->rgxmean[i] + t->sigma * sum;
+cmaes.c:  int i, j, N=t->sp.N;
+cmaes.c:  if (iindex < 0 || iindex >= t->sp.lambda) {
+cmaes.c:    sprintf(s, "index==%d must be between 0 and %d", iindex, t->sp.lambda);
+cmaes.c:  rgx = t->rgrgx[iindex];
+cmaes.c:    t->rgdTmp[i] = t->rgD[i] * random_Gauss(&t->rand);
+cmaes.c:      sum += t->B[i][j] * t->rgdTmp[j];
+cmaes.c:    rgx[i] = t->rgxmean[i] + t->sigma * sum;
+cmaes.c:  return(t->rgrgx);
+cmaes.c:  int i, j, N=t->sp.N;
+cmaes.c:    t->rgdTmp[i] = t->rgD[i] * random_Gauss(&t->rand);
+cmaes.c:      sum += t->B[i][j] * t->rgdTmp[j];
+cmaes.c:    rgx[i] = t->rgxmean[i] + t->sigma * sum;
+cmaes.c:  int i, j, N=t->sp.N;
+cmaes.c:    t->rgdTmp[i] = t->rgD[i] * random_Gauss(&t->rand);
+cmaes.c:      sum += t->B[i][j] * t->rgdTmp[j];
+cmaes.c:    rgx[i] = xmean[i] + eps * t->sigma * sum;
+cmaes.c:  int i, j, iNk, hsig, N=t->sp.N;
+cmaes.c:  int flgdiag = ((t->sp.diagonalCov == 1) || (t->sp.diagonalCov >= t->gen)); 
+cmaes.c:  if(t->state == 3)
+cmaes.c:  if(t->state == 1)  /* function values are delivered here */
+cmaes.c:    t->countevals += t->sp.lambda;
+cmaes.c:  for (i=0; i < t->sp.lambda; ++i) 
+cmaes.c:    t->rgrgx[i][N] = t->rgFuncValue[i] = rgFunVal[i];
+cmaes.c:  Sorted_index(rgFunVal, t->index, t->sp.lambda);
+cmaes.c:  if (t->rgFuncValue[t->index[0]] == 
+cmaes.c:      t->rgFuncValue[t->index[(int)t->sp.lambda/2]]) {
+cmaes.c:    t->sigma *= exp(0.2+t->sp.cs/t->sp.damps);
+cmaes.c:  for(i = (int)*(t->arFuncValueHist-1)-1; i > 0; --i) /* for(i = t->arFuncValueHist[-1]-1; i > 0; --i) */
+cmaes.c:    t->arFuncValueHist[i] = t->arFuncValueHist[i-1];
+cmaes.c:  t->arFuncValueHist[0] = rgFunVal[t->index[0]];
+cmaes.c:  if (t->rgxbestever[N] > t->rgrgx[t->index[0]][N] || t->gen == 1)
+cmaes.c:      t->rgxbestever[i] = t->rgrgx[t->index[0]][i];
+cmaes.c:      t->rgxbestever[N+1] = t->countevals;
+cmaes.c:    t->rgxold[i] = t->rgxmean[i]; 
+cmaes.c:    t->rgxmean[i] = 0.;
+cmaes.c:    for (iNk = 0; iNk < t->sp.mu; ++iNk) 
+cmaes.c:      t->rgxmean[i] += t->sp.weights[iNk] * t->rgrgx[t->index[iNk]][i];
+cmaes.c:    t->rgBDz[i] = sqrt(t->sp.mueff)*(t->rgxmean[i] - t->rgxold[i])/t->sigma; 
+cmaes.c:	  t->rgxold[i] = t->rgxmean[i];
+cmaes.c:	  for (iNk = 0; iNk < t->sp.mu; ++iNk) {
+cmaes.c:		  sum += t->sp.weights[iNk] * t->rgrgx[t->index[iNk]][i];
+cmaes.c:	  t->rgxmean[i] = sum;
+cmaes.c:	  t->rgBDz[i] = sqrt(t->sp.mueff)*(t->rgxmean[i] - t->rgxold[i])/t->sigma;
+cmaes.c:        sum += t->B[j][i] * t->rgBDz[j];
+cmaes.c:      sum = t->rgBDz[i];
+cmaes.c:    t->rgdTmp[i] = sum / t->rgD[i];
+cmaes.c:  /* TODO?: check length of t->rgdTmp and set an upper limit, e.g. 6 stds */
+cmaes.c:      sum += t->rgdTmp[j] * t->rgdTmp[j];
+cmaes.c:        sum += t->B[i][j] * t->rgdTmp[j];
+cmaes.c:      sum = t->rgdTmp[i];
+cmaes.c:    t->rgps[i] = (1. - t->sp.cs) * t->rgps[i] + 
+cmaes.c:      sqrt(t->sp.cs * (2. - t->sp.cs)) * sum;
+cmaes.c:    psxps += t->rgps[i] * t->rgps[i];
+cmaes.c:  hsig = sqrt(psxps) / sqrt(1. - pow(1.-t->sp.cs, 2*t->gen)) / t->chiN
+cmaes.c:    t->rgpc[i] = (1. - t->sp.ccumcov) * t->rgpc[i] + 
+cmaes.c:      hsig * sqrt(t->sp.ccumcov * (2. - t->sp.ccumcov)) * t->rgBDz[i];
+cmaes.c:  if (t->flgIniphase && 
+cmaes.c:      t->gen > douMin(1/t->sp.cs, 1+N/t->sp.mucov)) 
+cmaes.c:      if (psxps / t->sp.damps / (1.-pow((1. - t->sp.cs), t->gen)) 
+cmaes.c:        t->flgIniphase = 0;
+cmaes.c:     && t->arFuncValueHist[0] > t->arFuncValueHist[1]
+cmaes.c:     && t->arFuncValueHist[0] > t->arFuncValueHist[2]) {
+cmaes.c:      t->rgps[i] *= tfac;
+cmaes.c:  if (t->sp.ccov != 0. && t->flgIniphase == 0) {
+cmaes.c:    t->flgEigensysIsUptodate = 0;
+cmaes.c:        t->C[i][j] = (1 - t->sp.ccov) * t->C[i][j] 
+cmaes.c:          + t->sp.ccov * (1./t->sp.mucov) 
+cmaes.c:            * (t->rgpc[i] * t->rgpc[j] 
+cmaes.c:               + (1-hsig)*t->sp.ccumcov*(2.-t->sp.ccumcov) * t->C[i][j]);
+cmaes.c:        for (k = 0; k < t->sp.mu; ++k) /* additional rank mu update */
+cmaes.c:          t->C[i][j] += t->sp.ccov * (1-1./t->sp.mucov) * t->sp.weights[k]  
+cmaes.c:            * (t->rgrgx[t->index[k]][i] - t->rgxold[i]) 
+cmaes.c:            * (t->rgrgx[t->index[k]][j] - t->rgxold[j])
+cmaes.c:            / t->sigma / t->sigma; 
+cmaes.c:  t->sigma *= exp(((sqrt(psxps)/t->chiN)-1.)*t->sp.cs/t->sp.damps);
+cmaes.c:  t->state = 3;
+cmaes.c:  return (t->rgxmean);
+cmaes.c:  int i, j, k, N=t->sp.N;
+cmaes.c:  int flgdiag = ((t->sp.diagonalCov == 1) || (t->sp.diagonalCov >= t->gen)); 
+cmaes.c:  if (t->sp.ccov != 0. && t->flgIniphase == 0) {
+cmaes.c:    double ccov1 = douMin(t->sp.ccov * (1./t->sp.mucov) * (flgdiag ? (N+1.5) / 3. : 1.), 1.);
+cmaes.c:    double ccovmu = douMin(t->sp.ccov * (1-1./t->sp.mucov)* (flgdiag ? (N+1.5) / 3. : 1.), 1.-ccov1); 
+cmaes.c:    double sigmasquare = t->sigma * t->sigma; 
+cmaes.c:    t->flgEigensysIsUptodate = 0;
+cmaes.c:        t->C[i][j] = (1 - ccov1 - ccovmu) * t->C[i][j] 
+cmaes.c:            * (t->rgpc[i] * t->rgpc[j] 
+cmaes.c:               + (1-hsig)*t->sp.ccumcov*(2.-t->sp.ccumcov) * t->C[i][j]);
+cmaes.c:        for (k = 0; k < t->sp.mu; ++k) { /* additional rank mu update */
+cmaes.c:          t->C[i][j] += ccovmu * t->sp.weights[k]  
+cmaes.c:            * (t->rgrgx[t->index[k]][i] - t->rgxold[i]) 
+cmaes.c:            * (t->rgrgx[t->index[k]][j] - t->rgxold[j])
+cmaes.c:        t->C[i][j] = (1 - ccov1 - ccovmu) * t->C[i][j]
+cmaes.c:            * (t->rgpc[i] * t->rgpc[j]
+cmaes.c:               + (1-hsig)*t->sp.ccumcov*(2.-t->sp.ccumcov) * t->C[i][j]);
+cmaes.c:        for (k = 0; k < t->sp.mu; ++k) { /* additional rank mu update */
+cmaes.c:          sum += ccovmu * t->sp.weights[k]
+cmaes.c:            * (t->rgrgx[t->index[k]][i] - t->rgxold[i])
+cmaes.c:            * (t->rgrgx[t->index[k]][j] - t->rgxold[j])
+cmaes.c:		t->C[i][j] += sum;
+cmaes.c:    t->maxdiagC = t->mindiagC = t->C[0][0];
+cmaes.c:      if (t->maxdiagC < t->C[i][i])
+cmaes.c:        t->maxdiagC = t->C[i][i];
+cmaes.c:      else if (t->mindiagC > t->C[i][i])
+cmaes.c:        t->mindiagC = t->C[i][i];
+cmaes.c:  int i, N = t->sp.N; 
+cmaes.c:  if (t->sp.rgDiffMinChange == NULL)
+cmaes.c:    while (t->sigma * sqrt(t->C[i][i]) < t->sp.rgDiffMinChange[i]) 
+cmaes.c:      t->sigma *= exp(0.05+t->sp.cs/t->sp.damps);
+cmaes.c:    fprintf(fp, "%% # %s (randomSeed=%d, %s)\n", key, t->sp.seed, getTimeStr());
+cmaes.c:    if (t->gen > 0 || strncmp(name, "outcmaesfit", 11) != 0)
+cmaes.c:  int i, k, N=(t ? t->sp.N : 0); 
+cmaes.c:          fprintf(fp, "%.2e", sqrt(t->maxEW/t->minEW));
+cmaes.c:          int mini=0; for(i=N-1;i>0;--i) if(t->mindiagC==t->C[i][i]) mini=i; 
+cmaes.c:          int maxi=0; for(i=N-1;i>0;--i) if(t->maxdiagC==t->C[i][i]) maxi=i; 
+cmaes.c:          Sorted_index(t->rgD, iindex, N); /* should not be necessary, see end of QLalgo2 */
+cmaes.c:              fprintf(fp, "%g%c", t->B[j][iindex[N-1-i]], (j==N-1)?'\n':'\t');
+cmaes.c:              fprintf(fp, "%g%c", t->C[i][j], (j==i)?'\n':'\t');
+cmaes.c:				  fprintf(fp, "%g", t->C[i][j]);
+cmaes.c:          timings_update(&t->eigenTimings);
+cmaes.c:          fprintf(fp, "%.1f %.1f",  t->eigenTimings.totaltotaltime, 
+cmaes.c:                  t->eigenTimings.tictoctime);
+cmaes.c:          fprintf(fp, "%g", sqrt(t->maxdiagC/t->mindiagC));
+cmaes.c:            fprintf(fp, "%s%g", (i==0) ? "":"\t", t->sigma*sqrt(t->C[i][i]));
+cmaes.c:            t->rgdTmp[i] = t->rgD[i];
+cmaes.c:          qsort(t->rgdTmp, (unsigned) N, sizeof(double), &SignOfDiff); /* superfluous */
+cmaes.c:            fprintf(fp, "%s%g", (i==0) ? "":"\t", t->rgdTmp[i]);
+cmaes.c:          fprintf(fp, "%.0f", t->countevals);
+cmaes.c:            t->rgdTmp[i] = t->rgD[i];
+cmaes.c:          qsort(t->rgdTmp, (unsigned) N, sizeof(double), &SignOfDiff);
+cmaes.c:            fprintf(fp, "%s%g", (i==0) ? "":"\t", t->rgdTmp[N-1-i]);
+cmaes.c:          fprintf(fp, "\t%g\n", t->rgdTmp[0]);        /* and smallest */
+cmaes.c:        fprintf(fp, " %4.0f ", t->gen); 
+cmaes.c:        fprintf(fp, " %5.0f ", t->countevals); 
+cmaes.c:        fprintf(fp, "%.15e", t->rgFuncValue[t->index[0]]);
+cmaes.c:        fprintf(fp, "  %.2e  %.2e %.2e", t->sigma, t->sigma*sqrt(t->maxdiagC), 
+cmaes.c:                t->sigma*sqrt(t->mindiagC));
+cmaes.c:        fprintf(fp, "  %.2e  %.2e", sqrt(t->maxEW/t->minEW), sqrt(t->minEW));
+cmaes.c:          fprintf(fp, "%.15e", t->rgFuncValue[t->index[0]]);
+cmaes.c:          fprintf(fp, "%.15e", t->rgxbestever[N]); /* f-value */
+cmaes.c:          fprintf(fp, "%.15e", t->rgFuncValue[t->index[(int)(t->sp.lambda/2)]]);
+cmaes.c:          fprintf(fp, "%.15e", t->rgFuncValue[t->index[t->sp.lambda-1]]);
+cmaes.c:                    t->rgFuncValue[t->index[i]]);
+cmaes.c:          fprintf(fp, "%.0f", t->gen);
+cmaes.c:          fprintf(fp, "%.0f", t->gen);
+cmaes.c:          fprintf(fp, "%.4e", t->sigma);
+cmaes.c:          fprintf(fp, "%.4e", sqrt(t->mindiagC));
+cmaes.c:          fprintf(fp, "%.4e", sqrt(t->maxdiagC));
+cmaes.c:          fprintf(fp, "%.4e", sqrt(t->minEW));
+cmaes.c:          fprintf(fp, "%d", t->sp.lambda);
+cmaes.c:            fprintf(fp, "%g%s", t->rgps[i], (i==N-1) ? "\n":"\t");
+cmaes.c:            fprintf(fp, "%g%s", t->rgpc[i], (i==N-1) ? "\n":"\t");
+cmaes.c:          fprintf(fp, "sigma %g\n", t->sigma);
+cmaes.c:          fprintf(fp, "%s%g", (i==0) ? "":"\t", t->rgrgx[t->index[0]][i]);
+cmaes.c:          fprintf(fp, "%s%g", (i==0) ? "":"\t", t->rgxmean[i]);
+cmaes.c:          fprintf(fp, " seed %d\n", t->sp.seed);
+cmaes.c:          fprintf(fp, "function evaluations %.0f\n", t->countevals);
+cmaes.c:          fprintf(fp, "elapsed (CPU) time [s] %.2f\n", t->eigenTimings.totaltotaltime);
+cmaes.c:          fprintf(fp, "function value f(x)=%g\n", t->rgrgx[t->index[0]][N]);
+cmaes.c:          fprintf(fp, "maximal standard deviation %g\n", t->sigma*sqrt(t->maxdiagC));
+cmaes.c:          fprintf(fp, "minimal standard deviation %g\n", t->sigma*sqrt(t->mindiagC));
+cmaes.c:          fprintf(fp, "sigma %g\n", t->sigma);
+cmaes.c:          fprintf(fp, "axisratio %g\n", rgdouMax(t->rgD, N)/rgdouMin(t->rgD, N));
+cmaes.c:                  t->rgxbestever[N+1], t->rgxbestever[N]);
+cmaes.c:            fprintf(fp, " %12g%c", t->rgxbestever[i], 
+cmaes.c:                  t->rgrgx[t->index[0]][N]); 
+cmaes.c:            fprintf(fp, " %12g%c", t->rgrgx[t->index[0]][i], 
+cmaes.c:            fprintf(fp, " %12g%c", t->rgxmean[i], 
+cmaes.c:            fprintf(fp, " %12g%c", t->sigma*sqrt(t->C[i][i]), 
+cmaes.c:            t->rgdTmp[i] = t->rgD[i];
+cmaes.c:          qsort(t->rgdTmp, (unsigned) N, sizeof(double), &SignOfDiff);
+cmaes.c:            fprintf(fp, " %12g%c", t->sigma*t->rgdTmp[N-1-i], 
+cmaes.c:          k = MaxIdx(t->rgD, N);
+cmaes.c:            fprintf(fp, " %12g%c", t->B[i][k], (i%5==4||i==N-1)?'\n':' ');
+cmaes.c:          k = MinIdx(t->rgD, N);
+cmaes.c:            fprintf(fp, " %12g%c", t->B[i][k], (i%5==4||i==N-1)?'\n':' ');
+cmaes.c:  int N=t->sp.N;
+cmaes.c:    return (rgdouMax(t->rgD, N)/rgdouMin(t->rgD, N));
+cmaes.c:    return (t->countevals);
+cmaes.c:    return(t->rgFuncValue[t->index[0]]);
+cmaes.c:    return(t->rgxbestever[N]);
+cmaes.c:	  return(t->rgFuncValue[t->index[(int)(t->sp.lambda/2)]]);
+cmaes.c:	  return(t->rgFuncValue[t->index[t->sp.lambda-1]]);
+cmaes.c:    return(t->gen);
+cmaes.c:    return(t->sp.stopMaxFunEvals);
+cmaes.c:    return(ceil(t->sp.stopMaxIter));
+cmaes.c:    return(t->sigma * sqrt(t->maxEW));
+cmaes.c:    return(t->sigma * sqrt(t->minEW));
+cmaes.c:    return(t->sigma * sqrt(t->maxdiagC));
+cmaes.c:    return(t->sigma * sqrt(t->mindiagC));
+cmaes.c:    return(t->sp.lambda);
+cmaes.c:    return(t->sigma);
+cmaes.c:  int i, N = t->sp.N;
+cmaes.c:  int i, N=t->sp.N;
+cmaes.c:      t->rgout[i] = t->C[i][i]; 
+cmaes.c:    return(t->rgout);
+cmaes.c:    return(t->rgD);
+cmaes.c:      t->rgout[i] = t->sigma * sqrt(t->C[i][i]); 
+cmaes.c:    return(t->rgout);
+cmaes.c:    return(t->rgxbestever);
+cmaes.c:    return(t->rgrgx[t->index[0]]);
+cmaes.c:    return(t->rgxmean);
+cmaes.c:	if ( idx < t->sp.lambda)
+cmaes.c:		return(t->rgrgx[t->index[idx]]);
+cmaes.c:  int flgdiag = ((t->sp.diagonalCov == 1) || (t->sp.diagonalCov >= t->gen)); 
+cmaes.c:  int i, cTemp, N=t->sp.N; 
+cmaes.c:      if ((t->gen > 1 || t->state > 1) && t->sp.stStopFitness.flg && 
+cmaes.c:          t->rgFuncValue[t->index[0]] <= t->sp.stStopFitness.val) 
+cmaes.c:                      t->rgFuncValue[t->index[0]], t->sp.stStopFitness.val);
+cmaes.c:      range = douMax(rgdouMax(t->arFuncValueHist, (int)douMin(t->gen,*(t->arFuncValueHist-1))), 
+cmaes.c:                     rgdouMax(t->rgFuncValue, t->sp.lambda)) -
+cmaes.c:        douMin(rgdouMin(t->arFuncValueHist, (int)douMin(t->gen, *(t->arFuncValueHist-1))), 
+cmaes.c:               rgdouMin(t->rgFuncValue, t->sp.lambda));
+cmaes.c:      if (t->gen > 0 && range <= t->sp.stopTolFun) {
+cmaes.c:                      range, t->sp.stopTolFun);
+cmaes.c:      if (t->gen > *(t->arFuncValueHist-1)) {
+cmaes.c:        range = rgdouMax(t->arFuncValueHist, (int)*(t->arFuncValueHist-1)) 
+cmaes.c:          - rgdouMin(t->arFuncValueHist, (int)*(t->arFuncValueHist-1));
+cmaes.c:        if (range <= t->sp.stopTolFunHist)
+cmaes.c:                        range, t->sp.stopTolFunHist);
+cmaes.c:        cTemp += (t->sigma * sqrt(t->C[i][i]) < t->sp.stopTolX) ? 1 : 0;
+cmaes.c:        cTemp += (t->sigma * t->rgpc[i] < t->sp.stopTolX) ? 1 : 0;
+cmaes.c:                      t->sp.stopTolX);
+cmaes.c:        if (t->sigma * sqrt(t->C[i][i]) > t->sp.stopTolUpXFactor * t->sp.rgInitialStds[i])
+cmaes.c:                      t->sp.stopTolUpXFactor);
+cmaes.c:      if (t->maxEW >= t->minEW * t->dMaxSignifKond) {
+cmaes.c:                      t->dMaxSignifKond, t->maxEW, t->minEW, t->maxdiagC, t->mindiagC);
+cmaes.c:            fac = 0.1 * t->sigma * t->rgD[iAchse];
+cmaes.c:              if (t->rgxmean[iKoo] != t->rgxmean[iKoo] + fac * t->B[iKoo][iAchse])
+cmaes.c:                /* t->sigma *= exp(0.2+t->sp.cs/t->sp.damps); */
+cmaes.c:          if (t->rgxmean[iKoo] == t->rgxmean[iKoo] + 
+cmaes.c:              0.2*t->sigma*sqrt(t->C[iKoo][iKoo]))
+cmaes.c:              /* t->C[iKoo][iKoo] *= (1 + t->sp.ccov); */
+cmaes.c:                            t->sigma*sqrt(t->C[iKoo][iKoo]), iKoo); 
+cmaes.c:      /* if (flg) t->sigma *= exp(0.05+t->sp.cs/t->sp.damps); */
+cmaes.c:      if(t->countevals >= t->sp.stopMaxFunEvals) 
+cmaes.c:                      t->countevals, t->sp.stopMaxFunEvals);
+cmaes.c:      if(t->gen >= t->sp.stopMaxIter) 
+cmaes.c:                      t->gen, t->sp.stopMaxIter); 
+cmaes.c:      if(t->flgStop)
+cmaes.c:/* if (filename) assign_string(&(t->signalsFilename), filename)*/
+cmaes.c:  double deltaprinttime = time(NULL)-t->printtime; /* using clock instead might not be a good */
+cmaes.c:  double deltawritetime = time(NULL)-t->writetime; /* idea as disc time is not CPU time? */
+cmaes.c:  double deltaprinttimefirst = t->firstprinttime ? time(NULL)-t->firstprinttime : 0; /* time is in seconds!? */
+cmaes.c:  double deltawritetimefirst = t->firstwritetime ? time(NULL)-t->firstwritetime : 0; 
+cmaes.c:  if (countiterlastwritten > t->gen) { /* probably restarted */
+cmaes.c:                  t->flgStop = 1; 
+cmaes.c:                    t->sp.stopMaxFunEvals = d; 
+cmaes.c:                    t->sp.stopMaxIter = d; 
+cmaes.c:                      t->sp.stStopFitness.flg = 1; 
+cmaes.c:                      t->sp.stStopFitness.val = d; 
+cmaes.c:                    t->sp.stopTolFunHist = d; 
+cmaes.c:                    t->sp.stopTolFun = d; 
+cmaes.c:                    t->sp.stopTolX = d; 
+cmaes.c:                    t->sp.stopTolUpXFactor = d; 
+cmaes.c:                if (t->countevals < t->sp.lambda && t->flgresumedone == 0) 
+cmaes.c:                             && t->gen-countiterlastwritten > maxdiffitertowrite) {
+cmaes.c:                      t->flgCheckEigen = 1;
+cmaes.c:                      t->flgCheckEigen = 0;
+cmaes.c:                    t->flgCheckEigen = 0;
+cmaes.c:                  t->sp.updateCmode.maxtime = d;
+cmaes.c:  if (t->writetime == 0) 
+cmaes.c:    t->firstwritetime = time(NULL); 
+cmaes.c:  if (t->printtime == 0)
+cmaes.c:    t->firstprinttime = time(NULL); 
+cmaes.c:    t->printtime = time(NULL);
+cmaes.c:    t->writetime = time(NULL);
+cmaes.c:    if (t->gen-countiterlastwritten > maxdiffitertowrite)
+cmaes.c:    countiterlastwritten = (long int) t->gen;
+cmaes.c:  int i, N = t->sp.N;
+cmaes.c:  timings_update(&t->eigenTimings);
+cmaes.c:    if (t->flgEigensysIsUptodate == 1)
+cmaes.c:    if (t->sp.updateCmode.flgalways == 0 /* not implemented, always ==0 */
+cmaes.c:        && t->gen < t->genOfEigensysUpdate + t->sp.updateCmode.modulo
+cmaes.c:    if (t->sp.updateCmode.maxtime < 1.00 
+cmaes.c:        && t->eigenTimings.tictoctime > t->sp.updateCmode.maxtime * t->eigenTimings.totaltime
+cmaes.c:        && t->eigenTimings.tictoctime > 0.0002)
+cmaes.c:  timings_tic(&t->eigenTimings);
+cmaes.c:  Eigen( N, t->C, t->rgD, t->B, t->rgdTmp);
+cmaes.c:  timings_toc(&t->eigenTimings);
+cmaes.c:  t->minEW = rgdouMin(t->rgD, N);
+cmaes.c:  t->maxEW = rgdouMax(t->rgD, N);
+cmaes.c:  if (t->flgCheckEigen)
+cmaes.c:    i = Check_Eigen( N, t->C, t->rgD, t->B);
+cmaes.c:  if (t->maxEW > t->minEW * t->dMaxSignifKond) {
+cmaes.c:    tmp = t->maxEW/t->dMaxSignifKond - t->minEW;
+cmaes.c:    tmp = t->maxEW/t->dMaxSignifKond;
+cmaes.c:    t->minEW += tmp;
+cmaes.c:      t->C[i][i] += tmp;
+cmaes.c:      t->rgD[i] += tmp;
+cmaes.c:  t->dLastMinEWgroesserNull = minEW;
+cmaes.c:    t->rgD[i] = sqrt(t->rgD[i]);
+cmaes.c:  t->flgEigensysIsUptodate = 1;
+cmaes.c:  t->genOfEigensysUpdate = t->gen; 
+cmaes.c:  int i,j, N=t->sp.N; 
+cmaes.c:  sprintf( s+strlen(s)," Gen       %20.12g\n", t->gen);
+cmaes.c:  sprintf( s+strlen(s)," sigma     %e\n", t->sigma);
+cmaes.c:           t->dLastMinEWgroesserNull);
+cmaes.c:  sprintf( s+strlen(s)," maxKond   %e\n\n", t->dMaxSignifKond);
+cmaes.c:      sprintf( s+strlen(s), " %20.12e", t->rgxmean[i]);
+cmaes.c:      sprintf( s+strlen(s), " %10.4e", t->rgD[i]);
+cmaes.c:        sprintf( s+strlen(s), " %10.2e", t->B[i][j]);
+cmaes.c:  t->totaltotaltime = 0; 
+cmaes.c:  t->totaltime = 0;
+cmaes.c:  t->tictoctime = 0;
+cmaes.c:  t->lasttictoctime = 0;
+cmaes.c:  t->istic = 0;
+cmaes.c:  t->lastclock = clock();
+cmaes.c:  t->lasttime = time(NULL);
+cmaes.c:  t->lastdiff = 0;
+cmaes.c:  t->tictoczwischensumme = 0;
+cmaes.c:  t->isstarted = 1;
+cmaes.c:  clock_t lc = t->lastclock; /* measure CPU in 1e-6s */
+cmaes.c:  time_t lt = t->lasttime;   /* measure time in s */
+cmaes.c:  if (t->isstarted != 1)
+cmaes.c:  t->lastclock = clock(); /* measures at most 2147 seconds, where 1s = 1e6 CLOCKS_PER_SEC */
+cmaes.c:  t->lasttime = time(NULL);
+cmaes.c:  diffc = (double)(t->lastclock - lc) / CLOCKS_PER_SEC; /* is presumably in [-21??, 21??] */
+cmaes.c:  difft = difftime(t->lasttime, lt);                    /* is presumably an integer */
+cmaes.c:  t->lastdiff = difft; /* on the "save" side */
+cmaes.c:    t->lastdiff = diffc;
+cmaes.c:  if (t->lastdiff < 0)
+cmaes.c:  t->totaltime += t->lastdiff;
+cmaes.c:  t->totaltotaltime += t->lastdiff;
+cmaes.c:  if (t->istic) {
+cmaes.c:    t->tictoczwischensumme += t->lastdiff;
+cmaes.c:    t->tictoctime += t->lastdiff;
+cmaes.c:  return t->lastdiff; 
+cmaes.c:  if (t->istic) { /* message not necessary ? */
+cmaes.c:  t->istic = 1; 
+cmaes.c:  if (!t->istic) {
+cmaes.c:  t->lasttictoctime = t->tictoczwischensumme;
+cmaes.c:  t->tictoczwischensumme = 0;
+cmaes.c:  t->istic = 0;
+cmaes.c:  return t->lasttictoctime;
+cmaes.c:  t->flgstored = 0;
+cmaes.c:  t->rgrand = (long *) new_void(32, sizeof(long));
+cmaes.c:	if(t->rgrand!=NULL) { free( t->rgrand); t->rgrand = NULL; }
+cmaes.c:  // free( t->rgrand);
+cmaes.c:  t->flgstored = 0;
+cmaes.c:  t->startseed = inseed; /* purely for bookkeeping */
+cmaes.c:  t->aktseed = inseed;
+cmaes.c:    tmp = t->aktseed/127773;
+cmaes.c:    t->aktseed = 16807 * (t->aktseed - tmp * 127773)
+cmaes.c:    if (t->aktseed < 0) t->aktseed += 2147483647;
+cmaes.c:      t->rgrand[i] = t->aktseed;
+cmaes.c:  t->aktrand = t->rgrand[0];
+cmaes.c:  if (t->flgstored)
+cmaes.c:    t->flgstored = 0;
+cmaes.c:    return t->hold;
+cmaes.c:  t->flgstored = 1;
+cmaes.c:  t->hold = fac * x1;
+cmaes.c:  tmp = t->aktseed/127773;
+cmaes.c:  t->aktseed = 16807 * (t->aktseed - tmp * 127773)
+cmaes.c:  if (t->aktseed < 0) 
+cmaes.c:    t->aktseed += 2147483647;
+cmaes.c:  tmp = t->aktrand / 67108865;
+cmaes.c:  t->aktrand = t->rgrand[tmp];
+cmaes.c:  t->rgrand[tmp] = t->aktseed;
+cmaes.c:  return (double)(t->aktrand)/(2.147483647e9);
+cmaes.c:  t->filename = NULL; /* set after successful Read */
+cmaes.c:  t->rgsformat = (const char **) new_void(55, sizeof(char *));
+cmaes.c:  t->rgpadr = (void **) new_void(55, sizeof(void *)); 
+cmaes.c:  t->rgskeyar = (const char **) new_void(11, sizeof(char *));
+cmaes.c:  t->rgp2adr = (double ***) new_void(11, sizeof(double **));
+cmaes.c:  t->weigkey = (char *)new_void(7, sizeof(char)); 
+cmaes.c:  t->rgsformat[i] = " N %d";        t->rgpadr[i++] = (void *) &t->N; 
+cmaes.c:  t->rgsformat[i] = " seed %d";    t->rgpadr[i++] = (void *) &t->seed;
+cmaes.c:  t->rgsformat[i] = " stopMaxFunEvals %lg"; t->rgpadr[i++] = (void *) &t->stopMaxFunEvals;
+cmaes.c:  t->rgsformat[i] = " stopMaxIter %lg"; t->rgpadr[i++] = (void *) &t->stopMaxIter;
+cmaes.c:  t->rgsformat[i] = " stopFitness %lg"; t->rgpadr[i++]=(void *) &t->stStopFitness.val;
+cmaes.c:  t->rgsformat[i] = " stopTolFun %lg"; t->rgpadr[i++]=(void *) &t->stopTolFun;
+cmaes.c:  t->rgsformat[i] = " stopTolFunHist %lg"; t->rgpadr[i++]=(void *) &t->stopTolFunHist;
+cmaes.c:  t->rgsformat[i] = " stopTolX %lg"; t->rgpadr[i++]=(void *) &t->stopTolX;
+cmaes.c:  t->rgsformat[i] = " stopTolUpXFactor %lg"; t->rgpadr[i++]=(void *) &t->stopTolUpXFactor;
+cmaes.c:  t->rgsformat[i] = " lambda %d";      t->rgpadr[i++] = (void *) &t->lambda;
+cmaes.c:  t->rgsformat[i] = " mu %d";          t->rgpadr[i++] = (void *) &t->mu;
+cmaes.c:  t->rgsformat[i] = " weights %5s";    t->rgpadr[i++] = (void *) t->weigkey;
+cmaes.c:  t->rgsformat[i] = " fac*cs %lg";t->rgpadr[i++] = (void *) &t->cs;
+cmaes.c:  t->rgsformat[i] = " fac*damps %lg";   t->rgpadr[i++] = (void *) &t->damps;
+cmaes.c:  t->rgsformat[i] = " ccumcov %lg";    t->rgpadr[i++] = (void *) &t->ccumcov;
+cmaes.c:  t->rgsformat[i] = " mucov %lg";     t->rgpadr[i++] = (void *) &t->mucov;
+cmaes.c:  t->rgsformat[i] = " fac*ccov %lg";  t->rgpadr[i++]=(void *) &t->ccov;
+cmaes.c:  t->rgsformat[i] = " diagonalCovarianceMatrix %lg"; t->rgpadr[i++]=(void *) &t->diagonalCov;
+cmaes.c:  t->rgsformat[i] = " updatecov %lg"; t->rgpadr[i++]=(void *) &t->updateCmode.modulo;
+cmaes.c:  t->rgsformat[i] = " maxTimeFractionForEigendecompostion %lg"; t->rgpadr[i++]=(void *) &t->updateCmode.maxtime;
+cmaes.c:  t->rgsformat[i] = " resume %59s";    t->rgpadr[i++] = (void *) t->resumefile;
+cmaes.c:  t->rgsformat[i] = " fac*maxFunEvals %lg";   t->rgpadr[i++] = (void *) &t->facmaxeval;
+cmaes.c:  t->rgsformat[i] = " fac*updatecov %lg"; t->rgpadr[i++]=(void *) &t->facupdateCmode;
+cmaes.c:  t->n1para = i; 
+cmaes.c:  t->n1outpara = i-2; /* disregard last parameters in WriteToFile() */
+cmaes.c:  t->rgskeyar[i]  = " typicalX %d";   t->rgp2adr[i++] = &t->typicalX;
+cmaes.c:  t->rgskeyar[i]  = " initialX %d";   t->rgp2adr[i++] = &t->xstart;
+cmaes.c:  t->rgskeyar[i]  = " initialStandardDeviations %d"; t->rgp2adr[i++] = &t->rgInitialStds;
+cmaes.c:  t->rgskeyar[i]  = " diffMinChange %d"; t->rgp2adr[i++] = &t->rgDiffMinChange;
+cmaes.c:  t->n2para = i;  
+cmaes.c:  t->N = dim;
+cmaes.c:  t->seed = (unsigned) inseed; 
+cmaes.c:  t->xstart = NULL; 
+cmaes.c:  t->typicalX = NULL;
+cmaes.c:  t->typicalXcase = 0;
+cmaes.c:  t->rgInitialStds = NULL; 
+cmaes.c:  t->rgDiffMinChange = NULL; 
+cmaes.c:  t->stopMaxFunEvals = maxFunEvals;//-1;
+cmaes.c:  t->stopMaxIter = maxStopIter;//-1;
+cmaes.c:  t->facmaxeval = 1; 
+cmaes.c:  t->stStopFitness.flg = -1;
+cmaes.c:  t->stopTolFun = 1e-12; 
+cmaes.c:  t->stopTolFunHist = 1e-13; 
+cmaes.c:  t->stopTolX = 0; /* 1e-11*insigma would also be reasonable */ 
+cmaes.c:  t->stopTolUpXFactor = 1e3; 
+cmaes.c:  t->lambda = lambda;
+cmaes.c:  t->mu = mu;
+cmaes.c:  t->mucov = -1;
+cmaes.c:  t->weights = NULL;
+cmaes.c:  strcpy(t->weigkey, "log");
+cmaes.c:  t->cs = -1;
+cmaes.c:  t->ccumcov = -1;
+cmaes.c:  t->damps = -1;
+cmaes.c:  t->ccov = -1;
+cmaes.c:  t->diagonalCov = 0; /* default is 0, but this might change in future, see below */
+cmaes.c:  t->updateCmode.modulo = -1;  
+cmaes.c:  t->updateCmode.maxtime = -1;
+cmaes.c:  t->updateCmode.flgalways = 0;
+cmaes.c:  t->facupdateCmode = 1;
+cmaes.c:  strcpy(t->resumefile, "_no_");
+cmaes.c:  if (t->N <= 0)
+cmaes.c:    t->N = dim;
+cmaes.c:  N = t->N; 
+cmaes.c:  if (t->xstart == NULL && inxstart == NULL && t->typicalX == NULL) {
+cmaes.c:  if (t->rgInitialStds == NULL && inrgsigma == NULL) {
+cmaes.c:  if (t->xstart == NULL) {
+cmaes.c:    t->xstart = new_double(N);
+cmaes.c:        t->xstart[i] = inxstart[i];
+cmaes.c:      t->typicalXcase = 1;
+cmaes.c:        t->xstart[i] = (t->typicalX == NULL) ? 0.5 : t->typicalX[i]; 
+cmaes.c:  if (t->rgInitialStds == NULL) {
+cmaes.c:    t->rgInitialStds = new_double(N);
+cmaes.c:      t->rgInitialStds[i] = (inrgsigma == NULL) ? 0.3 : inrgsigma[i];
+cmaes.c:	if (t->filename != NULL) 
+cmaes.c:		free( t->filename);
+cmaes.c:	if (t->xstart != NULL) /* not really necessary */
+cmaes.c:		free( t->xstart);
+cmaes.c:	if (t->typicalX != NULL)
+cmaes.c:		free( t->typicalX);
+cmaes.c:	if (t->rgInitialStds != NULL)
+cmaes.c:		free( t->rgInitialStds);
+cmaes.c:	if (t->rgDiffMinChange != NULL)
+cmaes.c:		free( t->rgDiffMinChange);
+cmaes.c:	if (t->weights != NULL)
+cmaes.c:		free( t->weights);
+cmaes.c:	if (t->rgsformat != NULL)
+cmaes.c:		free(t->rgsformat);
+cmaes.c:	if (t->rgpadr != NULL)
+cmaes.c:		free(t->rgpadr);
+cmaes.c:	if (t->rgskeyar != NULL)
+cmaes.c:		free(t->rgskeyar);
+cmaes.c:	if (t->rgp2adr != NULL)
+cmaes.c:		free(t->rgp2adr);
+cmaes.c:	if (t->weigkey != NULL)
+cmaes.c:		free(t->weigkey);
+cmaes.c:  t->filename = NULL; /* nothing read so far */
+cmaes.c:  for (ipara=0; ipara < t->n1para; ++ipara)
+cmaes.c:          if(sscanf(s, t->rgsformat[ipara], t->rgpadr[ipara]) == 1) {
+cmaes.c:            if (strncmp(t->rgsformat[ipara], " stopFitness ", 13) == 0)
+cmaes.c:              t->stStopFitness.flg = 1;
+cmaes.c:  if (t->N <= 0)
+cmaes.c:  for (ipara=0; ipara < t->n2para; ++ipara)
+cmaes.c:          if(sscanf(s, t->rgskeyar[ipara], &size) == 1) { /* size==number of values to be read */
+cmaes.c:              *t->rgp2adr[ipara] = new_double(t->N);
+cmaes.c:              for (i=0;i<size&&i<t->N;++i) /* start reading next line */
+cmaes.c:                if (fscanf(fp, " %lf", &(*t->rgp2adr[ipara])[i]) != 1)
+cmaes.c:              if (i<size && i < t->N) {
+cmaes.c:                FATAL( "'", t->rgskeyar[ipara], 
+cmaes.c:              for (; i < t->N; ++i) /* recycle */
+cmaes.c:                (*t->rgp2adr[ipara])[i] = (*t->rgp2adr[ipara])[i%size];
+cmaes.c:  assign_string(&(t->filename), filename); /* t->filename must be freed */
+cmaes.c:  fprintf(fp, "\n# Read from %s at %s\n", t->filename ? t->filename : "", 
+cmaes.c:    fprintf(fp, t->rgsformat[ipara], *(int *)t->rgpadr[ipara]);
+cmaes.c:  for (ipara=0; ipara < t->n2para; ++ipara) {
+cmaes.c:    if(*t->rgp2adr[ipara] == NULL)
+cmaes.c:    fprintf(fp, t->rgskeyar[ipara], t->N);
+cmaes.c:    for (i=0; i<t->N; ++i)
+cmaes.c:      fprintf(fp, "%7.3g%c", (*t->rgp2adr[ipara])[i], (i%5==4)?'\n':' ');
+cmaes.c:  for (ipara=1; ipara < t->n1outpara; ++ipara) {
+cmaes.c:    if (strncmp(t->rgsformat[ipara], " stopFitness ", 13) == 0)
+cmaes.c:      if(t->stStopFitness.flg == 0) {
+cmaes.c:    len = strlen(t->rgsformat[ipara]);
+cmaes.c:    if (t->rgsformat[ipara][len-1] == 'd') /* read integer */
+cmaes.c:      fprintf(fp, t->rgsformat[ipara], *(int *)t->rgpadr[ipara]);
+cmaes.c:    else if (t->rgsformat[ipara][len-1] == 's') /* read string */
+cmaes.c:      fprintf(fp, t->rgsformat[ipara], (char *)t->rgpadr[ipara]);
+cmaes.c:      if (strncmp(" fac*", t->rgsformat[ipara], 5) == 0) {
+cmaes.c:        fprintf(fp, t->rgsformat[ipara]+5, *(double *)t->rgpadr[ipara]);
+cmaes.c:        fprintf(fp, t->rgsformat[ipara], *(double *)t->rgpadr[ipara]);
+cmaes.c:  int N = t->N; 
+cmaes.c:  if (t->seed < 1) {
+cmaes.c:    t->seed = (unsigned int)abs((long)(100*time(NULL)+clock()));
+cmaes.c:  if (t->stStopFitness.flg == -1)
+cmaes.c:    t->stStopFitness.flg = 0;
+cmaes.c:  if (t->lambda < 2)
+cmaes.c:    t->lambda = 4+(int)(3*log((double)N));
+cmaes.c:  if (t->mu == -1) {
+cmaes.c:    t->mu = t->lambda/2; 
+cmaes.c:    readpara_SetWeights(t, t->weigkey);
+cmaes.c:  if (t->weights == NULL)
+cmaes.c:    readpara_SetWeights(t, t->weigkey);
+cmaes.c:  if (t->cs > 0) /* factor was read */
+cmaes.c:    t->cs *= (t->mueff + 2.) / (N + t->mueff + 3.);
+cmaes.c:  if (t->cs <= 0 || t->cs >= 1)
+cmaes.c:    t->cs = (t->mueff + 2.) / (N + t->mueff + 3.);
+cmaes.c:  if (t->ccumcov <= 0 || t->ccumcov > 1)
+cmaes.c:    t->ccumcov = 4. / (N + 4);
+cmaes.c:  if (t->mucov < 1) {
+cmaes.c:    t->mucov = t->mueff;
+cmaes.c:  t2 = (2.*t->mueff-1.) / ((N+2.)*(N+2.)+t->mueff);
+cmaes.c:  t2 = (1./t->mucov) * t1 + (1.-1./t->mucov) * t2;
+cmaes.c:  if (t->ccov >= 0) /* ccov holds the read factor */
+cmaes.c:    t->ccov *= t2;
+cmaes.c:  if (t->ccov < 0 || t->ccov > 1) /* set default in case */
+cmaes.c:    t->ccov = t2;
+cmaes.c:  if (t->diagonalCov == -1)
+cmaes.c:    t->diagonalCov = 2 + 100. * N / sqrt((double)t->lambda); 
+cmaes.c:  if (t->stopMaxFunEvals == -1)  /* may depend on ccov in near future */
+cmaes.c:    t->stopMaxFunEvals = t->facmaxeval*900*(N+3)*(N+3); 
+cmaes.c:    t->stopMaxFunEvals *= t->facmaxeval;
+cmaes.c:  if (t->stopMaxIter == -1)
+cmaes.c:    t->stopMaxIter = ceil((double)(t->stopMaxFunEvals / t->lambda)); 
+cmaes.c:  if (t->damps < 0) 
+cmaes.c:    t->damps = 1; /* otherwise a factor was read */
+cmaes.c:  t->damps = t->damps 
+cmaes.c:    * (1 + 2*douMax(0., sqrt((t->mueff-1.)/(N+1.)) - 1))     /* basic factor */
+cmaes.c:                  (double)N / (1e-6+douMin(t->stopMaxIter, t->stopMaxFunEvals/t->lambda))) 
+cmaes.c:    + t->cs;                                                 /* minor increment */
+cmaes.c:  if (t->updateCmode.modulo < 0)
+cmaes.c:    t->updateCmode.modulo = 1./t->ccov/(double)(N)/10.;
+cmaes.c:  t->updateCmode.modulo *= t->facupdateCmode;
+cmaes.c:  if (t->updateCmode.maxtime < 0)
+cmaes.c:    t->updateCmode.maxtime = 0.20; /* maximal 20% of CPU-time */
+cmaes.c:  if(t->weights != NULL)
+cmaes.c:    free( t->weights); 
+cmaes.c:  t->weights = new_double(t->mu);
+cmaes.c:    for (i=0; i<t->mu; ++i) 
+cmaes.c:      t->weights[i] = t->mu - i;
+cmaes.c:    for (i=0; i<t->mu; ++i) 
+cmaes.c:      t->weights[i] = 1;
+cmaes.c:    for (i=0; i<t->mu; ++i) 
+cmaes.c:      t->weights[i] = log(t->mu+1.)-log(i+1.); 
+cmaes.c:    for (i=0; i<t->mu; ++i) 
+cmaes.c:      t->weights[i] = log(t->mu+1.)-log(i+1.); 
+cmaes.c:  for (i=0, s1=0, s2=0; i<t->mu; ++i) {
+cmaes.c:    s1 += t->weights[i];
+cmaes.c:    s2 += t->weights[i]*t->weights[i];
+cmaes.c:  t->mueff = s1*s1/s2;
+cmaes.c:  for (i=0; i<t->mu; ++i) 
+cmaes.c:    t->weights[i] /= s1;
+cmaes.c:  if(t->mu < 1 || t->mu > t->lambda || 
+cmaes.c:     (t->mu==t->lambda && t->weights[0]==t->weights[t->mu-1]))
+my_boundary_transformation.c:	t->dimension = len_of_bounds;
+my_boundary_transformation.c:	t->lower_bounds_real = (double*)malloc(len_of_bounds * sizeof(double));
+my_boundary_transformation.c:	t->upper_bounds_real = (double*)malloc(len_of_bounds * sizeof(double));
+my_boundary_transformation.c:	t->lower_bounds_cmaes = (double*)malloc(len_of_bounds * sizeof(double));
+my_boundary_transformation.c:	t->upper_bounds_cmaes = (double*)malloc(len_of_bounds * sizeof(double));
+my_boundary_transformation.c:	t->log_or_not = (unsigned char*)malloc(len_of_bounds * sizeof(unsigned char));
+my_boundary_transformation.c:		t->log_or_not[i] = log_or_not[i];
+my_boundary_transformation.c:		if(t->log_or_not[i] != 0) {
+my_boundary_transformation.c:			t->lower_bounds_real[i] = log(lower_bounds[i]);
+my_boundary_transformation.c:			t->upper_bounds_real[i] = log(upper_bounds[i]);
+my_boundary_transformation.c:			t->lower_bounds_real[i] = lower_bounds[i];
+my_boundary_transformation.c:			t->upper_bounds_real[i] = upper_bounds[i];
+my_boundary_transformation.c:		t->lower_bounds_cmaes[i] = 0.0;
+my_boundary_transformation.c:		t->upper_bounds_cmaes[i] = 10.0;
+my_boundary_transformation.c:	boundary_transformation_init(&t->boundaries, t->lower_bounds_cmaes, t->upper_bounds_cmaes, len_of_bounds);
+my_boundary_transformation.c:	boundary_transformation_exit(&t->boundaries);
+my_boundary_transformation.c:	free(t->lower_bounds_real);
+my_boundary_transformation.c:	free(t->upper_bounds_real);
+my_boundary_transformation.c:	free(t->lower_bounds_cmaes);
+my_boundary_transformation.c:	free(t->upper_bounds_cmaes);
+my_boundary_transformation.c:	free(t->log_or_not);
+my_boundary_transformation.c:	boundary_transformation(&t->boundaries, x, y, t->dimension);
+my_boundary_transformation.c:	for(i = 0; i < t->dimension; i++) {
+my_boundary_transformation.c:		y[i] = (y[i] - t->lower_bounds_cmaes[i]) 
+my_boundary_transformation.c:			* (t->upper_bounds_real[i] - t->lower_bounds_real[i]) 
+my_boundary_transformation.c:			/ (t->upper_bounds_cmaes[i] - t->lower_bounds_cmaes[i])
+my_boundary_transformation.c:			+ t->lower_bounds_real[i];
+my_boundary_transformation.c:		if(t->log_or_not[i] != 0) { y[i] = exp(y[i]); }

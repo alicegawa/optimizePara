@@ -33,7 +33,6 @@ int loadRangeFile(char *filename, my_boundary_transformation_t *t){
 	if(strncmp(buf, "#", 1) == 0){ continue;}
 	sscanf(buf, "%*s\t%lf\t%lf\t%*lf\t%d\n", &lowerBounds[dimension], &upperBounds[dimension], &flg_log[dimension]);
 	//flg_log[dimension] = (unsigned char)atoi((const char*)&flg_log[dimension]);
-	//printf("flg_log[%d] = %d\n", dimension, flg_log[dimension]);
 	dimension++;//make the dimension information here
     }
     my_boundary_transformation_init(t, lowerBounds, upperBounds, flg_log, dimension);

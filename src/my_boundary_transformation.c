@@ -19,8 +19,7 @@ void my_boundary_transformation_init(my_boundary_transformation_t *t,
 
 	for(i = 0; i < len_of_bounds; i++) { 
 		t->log_or_not[i] = log_or_not[i];
-		//printf("t->log_or_not[%d] = %d (log_or_not[%d] = %d\n", i, t->log_or_not[i], i, log_or_not[i]);
-
+		
 		if(t->log_or_not[i] != 0) {
 		    t->lower_bounds_real[i] = log(lower_bounds[i]);
 		    t->upper_bounds_real[i] = log(upper_bounds[i]);
@@ -56,11 +55,6 @@ void my_boundary_transformation(my_boundary_transformation_t *t,
 
 	boundary_transformation(&t->boundaries, x, y, t->dimension);
 
-
-	/* for(i=0; i<t->dimension; ++i){ */
-	/*     printf("t->upper_bounds_real[%d] = %lf and t->lower_bounds_real[%d] = %lf\n", i, t->upper_bounds_real[i], i, t->lower_bounds_real[i]); */
-	/* } */
-
 	for(i=0;i < t->dimension; ++i){
 		real_multiplier[i] = t->upper_bounds_real[i] - t->lower_bounds_real[i];
 		cmaes_divider[i] = t->upper_bounds_cmaes[i] - t->lower_bounds_cmaes[i];
@@ -77,10 +71,7 @@ void my_boundary_transformation(my_boundary_transformation_t *t,
 	}
 	
 	for(i = 0; i < t->dimension; i++) {
-	    //printf("before y = %lf\n",y[i]);
-
 	    temp_y = y[i];
-	    //printf("temp_y @ %d is %lf\n",i,temp_y);
 	    //temp_y = (temp_y - t->lower_bounds_cmaes[i]) * (t->upper_bounds_real[i] - t->lower_bounds_real[i]) / (t->upper_bounds_cmaes[i] - t->lower_bounds_cmaes[i]) + t->lower_bounds_real[i];
 	    if(isnan(t->lower_bounds_real[i])){
 		printf("lower_bounds_real[%d] is nan\n", i);
@@ -90,15 +81,7 @@ void my_boundary_transformation(my_boundary_transformation_t *t,
 	    }
 	    
 	    temp_y = (temp_y - t->lower_bounds_cmaes[i]) * real_multiplier[i] * cmaes_divider[i] + t->lower_bounds_real[i];
-	    /* if(i<36){ */
-	    /* 	printf("real_multiplier[%d] = %lf\n", i, real_multiplier[i]); */
-	    /* 	temp_y = (temp_y - t->lower_bounds_cmaes[i]) * real_multiplier[i] * 0.1; //after adding real_multiplier, y[19] became inf!! */
-	    /* }else{ */
-	    /* 	temp_y = (temp_y - t->lower_bounds_cmaes[i]) * 49 * 0.1 + t->lower_bounds_real[i]; */
-	    /* } */
 	    y[i] = temp_y;
-	    //printf("y[%d] = %lf\n",i,y[i]);
-	    //printf("after y[%d] = %lf\n", i, y[i]);
 	    if(isnan(y[i])){
 		printf("\n\n\n\n\n%dth y is nan\n\n\n\n\n",i);
 	    }

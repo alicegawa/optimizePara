@@ -306,12 +306,7 @@ int main(int argc, char **argv){
 
     	    /* wait for NEURON simulation in worker nodes */
     	    MPI_Gather(arFunvals_split_buf1, num_of_pop_per_split, MPI_DOUBLE, arFunvals_split_buf2, num_of_pop_per_split, MPI_DOUBLE, root_process_spawn, nrn_comm);
-	    for(i=0;i<num_of_weight_delay_per_procs;++i){
-		if(isnan(pop_rcvbuf_nrn_delay[i]) || isnan(pop_rcvbuf_nrn_weight[i])){
-		    printf("detect nan @%d of pop_rcvbuf_nrn_delay or weight\n", i);
-		}
-	    }
-
+	   
     	    for(i=0;i<num_of_pop_per_split; ++i){
     		arFunvals_whole_buf[i] = arFunvals_split_buf2[i + num_of_pop_per_split];
     	    }
@@ -361,15 +356,7 @@ int main(int argc, char **argv){
 	    x_temp_temp = (double *)cmaes_GetPtr(&evo, "xbestever");
 
 	    for(i=0;i<=dimension;++i){
-		if(isnan(x_temp_temp[i])){
-		    printf("index: %d is nan (%dth loop)\n",i, loop_count);
-		}
-	    }
-	    for(i=0;i<=dimension;++i){
 		x_temp[i] = x_temp_temp[i];
-		if(isnan(x_temp[i])){
-		    printf("%d th section in x_temp is nan",i);
-		}
 	    }
 	    arFunvals = cmaes_init(&evo, dimension, restartX, restartSigma, seed, num_of_pop, mu, max_eval, max_iter, initfile);
 	    
@@ -379,9 +366,6 @@ int main(int argc, char **argv){
 	    for(i=0; i<=dimension; ++i){
 		evo.rgxbestever[i] = x_temp[i];
 		evo.rgrgx[evo.index[0]][i] = x_temp[i];
-		if(isnan(x_temp[i])){
-		    printf("x_temp[%d] is nan\n",i);
-		}
 	    }
 	    n_run++;
 	}

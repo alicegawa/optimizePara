@@ -1,7 +1,7 @@
 {load_file("nrngui.hoc")}
 {if(!name_declared("COLOR")){ COLOR=-1}}
 
-NCELL = 6//86
+NCELL = 8//6//86
 DIM_CMAES = 2 * NCELL * NCELL
 NUM_OF_POP_PER_PROCS = 16//for first test...(recieve information from cmaes process properly)
 

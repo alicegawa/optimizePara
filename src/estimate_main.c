@@ -69,7 +69,7 @@ int main(int argc, char **argv){
     char **neuron_argv;
     char option_mpi[] = "-mpi", option_nobanner[] = "-nobanner", HOCFILE[] = "../hocfile/main.hoc";
     int num_of_pop_per_procs, num_of_pop_per_split;
-    int num_of_procs_nrn = 6;//for test
+    int num_of_procs_nrn = 8;//for test
     double t_start, t_end;
     int send_count;
     

@@ -184,11 +184,11 @@ PROCEDURE evaluate_fct(v(mV)) {
     A_inf = 1/(1+exp(-2*a_A*(v-v_A)))
     B_inf = 1/(1+exp(-2*a_B*(v-v_B)))
     counter = counter + 1
-    if(counter == 1 && t < 10){
-	printf("#time\tA_inf\tB_inf\tCsk\tCr\tq_inf\tcai\tica\tina\tik\tX\n")
-	printf("#setting of parmas\n")
-	printf("#a_sk = %g, gkdrbar = %g, gA = %g\n",a_sk, gkdrbar, gA)
-    }
+    : if(counter == 1 && t < 10){
+    : 	printf("#time\tA_inf\tB_inf\tCsk\tCr\tq_inf\tcai\tica\tina\tik\tX\n")
+    : 	printf("#setting of parmas\n")
+    : 	printf("#a_sk = %g, gkdrbar = %g, gA = %g\n",a_sk, gkdrbar, gA)
+    : }
     if(counter > 40 && t >= 100 && t<= 2000){
 	:print every 1 milisecond
 	counter = 0

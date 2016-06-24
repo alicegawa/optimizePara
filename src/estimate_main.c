@@ -97,7 +97,7 @@ int main(int argc, char **argv){
     int num_of_params_per_nrnprocs;
     int num_of_weight_delay_per_procs;
     int num_of_one_gene_weight_or_delay;
-    int neuron_argv_size = 6, network_size = 0;
+    int neuron_argv_size = 6, network_size = 0;//please set in the command line
     
     int i,j,k;
     double util;

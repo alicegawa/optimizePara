@@ -1,9 +1,22 @@
 {load_file("nrngui.hoc")}
 {if(!name_declared("COLOR")){ COLOR=-1}}
+{if(!name_declared("NCELL_CMAES")){NCELL_CMAES=-1}}
 
-NCELL = 8//6//86
+printf("NCELL_CMAES = %d\n", NCELL_CMAES)
+
+if(NCELL_CMAES==-1){
+    NCELL = 8//6//86
+    printf("input error\n")
+    quit()//it may cause the error that the process of CMAES does not finish
+}else if(NCELL_CMAES==0){
+    NCELL = 8
+}else{
+    NCELL = NCELL_CMAES
+}
+printf("NCELL = %d\n", NCELL)
+
 DIM_CMAES = 2 * NCELL * NCELL
-NUM_OF_POP_PER_PROCS = 16//for first test...(recieve information from cmaes process properly)
+NUM_OF_POP_PER_PROCS = 16//redefine below according to the setting in the C program
 
 v_init = -65
 tstop = 1000

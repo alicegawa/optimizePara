@@ -97,6 +97,7 @@ int main(int argc, char **argv){
     int num_of_params_per_nrnprocs;
     int num_of_weight_delay_per_procs;
     int num_of_one_gene_weight_or_delay;
+    int neuron_argv_size = 6, network_size = 0;
     
     int i,j,k;
     double util;
@@ -121,29 +122,33 @@ int main(int argc, char **argv){
     
     MPI_Comm_get_parent(&parentcomm);
 
-    neuron_argv = (char **)malloc(sizeof(char *) * 6);
-    for(i=0;i<6;i++){
-	neuron_argv[i] = (char *)malloc(sizeof(char) * 10);
-	if(i==0){
-	    sprintf(neuron_argv[i],"%s",option_mpi);
-	}else if(i==1){
-	    sprintf(neuron_argv[i],"%s",option_nobanner);
-	}else if(i==2){
-	    sprintf(neuron_argv[i],"-c");
-	}else if(i==4){
-	    sprintf(neuron_argv[i],"%s",HOCFILE);
-	}else{
-	}
-    }
-
     /*check input params */
     if(argc >= 2){num_of_pop = atoi(argv[1]);}
     if(argc >= 3){max_iter = atoi(argv[2]);}
     if(argc >= 4){max_eval = atoi(argv[3]);}
     if(argc >= 5){num_of_procs_nrn = atoi(argv[4]);}
     if(argc >= 6){mu = atoi(argv[5]);}
-    
+    if(argc >= 7){neuron_argv_size = atoi(argv[6]);}
+    if(argc >= 8){network_size = atoi(argv[7]);}
 
+    neuron_argv_size = 8;
+    
+    neuron_argv = (char **)malloc(sizeof(char *) * neuron_argv_size);
+    for(i=0;i<neuron_argv_size;i++){
+	neuron_argv[i] = (char *)malloc(sizeof(char) * 10);
+	if(i==0){
+	    sprintf(neuron_argv[i],"%s",option_mpi);
+	}else if(i==1){
+	    sprintf(neuron_argv[i],"%s",option_nobanner);
+	}else if(i==2 || i==4){
+	    sprintf(neuron_argv[i],"-c");
+	}else if(i==(neuron_argv_size-2)){
+	    sprintf(neuron_argv[i],"%s",HOCFILE);
+	}else{
+	}
+    }
+
+    
     if(max_iter == -1){
 	if(max_eval == -1){
 	    max_iter = 3;
@@ -243,8 +248,12 @@ int main(int argc, char **argv){
 
     /*setting the argv for spawn*/
     sprintf(neuron_argv[3],"COLOR=%d",color);
-    neuron_argv[5] = NULL;
-
+    if(neuron_argv_size > 6){
+	sprintf(neuron_argv[5], "NCELL_CMAES=%d", network_size);
+	neuron_argv[neuron_argv_size-1] = NULL;
+    }else{
+	neuron_argv[5] = NULL;
+    }
     /*********caution********/
     /*probably the number of split comm is equal to the number of the main process, so the if sequence below may be unnecessary.*/
     /*********caution********/

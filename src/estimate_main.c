@@ -111,6 +111,9 @@ int main(int argc, char **argv){
     double *restartX, *restartSigma;
     double restartSigma_defaults = 2.0;
 
+    /* distributed pop update*/
+    double *rgD, *x_mean, sigma; 
+
     
     /*test variables*/
     double *test_sendbuf, *test_rcvbuf;
@@ -151,7 +154,7 @@ int main(int argc, char **argv){
     
     if(max_iter == -1){
 	if(max_eval == -1){
-	    max_iter = 3;
+	    max_iter = 2;
 	    max_eval = max_iter * num_of_pop;
 	}else{
 	    max_iter = ceil((double)max_eval / num_of_pop);
@@ -189,10 +192,11 @@ int main(int argc, char **argv){
     offset_split_scatter = num_of_pop_per_split;
     offset = num_of_params_per_nrnprocs / 2;
 
-    pop_sendbuf_split_whole = (double *)calloc(dimension * num_of_pop, sizeof(double));
-    
-    pop_sendbuf_split_weight = (double *)calloc(dimension * (num_of_pop + num_of_pop_per_split) / 2, sizeof(double));
-    pop_sendbuf_split_delay = (double *)calloc(dimension * (num_of_pop + num_of_pop_per_split) / 2, sizeof(double));
+    if(I_AM_ROOT_IN_MAIN){
+	pop_sendbuf_split_whole = (double *)calloc(dimension * num_of_pop, sizeof(double));
+	pop_sendbuf_split_weight = (double *)calloc(dimension * (num_of_pop + num_of_pop_per_split) / 2, sizeof(double));
+	pop_sendbuf_split_delay = (double *)calloc(dimension * (num_of_pop + num_of_pop_per_split) / 2, sizeof(double));
+    }
 
     pop_rcvbuf_split_weight = (double *)malloc(sizeof(double) * num_sendparams);
     pop_rcvbuf_split_delay = (double *)malloc(sizeof(double) * num_sendparams);
@@ -232,7 +236,11 @@ int main(int argc, char **argv){
 	/*     x_temp[i] = 25; */
 	/* } */
     }
-    arFunvals = cmaes_init(&evo, dimension, initialX, initialSigma, seed, num_of_pop, mu, max_eval, max_iter, initfile);
+    if(I_AM_ROOT_IN_MAIN){
+	arFunvals = cmaes_init(&evo, dimension, initialX, initialSigma, seed, num_of_pop, mu, max_eval, max_iter, initfile);
+    }else{
+	arFunvals = (double *)malloc(num_of_pop * sizeof(double));
+    }
     max_iter = (int)cmaes_Get(&evo, "MaxIter");
     max_eval = (int)cmaes_Get(&evo, "maxeval");
 
@@ -297,6 +305,8 @@ int main(int argc, char **argv){
 	}
 	//when you spawn, it can be that scatter in MPI_COMM_WORLD (but the line below is temporaly)
 	MPI_Scatter(pop_sendbuf_split_weight, num_sendparams, MPI_DOUBLE, pop_rcvbuf_split_weight, num_sendparams, MPI_DOUBLE, root_process_main, firstTimeWorld);
+//	MPI_Scatter(NULL, num_sendparams, MPI_DOUBLE, pop_rcvbuf_split_weight, num_sendparams, MPI_DOUBLE, root_process_main, firstTimeWorld);
+//	MPI_Scatter(NULL, num_sendparams, MPI_DOUBLE, pop_rcvbuf_split_delay, num_sendparams, MPI_DOUBLE, root_process_main, firstTimeWorld);
 	MPI_Scatter(pop_sendbuf_split_delay, num_sendparams, MPI_DOUBLE, pop_rcvbuf_split_delay, num_sendparams, MPI_DOUBLE, root_process_main, firstTimeWorld);
 	MPI_Barrier(MPI_COMM_WORLD);
 	if(I_AM_ROOT_IN_SPLIT){
@@ -353,7 +363,7 @@ int main(int argc, char **argv){
     	}/*cmaes termination*/
 
 	/*for restart */
-	if((int)cmaes_Get(&evo, "generation") == gen_restart[n_run]){
+	if((int)cmaes_Get(&evo, "generation") == gen_restart[n_run] && I_AM_ROOT_IN_MAIN){
 	    generation = cmaes_Get(&evo, "generation");
 	    countevals = cmaes_Get(&evo, "eval");
 	    restartX = (double *)cmaes_GetPtr(&evo, "xmean");
@@ -438,12 +448,16 @@ int main(int argc, char **argv){
     printf("exec loop time is %lf\n", t_end - t_start);
     
     /* finalize the process (free the memory)*/
-    cmaes_exit(&evo);
+    if(I_AM_ROOT_IN_MAIN){
+	cmaes_exit(&evo);
+    }
     my_boundary_transformation_exit(&my_boundaries);//after define loadRangefile, uncomment!!
     free(x_temp);
     free(initialX);
     free(initialSigma);
-    free(pop_sendbuf_split_whole);
+    if(I_AM_ROOT_IN_MAIN){
+	free(pop_sendbuf_split_whole);
+    }
     free(pop_sendbuf_nrn_delay);
     free(pop_sendbuf_nrn_weight);
     free(pop_sendbuf_split_delay);

@@ -616,7 +616,55 @@ cmaes_SamplePopulation(cmaes_t *t) /* ub and lb are added by akihiko goto */
   return(t->rgrgx);
 } /* SamplePopulation() */
 
+/* added by fukuda, July 2016*/
+/* flg_diag_on_mode */
 
+/*for MPI communication (should be called in child process)*/
+random_t 
+cmaes_make_random_t_box(void){
+    random_t tmp;
+    tmp.rgrand = (long *)new_void(32, sizeof(long));
+    return tmp;
+}
+
+/*shoule be called in parent process*/
+double const *
+cmaes_SamplePopulation_diag_dist_update(cmaes_t *t)
+{
+    int i, N=t->sp.N;
+    double const *xmean = t->rgxmean;
+    
+    if(!t->flgEigensysIsUptodate){
+	for(i = 0; i < N; ++i)
+	    t->rgD[i] = sqrt(t->C[i][i]);
+        t->minEW = douSquare(rgdouMin(t->rgD, N)); 
+        t->maxEW = douSquare(rgdouMax(t->rgD, N));
+        t->flgEigensysIsUptodate = 1;
+        timings_start(&t->eigenTimings);
+    }
+    TestMinStdDevs(t);
+
+    if(t->state == 3 || t->gen ==0)
+	++t->gen;
+    t->state = 1;
+
+    return xmean;
+}/*cmaes_SamplePopulation_diag_dist_update*/
+
+/*shoule be called in all processes*/
+double const *
+cmaes_SamplePopulation_diag_dist(double *rgD, double sigma, double *x_mean, int dimension, random_t t)
+{
+    int i, j;
+    double *rgrgx;
+
+    rgrgx = (double *)malloc(dimension * sizeof(double));
+    for(i = 0; i < dimension; ++i){
+	rgrgx[i] = x_mean[i] + sigma * rgD[i] * random_Gauss(&t);
+    }
+    return rgrgx;
+}/*cmaes_SamplePopulation_diag_dist_child*/
+    
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
 double const * 

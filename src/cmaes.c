@@ -628,7 +628,7 @@ cmaes_make_random_t_box(void){
 }
 
 /*shoule be called in parent process*/
-double const *
+void
 cmaes_SamplePopulation_diag_dist_update(cmaes_t *t)
 {
     int i, N=t->sp.N;
@@ -648,11 +648,10 @@ cmaes_SamplePopulation_diag_dist_update(cmaes_t *t)
 	++t->gen;
     t->state = 1;
 
-    return xmean;
 }/*cmaes_SamplePopulation_diag_dist_update*/
 
 /*shoule be called in all processes*/
-double const *
+double *
 cmaes_SamplePopulation_diag_dist(double *rgD, double sigma, double *x_mean, int dimension, random_t t)
 {
     int i, j;
@@ -813,6 +812,10 @@ cmaes_UpdateDistribution( cmaes_t *t, const double *rgFunVal)
   FILE *fp;
   fp = fopen("updatetime.dat", "a");
 #endif /* PROF */
+
+  if(flgdiag){
+      printf("\n\n\n\n\nflg_diag_on\n\n\n\n\n");
+  }
   
   if(t->state == 3)
     FATAL("cmaes_UpdateDistribution(): You need to call \n",
@@ -831,7 +834,7 @@ cmaes_UpdateDistribution( cmaes_t *t, const double *rgFunVal)
   /* assign function values */
   for (i=0; i < t->sp.lambda; ++i) 
     t->rgrgx[i][N] = t->rgFuncValue[i] = rgFunVal[i];
-  
+
 #ifdef MY_PROF
   time[1] = MPI_Wtime();
 #endif /* MY_PROF */

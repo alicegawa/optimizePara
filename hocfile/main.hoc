@@ -19,7 +19,7 @@ DIM_CMAES = 2 * NCELL * NCELL
 NUM_OF_POP_PER_PROCS = 16//redefine below according to the setting in the C program
 
 v_init = -65
-tstop = 2000
+tstop = 500
 
 iamp = 100
 idelay = 20
@@ -52,20 +52,20 @@ for index = 0, fittingVec.size() - 1 {
     }
 }
 
-fittingVec.x(0) = 32
-fittingVec.x(1) = 64
-fittingVec.x(2) = 100
-fittingVec.x(3) = 100
-fittingVec.x(4) = 64
-fittingVec.x(5) = 32
-fittingVec.x(6) = 32
-fittingVec.x(7) = 32
-fittingVec.x(8) = 64
-fittingVec.x(9) = 100
-fittingVec.x(10) = 100
-fittingVec.x(11) = 64
-fittingVec.x(12) = 48
-fittingVec.x(13) = 32
+// fittingVec.x(0) = 32
+// fittingVec.x(1) = 64
+// fittingVec.x(2) = 100
+// fittingVec.x(3) = 100
+// fittingVec.x(4) = 64
+// fittingVec.x(5) = 32
+// fittingVec.x(6) = 32
+// fittingVec.x(7) = 32
+// fittingVec.x(8) = 64
+// fittingVec.x(9) = 100
+// fittingVec.x(10) = 100
+// fittingVec.x(11) = 64
+// fittingVec.x(12) = 48
+// fittingVec.x(13) = 32
 
 {load_file("../hocfile/read.hoc")}
 {load_file("../hocfile/cells.hoc")}

@@ -57,6 +57,19 @@ int printGene(FILE *fp, const double *x, int dimension){
     return 0;
 }/*printGene()*/
 
+static void Sort_score_index(double *rgFunVal, int *iindex, int n){
+      int i, j;
+  for (i=1, iindex[0]=0; i<n; ++i) {
+    for (j=i; j>0; --j) {
+      if (rgFunVal[iindex[j-1]] < rgFunVal[i])
+        break;
+      iindex[j] = iindex[j-1]; /* shift up */
+    }
+    iindex[j] = i; /* insert i */
+  }
+}/*Sort_score_index*/
+
+
 int main(int argc, char **argv){
     int main_myid, main_size;
     int split_myid, split_size;
@@ -115,10 +128,15 @@ int main(int argc, char **argv){
     double restartSigma_defaults = 2.0;
 
     /* distributed pop update*/
-    double *rgD, *x_mean, sigma; 
+    double *rgD, *x_mean, sigma, sigmasquare_div; 
     random_t rand_box;
     double const *pop_dist;
     double *sp_weight;
+    int *arFunval_rank;
+    double *sum_eachprocs, *sum_for_cov;
+    double *sum_reduce, *sum_for_cov_reduce;/*only use in root_process_main*/
+    double divider1, divider2;
+    int dim_cov;
     
     /*test variables*/
     double *test_sendbuf, *test_rcvbuf;
@@ -175,6 +193,10 @@ int main(int argc, char **argv){
 	    }
 	}
     }
+
+    if(mu==-1){
+	mu = num_of_pop / 2;
+    }
     
     /*initialize for/and cmaes settings*/
 
@@ -220,6 +242,24 @@ int main(int argc, char **argv){
     arFunvals_whole = (double *)calloc(num_of_pop + num_of_pop_per_split, sizeof(double));
     //x_temp = (double *)malloc(dimension * sizeof(double));
     x_temp = (double *)calloc(dimension, sizeof(double));
+
+    sp_weight = (double *)malloc(sizeof(double) * mu);
+
+    arFunval_rank = (int *)malloc(sizeof(int) * num_of_pop);
+    sum_eachprocs = (double *)malloc(sizeof(double) * dimension);
+    divider1 = 1.0 / (num_of_pop_per_split * main_myid);
+    divider2 = 1.0 / (num_of_pop_per_split * (main_myid + 1));
+
+    /*flgdiag off ver.*/
+    dim_cov = (1 + dimension) * dimension / 2;
+    /*flgdiag on ver.*/
+    //dim_cov = dimension;
+    sum_for_cov = (double *)malloc(sizeof(double) * dim_cov); 
+
+    if(I_AM_ROOT_IN_MAIN){
+	sum_reduce = (double *)malloc(sizeof(double) * dimension);
+	sum_for_cov_reduce = (double *)malloc(sizeof(double) * dim_cov);
+    }
     
     initialX = (double *)malloc(sizeof(double) * dimension);
     if(initialX==NULL){ printf("memory allocation error for initialX \n"); return -1;}
@@ -238,6 +278,9 @@ int main(int argc, char **argv){
     if(I_AM_ROOT_IN_MAIN){
 	arFunvals = cmaes_init(&evo, dimension, initialX, initialSigma, seed, num_of_pop, mu, max_eval, max_iter, initfile);
 	rand_box = evo.rand;
+	for(i=0;i<mu;++i){
+	    sp_weight[i] = evo.sp.weights[i];
+	}
     }else{
 	arFunvals = (double *)malloc(num_of_pop * sizeof(double));
 	rand_box.rgrand = (long *)calloc(32, sizeof(long));
@@ -265,7 +308,11 @@ int main(int argc, char **argv){
     MPI_Bcast(&rand_box.hold, 1, MPI_DOUBLE, root_process_main, firstTimeWorld);
     rand_box.startseed += main_myid;
     rand_box.aktseed += main_myid;
-
+    if(mu!=-1){
+	MPI_Bcast(sp_weight, mu, MPI_DOUBLE, root_process_main, firstTimeWorld);
+    }else{
+	MPI_Bcast(sp_weight, num_of_pop / 2, MPI_DOUBLE, root_process_main, firstTimeWorld);
+    }
     
     /*setting the argv for spawn*/
     sprintf(neuron_argv[3],"COLOR=%d",color);
@@ -313,6 +360,9 @@ int main(int argc, char **argv){
 	MPI_Bcast(rgD, dimension, MPI_DOUBLE, root_process_main, firstTimeWorld);
 	MPI_Bcast(x_mean, dimension, MPI_DOUBLE, root_process_main, firstTimeWorld);
 	MPI_Bcast(&sigma, 1, MPI_DOUBLE, root_process_main, firstTimeWorld);
+
+	sigmasquare_div = 1.0 / (sigma * sigma);
+	
 	for(i = 0; i < num_of_pop_per_split; ++i){
 	    pop_dist = cmaes_SamplePopulation_diag_dist(rgD, sigma, x_mean, dimension, rand_box);
 	    my_boundary_transformation(&my_boundaries, pop_dist, x_temp, main_myid);
@@ -379,7 +429,41 @@ int main(int argc, char **argv){
     	    }
 	}
 	/*then collect information of all split process and update (temporaly setting parameter)*/
-	MPI_Gather(arFunvals_whole_buf, num_of_pop_per_split, MPI_DOUBLE, arFunvals_whole, num_of_pop_per_split, MPI_DOUBLE, root_process_main, MPI_COMM_WORLD);
+	//MPI_Gather(arFunvals_whole_buf, num_of_pop_per_split, MPI_DOUBLE, arFunvals_whole, num_of_pop_per_split, MPI_DOUBLE, root_process_main, MPI_COMM_WORLD);
+	
+	MPI_Allgather(arFunvals_whole_buf, num_of_pop_per_split, MPI_DOUBLE, arFunvals_whole, num_of_pop_per_split, MPI_DOUBLE, MPI_COMM_WORLD);
+	Sort_score_index(arFunvals_whole, arFunval_rank, num_of_pop);
+	
+	for(i=0; i<dimension; ++i){
+	    sum_eachprocs[i] = 0;
+	}
+
+	for(i=0; i<dim_cov; ++i){
+	    sum_for_cov[i] = 0;
+	}
+
+	/*calculate for updateDistribution*/
+	for(i = 0; i < mu; ++i){
+	    for(j = 0; j < dimension; ++j){
+		sum_eachprocs[j] += (int)(arFunval_rank[i] * divider1) * ((int)(arFunval_rank[i] * divider2)==0) * sp_weight[i] * pop_split_whole[arFunval_rank[i]%num_of_pop_per_split * dimension + j];
+	    }
+	}
+
+	/*calculate for Adapt_C2, flg_diag_off_ver.*/
+	for(k = 0; k < mu; ++k){
+	    for(i = 0; i < dimension; ++i){
+		for(j = 0; j <= i; ++j){
+		    sum_for_cov[i * dimension + j] = (int)(arFunval_rank[i] * divider1) * ((int)(arFunval_rank[i] * divider2)==0) * sp_weight[k] * (pop_split_whole[arFunval_rank[k]%num_of_pop_per_split * dimension + i] - x_mean[i]) *  (pop_split_whole[arFunval_rank[k]%num_of_pop_per_split * dimension + j] - x_mean[j]) * sigmasquare_div;
+								     
+		}
+	    }
+	}
+
+	/*send calc results to root_process_main*/
+	MPI_Reduce(sum_eachprocs, sum_reduce, dimension, MPI_DOUBLE, MPI_SUM, root_process_main, firstTimeWorld);
+	MPI_Reduce(sum_for_cov, sum_for_cov_reduce, dim_cov, MPI_DOUBLE, MPI_SUM, root_process_main, firstTimeWorld);
+	
+	
 	if(I_AM_ROOT_IN_MAIN){
 	    for(i=0;i<num_of_pop;++i){
 		arFunvals[i] = arFunvals_whole[i];
@@ -388,6 +472,8 @@ int main(int argc, char **argv){
 		    break;
 		}
 	    }
+	    /*TODO*/
+	    /*rewrite following to the upper implementation*/
     	    /*update the search distribution used for cmaes_sampleDistribution()*/
     	    cmaes_UpdateDistribution(&evo, arFunvals); /*assume that pop[] has not been modified*/
     	}

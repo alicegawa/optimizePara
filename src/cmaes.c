@@ -127,6 +127,10 @@
 #include <stdio.h>  /* sprintf(), NULL? */
 #include "cmaes_interface.h" /* <time.h> via cmaes.h */
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 /* --------------------------------------------------------- */
 /* ------------------- Declarations ------------------------ */
 /* --------------------------------------------------------- */
@@ -812,10 +816,6 @@ cmaes_UpdateDistribution( cmaes_t *t, const double *rgFunVal)
   FILE *fp;
   fp = fopen("updatetime.dat", "a");
 #endif /* PROF */
-
-  if(flgdiag){
-      printf("\n\n\n\n\nflg_diag_on\n\n\n\n\n");
-  }
   
   if(t->state == 3)
     FATAL("cmaes_UpdateDistribution(): You need to call \n",

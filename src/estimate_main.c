@@ -256,10 +256,8 @@ int main(int argc, char **argv){
     //dim_cov = dimension;
     sum_for_cov = (double *)malloc(sizeof(double) * dim_cov); 
 
-    if(I_AM_ROOT_IN_MAIN){
-	sum_reduce = (double *)malloc(sizeof(double) * dimension);
-	sum_for_cov_reduce = (double *)malloc(sizeof(double) * dim_cov);
-    }
+    sum_reduce = (double *)malloc(sizeof(double) * dimension);
+    sum_for_cov_reduce = (double *)malloc(sizeof(double) * dim_cov);
     
     initialX = (double *)malloc(sizeof(double) * dimension);
     if(initialX==NULL){ printf("memory allocation error for initialX \n"); return -1;}
@@ -308,11 +306,7 @@ int main(int argc, char **argv){
     MPI_Bcast(&rand_box.hold, 1, MPI_DOUBLE, root_process_main, firstTimeWorld);
     rand_box.startseed += main_myid;
     rand_box.aktseed += main_myid;
-    if(mu!=-1){
-	MPI_Bcast(sp_weight, mu, MPI_DOUBLE, root_process_main, firstTimeWorld);
-    }else{
-	MPI_Bcast(sp_weight, num_of_pop / 2, MPI_DOUBLE, root_process_main, firstTimeWorld);
-    }
+    MPI_Bcast(sp_weight, mu, MPI_DOUBLE, root_process_main, firstTimeWorld);
     
     /*setting the argv for spawn*/
     sprintf(neuron_argv[3],"COLOR=%d",color);
@@ -592,11 +586,11 @@ int main(int argc, char **argv){
     free(initialSigma);
     if(I_AM_ROOT_IN_MAIN){
 	free(pop_sendbuf_split_whole);
+	free(pop_sendbuf_split_delay);
+	free(pop_sendbuf_split_weight);
     }
     free(pop_sendbuf_nrn_delay);
     free(pop_sendbuf_nrn_weight);
-    free(pop_sendbuf_split_delay);
-    free(pop_sendbuf_split_weight);
     free(pop_rcvbuf_split_delay);
     free(pop_rcvbuf_split_weight);
     free(pop_rcvbuf_nrn_weight);

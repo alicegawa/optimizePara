@@ -30,6 +30,10 @@ double *         cmaes_UpdateDistribution(cmaes_t *,
 					  const double *rgFitnessValues);
 const char *     cmaes_TestForTermination(cmaes_t *);
 
+double *cmaes_SamplePopulation_diag_dist(double *rgD, double sigma, double *x_mean, int dimension, random_t t);
+void cmaes_SamplePopulation_diag_dist_update(cmaes_t *t);
+random_t cmaes_make_random_t_box(void);
+
 /* --- additional functions --- */
 double * const * cmaes_ReSampleSingle( cmaes_t *t, int index);
 double const *   cmaes_ReSampleSingle_old(cmaes_t *, double *rgx); 

@@ -636,15 +636,20 @@ void
 cmaes_SamplePopulation_diag_dist_update(cmaes_t *t)
 {
     int i, N=t->sp.N;
-    double const *xmean = t->rgxmean;
+//    double const *xmean = t->rgxmean;
+    int flgdiag = ((t->sp.diagonalCov == 1) || (t->sp.diagonalCov >= t->gen)); 
     
     if(!t->flgEigensysIsUptodate){
-	for(i = 0; i < N; ++i)
-	    t->rgD[i] = sqrt(t->C[i][i]);
-        t->minEW = douSquare(rgdouMin(t->rgD, N)); 
-        t->maxEW = douSquare(rgdouMax(t->rgD, N));
-        t->flgEigensysIsUptodate = 1;
-        timings_start(&t->eigenTimings);
+	if(!flgdiag)
+	    cmaes_UpdateEigensystem(t, 0);
+	else{
+	    for(i = 0; i < N; ++i)
+		t->rgD[i] = sqrt(t->C[i][i]);
+	    t->minEW = douSquare(rgdouMin(t->rgD, N)); 
+	    t->maxEW = douSquare(rgdouMax(t->rgD, N));
+	    t->flgEigensysIsUptodate = 1;
+	    timings_start(&t->eigenTimings);
+	}
     }
     TestMinStdDevs(t);
 
@@ -658,7 +663,7 @@ cmaes_SamplePopulation_diag_dist_update(cmaes_t *t)
 double *
 cmaes_SamplePopulation_diag_dist(double *rgD, double sigma, double *x_mean, int dimension, random_t t)
 {
-    int i, j;
+    int i;
     double *rgrgx;
 
     rgrgx = (double *)malloc(dimension * sizeof(double));

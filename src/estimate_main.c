@@ -79,14 +79,15 @@ int main(int argc, char **argv){
     int color, key;
     FILE *fp;
     char specials[] = "special";
-    char **neuron_argv;
+    //char **neuron_argv;
     char option_mpi[] = "-mpi", option_nobanner[] = "-nobanner", HOCFILE[] = "../hocfile/main.hoc";
+    char *neuron_argv[] = {"-mpi", "-nobanner", "-c", "{}", "-c", "{}", "../hocfile/main.hoc", NULL};
     int num_of_pop_per_procs, num_of_pop_per_split;
     int num_of_procs_nrn = 8;//for test
     double t_start, t_end;
     int send_count;
     
-    cmaes_t evo, evo_tmp;
+    cmaes_t evo;
     double *arFunvals, *arFunvals_split_buf1, *arFunvals_split_buf2, *const*pop, *xfinal;
     double *arFunvals_whole, *arFunvals_whole_buf;
     double *initialX, *initialSigma;
@@ -137,10 +138,10 @@ int main(int argc, char **argv){
     double *sum_reduce, *sum_for_cov_reduce;/*only use in root_process_main*/
     double divider1, divider2;
     int dim_cov;
-    
+
     /*test variables*/
-    double *test_sendbuf, *test_rcvbuf;
-    double *test_arFunval1, *test_arFunval2;
+//    double *test_sendbuf, *test_rcvbuf;
+//    double *test_arFunval1, *test_arFunval2;
     /* initialize MPI settings*/
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &main_size);
@@ -159,25 +160,29 @@ int main(int argc, char **argv){
 
     neuron_argv_size = 8;
     
-    neuron_argv = (char **)malloc(sizeof(char *) * neuron_argv_size);
-    for(i=0;i<neuron_argv_size;i++){
-	neuron_argv[i] = (char *)malloc(sizeof(char) * 10);
-	if(i==0){
-	    sprintf(neuron_argv[i],"%s",option_mpi);
-	}else if(i==1){
-	    sprintf(neuron_argv[i],"%s",option_nobanner);
-	}else if(i==2 || i==4){
-	    sprintf(neuron_argv[i],"-c");
-	}else if(i==(neuron_argv_size-2)){
-	    sprintf(neuron_argv[i],"%s",HOCFILE);
-	}else{
-	}
-    }
+    //neuron_argv = (char **)malloc(sizeof(char *) * neuron_argv_size);
+
+    
+    
+    /* for(i=0;i<neuron_argv_size;i++){ */
+    /* 	neuron_argv[i] = (char *)malloc(sizeof(char) * 10); */
+    /* 	if(i==0){ */
+    /* 	    sprintf(neuron_argv[i],"%s",option_mpi); */
+    /* 	}else if(i==1){ */
+    /* 	    sprintf(neuron_argv[i],"%s",option_nobanner); */
+    /* 	}else if(i==2 || i==4){ */
+    /* 	    sprintf(neuron_argv[i],"-c"); */
+    /* 	}else if(i==(neuron_argv_size-2)){ */
+    /* 	    //sprintf(neuron_argv[i],"%s",HOCFILE); */
+    /* 	    sprintf(neuron_argv[i],"../hocfile/main.hoc"); */
+    /* 	}else{ */
+    /* 	} */
+    /* } */
 
     
     if(max_iter == -1){
 	if(max_eval == -1){
-	    max_iter = 2;
+	    max_iter = 1;
 	    max_eval = max_iter * num_of_pop;
 	}else{
 	    max_iter = ceil((double)max_eval / num_of_pop);
@@ -221,8 +226,8 @@ int main(int argc, char **argv){
 
     if(I_AM_ROOT_IN_MAIN){
 	pop_sendbuf_split_whole = (double *)calloc(dimension * num_of_pop, sizeof(double));
-	pop_sendbuf_split_weight = (double *)calloc(dimension * (num_of_pop + num_of_pop_per_split) / 2, sizeof(double));
-	pop_sendbuf_split_delay = (double *)calloc(dimension * (num_of_pop + num_of_pop_per_split) / 2, sizeof(double));
+	//pop_sendbuf_split_weight = (double *)calloc(dimension * (num_of_pop + num_of_pop_per_split) / 2, sizeof(double));
+	//pop_sendbuf_split_delay = (double *)calloc(dimension * (num_of_pop + num_of_pop_per_split) / 2, sizeof(double));
     }
 
     pop_rcvbuf_split_weight = (double *)malloc(sizeof(double) * num_sendparams);
@@ -309,13 +314,13 @@ int main(int argc, char **argv){
     MPI_Bcast(sp_weight, mu, MPI_DOUBLE, root_process_main, firstTimeWorld);
     
     /*setting the argv for spawn*/
-    sprintf(neuron_argv[3],"COLOR=%d",color);
-    if(neuron_argv_size > 6){
-	sprintf(neuron_argv[5], "NCELL_CMAES=%d", network_size);
-	neuron_argv[neuron_argv_size-1] = NULL;
-    }else{
-	neuron_argv[5] = NULL;
-    }
+    /* sprintf(neuron_argv[3],"COLOR=%d",color); */
+    /* if(neuron_argv_size > 6){ */
+    /* 	sprintf(neuron_argv[5], "NCELL_CMAES=%d", network_size); */
+    /* 	neuron_argv[neuron_argv_size-1] = NULL; */
+    /* }else{ */
+    /* 	neuron_argv[5] = NULL; */
+    /* } */
     /*********caution********/
     /*probably the number of split comm is equal to the number of the main process, so the if sequence below may be unnecessary.*/
     /*********caution********/
@@ -358,11 +363,14 @@ int main(int argc, char **argv){
 	sigmasquare_div = 1.0 / (sigma * sigma);
 	
 	for(i = 0; i < num_of_pop_per_split; ++i){
-	    pop_dist = cmaes_SamplePopulation_diag_dist(rgD, sigma, x_mean, dimension, rand_box);
+	    pop_dist = (double *)cmaes_SamplePopulation_diag_dist(rgD, sigma, x_mean, dimension, rand_box);
+	    for(j=0;j<dimension;++j){
+		pop_split_whole[i*dimension + j] = pop_dist[j];
+	    }
 	    my_boundary_transformation(&my_boundaries, pop_dist, x_temp, main_myid);
 	    for(j = 0; j< (dimension / 2); ++j){
-		pop_split_whole[i * dimension + j] = x_temp[j];
-		pop_split_whole[i * dimension + j + dimension / 2] = x_temp[j + dimension / 2];
+		/* pop_split_whole[i * dimension + j] = x_temp[j]; */
+		/* pop_split_whole[i * dimension + j + dimension / 2] = x_temp[j + dimension / 2]; */
 		pop_rcvbuf_split_weight[i * dimension / 2 + j] = x_temp[j];
 		pop_rcvbuf_split_delay[i * dimension / 2 + j] = x_temp[j + dimension / 2];
 	    }
@@ -409,6 +417,7 @@ int main(int argc, char **argv){
 		for(i = 0; i < num_of_pop; ++i){
 		    for(j = 0; j < dimension; ++j){
 			evo.rgrgx[i][j] = pop_sendbuf_split_whole[i * dimension + j];
+			printf("evo.rgrgx[%d][%d] = %lf\n", i, j, evo.rgrgx[i][j]);
 		    }
 		}
 	    }
@@ -471,6 +480,14 @@ int main(int argc, char **argv){
     	    /*update the search distribution used for cmaes_sampleDistribution()*/
     	    cmaes_UpdateDistribution(&evo, arFunvals); /*assume that pop[] has not been modified*/
     	}
+
+	if(I_AM_ROOT_IN_MAIN){
+	    for(i=0;i<num_of_pop;++i){
+		for(j=0;j<dimension;++j){
+		    printf("(past)evo.rgrgx[%d][%d] = %lf\n", i, j, evo.rgrgx[i][j]);
+		}
+	    }
+	}
 	
     	fflush(stdout);
     	/*termination*/
@@ -586,8 +603,8 @@ int main(int argc, char **argv){
     free(initialSigma);
     if(I_AM_ROOT_IN_MAIN){
 	free(pop_sendbuf_split_whole);
-	free(pop_sendbuf_split_delay);
-	free(pop_sendbuf_split_weight);
+	//free(pop_sendbuf_split_delay);
+	//free(pop_sendbuf_split_weight);
     }
     free(pop_sendbuf_nrn_delay);
     free(pop_sendbuf_nrn_weight);
@@ -601,9 +618,9 @@ int main(int argc, char **argv){
     free(arFunvals_whole);
 
     for(i=0;i<6;i++){
-	free(neuron_argv[i]);
+	//free(neuron_argv[i]);
     }
-    free(neuron_argv);
+    //free(neuron_argv);
 
     printf("end of the free memory section (myid = %d)\n", main_myid);
     

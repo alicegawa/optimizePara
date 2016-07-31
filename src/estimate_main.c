@@ -417,7 +417,7 @@ int main(int argc, char **argv){
 		for(i = 0; i < num_of_pop; ++i){
 		    for(j = 0; j < dimension; ++j){
 			evo.rgrgx[i][j] = pop_sendbuf_split_whole[i * dimension + j];
-			printf("evo.rgrgx[%d][%d] = %lf\n", i, j, evo.rgrgx[i][j]);
+			//printf("evo.rgrgx[%d][%d] = %lf\n", i, j, evo.rgrgx[i][j]);
 		    }
 		}
 	    }
@@ -481,13 +481,13 @@ int main(int argc, char **argv){
     	    cmaes_UpdateDistribution(&evo, arFunvals); /*assume that pop[] has not been modified*/
     	}
 
-	if(I_AM_ROOT_IN_MAIN){
-	    for(i=0;i<num_of_pop;++i){
-		for(j=0;j<dimension;++j){
-		    printf("(past)evo.rgrgx[%d][%d] = %lf\n", i, j, evo.rgrgx[i][j]);
-		}
-	    }
-	}
+	/* if(I_AM_ROOT_IN_MAIN){ */
+	/*     for(i=0;i<num_of_pop;++i){ */
+	/* 	for(j=0;j<dimension;++j){ */
+	/* 	    printf("(past)evo.rgrgx[%d][%d] = %lf\n", i, j, evo.rgrgx[i][j]); */
+	/* 	} */
+	/*     } */
+	/* } */
 	
     	fflush(stdout);
     	/*termination*/

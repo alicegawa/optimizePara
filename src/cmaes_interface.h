@@ -28,6 +28,9 @@ void cmaes_exit(cmaes_t *);
 double * const * cmaes_SamplePopulation(cmaes_t *);
 double *         cmaes_UpdateDistribution(cmaes_t *, 
 					  const double *rgFitnessValues);
+
+double *         cmaes_UpdateDistribution_dist(cmaes_t *t, const double *rgFunVal, double *sum_temp, double *sum_cov_temp);
+
 const char *     cmaes_TestForTermination(cmaes_t *);
 
 double *cmaes_SamplePopulation_diag_dist(double *rgD, double sigma, double *x_mean, int dimension, random_t t);

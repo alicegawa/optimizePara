@@ -15,7 +15,7 @@ static void Sorted_index(const double *rgFunVal, int *iindex, int n)
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
 double *
-cmaes_UpdateDistribution( cmaes_t *t, const double *rgFunVal, double *sum_temp)
+cmaes_UpdateDistribution_dist( cmaes_t *t, const double *rgFunVal, double *sum_temp)
 {
   int i, j, iNk, hsig, N=t->sp.N;
   int flgdiag = ((t->sp.diagonalCov == 1) || (t->sp.diagonalCov >= t->gen)); 
@@ -87,28 +87,15 @@ cmaes_UpdateDistribution( cmaes_t *t, const double *rgFunVal, double *sum_temp)
     t->rgdTmp[i] = sum / t->rgD[i];
   }
   
-  /* TODO?: check length of t->rgdTmp and set an upper limit, e.g. 6 stds */
-  /* in case of manipulation of arx, 
-     this can prevent an increase of sigma by several orders of magnitude
-     within one step; a five-fold increase in one step can still happen. 
-  */ 
-  /*
-    for (j = 0, sum = 0.; j < N; ++j)
-      sum += t->rgdTmp[j] * t->rgdTmp[j];
-    if (sqrt(sum) > chiN + 6. * sqrt(0.5)) {
-      rgdTmp length should be set to upper bound and hsig should become zero 
-    }
-  */
-
   /* cumulation for sigma (ps) using B*z */
   for (i = 0; i < N; ++i) {
-    if (!flgdiag)
-      for (j = 0, sum = 0.; j < N; ++j)
-        sum += t->B[i][j] * t->rgdTmp[j];
-    else
+    /* if (!flgdiag) */
+    /*   for (j = 0, sum = 0.; j < N; ++j) */
+    /*     sum += t->B[i][j] * t->rgdTmp[j]; */
+    /* else */
       sum = t->rgdTmp[i];
-    t->rgps[i] = (1. - t->sp.cs) * t->rgps[i] + 
-      sqrt(t->sp.cs * (2. - t->sp.cs)) * sum;
+      t->rgps[i] = (1. - t->sp.cs) * t->rgps[i] + 
+	  sqrt(t->sp.cs * (2. - t->sp.cs)) * sum;
   }
   
   /* calculate norm(ps)^2 */
@@ -151,53 +138,52 @@ cmaes_UpdateDistribution( cmaes_t *t, const double *rgFunVal, double *sum_temp)
 /* --------------------------------------------------------- */
 /* --------------------------------------------------------- */
 static void
-Adapt_C2(cmaes_t *t, int hsig, double *sum_cov_temp)
+Adapt_C2_dist(cmaes_t *t, int hsig, double *sum_cov_temp)
 {
   int i, j, k, N=t->sp.N;
   int flgdiag = ((t->sp.diagonalCov == 1) || (t->sp.diagonalCov >= t->gen)); 
   int count=0;
   
   if (t->sp.ccov != 0. && t->flgIniphase == 0) {
-
-    /* definitions for speeding up inner-most loop */
-    double ccov1 = douMin(t->sp.ccov * (1./t->sp.mucov) * (flgdiag ? (N+1.5) / 3. : 1.), 1.);
-    double ccovmu = douMin(t->sp.ccov * (1-1./t->sp.mucov)* (flgdiag ? (N+1.5) / 3. : 1.), 1.-ccov1); 
-    double sigmasquare = t->sigma * t->sigma; 
-
-    t->flgEigensysIsUptodate = 0;
-
-    /* update covariance matrix */
+      
+      /* definitions for speeding up inner-most loop */
+      double ccov1 = douMin(t->sp.ccov * (1./t->sp.mucov) * (flgdiag ? (N+1.5) / 3. : 1.), 1.);
+      double ccovmu = douMin(t->sp.ccov * (1-1./t->sp.mucov)* (flgdiag ? (N+1.5) / 3. : 1.), 1.-ccov1); 
+      double sigmasquare = t->sigma * t->sigma; 
+      
+      t->flgEigensysIsUptodate = 0;
+      
+      /* update covariance matrix */
 #ifndef _OPENMP
-    for (i = 0; i < N; ++i)
-      for (j = flgdiag ? i : 0; j <= i; ++j) {
-        t->C[i][j] = (1 - ccov1 - ccovmu) * t->C[i][j] 
-          + ccov1
-            * (t->rgpc[i] * t->rgpc[j] 
-               + (1-hsig)*t->sp.ccumcov*(2.-t->sp.ccumcov) * t->C[i][j]);
-	t->C[i][j] = ccovmu * sum_cov_temp[count];
-	++count;
-        }
-      }
+      for (i = 0; i < N; ++i)
+	  for (j = flgdiag ? i : 0; j <= i; ++j) {
+	      t->C[i][j] = (1 - ccov1 - ccovmu) * t->C[i][j] 
+		  + ccov1
+		  * (t->rgpc[i] * t->rgpc[j] 
+		     + (1-hsig)*t->sp.ccumcov*(2.-t->sp.ccumcov) * t->C[i][j]);
+	      t->C[i][j] = ccovmu * sum_cov_temp[count];
+	      ++count;
+	  }
+
 #else
-	double sum;
-    for (i = 0; i < N; ++i) {
-      for (j = flgdiag ? i : 0; j <= i; ++j) {
-        t->C[i][j] = (1 - ccov1 - ccovmu) * t->C[i][j]
-          + ccov1
-            * (t->rgpc[i] * t->rgpc[j]
-               + (1-hsig)*t->sp.ccumcov*(2.-t->sp.ccumcov) * t->C[i][j]);
-	t->C[i][j] = ccovmu * sum_cov_temp[count];
-	++count;
+      for (i = 0; i < N; ++i) {
+	  for (j = flgdiag ? i : 0; j <= i; ++j) {
+	      t->C[i][j] = (1 - ccov1 - ccovmu) * t->C[i][j]
+		  + ccov1
+		  * (t->rgpc[i] * t->rgpc[j]
+		     + (1-hsig)*t->sp.ccumcov*(2.-t->sp.ccumcov) * t->C[i][j]);
+	      t->C[i][j] = ccovmu * sum_cov_temp[count];
+	      ++count;
+	  }
       }
-    }
 #endif /* _OPENMP */
     /* update maximal and minimal diagonal value */
-    t->maxdiagC = t->mindiagC = t->C[0][0];
-    for (i = 1; i < N; ++i) {
-      if (t->maxdiagC < t->C[i][i])
-        t->maxdiagC = t->C[i][i];
-      else if (t->mindiagC > t->C[i][i])
-        t->mindiagC = t->C[i][i];
-    }
+      t->maxdiagC = t->mindiagC = t->C[0][0];
+      for (i = 1; i < N; ++i) {
+	  if (t->maxdiagC < t->C[i][i])
+	      t->maxdiagC = t->C[i][i];
+	  else if (t->mindiagC > t->C[i][i])
+	      t->mindiagC = t->C[i][i];
+      }
   } /* if ccov... */
 }

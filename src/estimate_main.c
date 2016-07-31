@@ -475,10 +475,9 @@ int main(int argc, char **argv){
 		    break;
 		}
 	    }
-	    /*TODO*/
-	    /*rewrite following to the upper implementation*/
     	    /*update the search distribution used for cmaes_sampleDistribution()*/
-    	    cmaes_UpdateDistribution(&evo, arFunvals); /*assume that pop[] has not been modified*/
+    	    //cmaes_UpdateDistribution(&evo, arFunvals); /*assume that pop[] has not been modified*/
+	    cmaes_UpdateDistribution_dist(&evo, arFunvals, sum_reduce, sum_for_cov_reduce);
     	}
 
 	/* if(I_AM_ROOT_IN_MAIN){ */

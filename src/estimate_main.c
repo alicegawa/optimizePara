@@ -79,9 +79,9 @@ int main(int argc, char **argv){
     int color, key;
     FILE *fp;
     char specials[] = "special";
-    //char **neuron_argv;
+    char **neuron_argv;
     char option_mpi[] = "-mpi", option_nobanner[] = "-nobanner", HOCFILE[] = "../hocfile/main.hoc";
-    char *neuron_argv[] = {"-mpi", "-nobanner", "-c", "{}", "-c", "{}", "../hocfile/main.hoc", NULL};
+    //char *neuron_argv[] = {"-mpi", "-nobanner", "-c", "{}", "-c", "{}", "../hocfile/main.hoc", NULL};
     int num_of_pop_per_procs, num_of_pop_per_split;
     int num_of_procs_nrn = 8;//for test
     double t_start, t_end;
@@ -160,24 +160,24 @@ int main(int argc, char **argv){
 
     neuron_argv_size = 8;
     
-    //neuron_argv = (char **)malloc(sizeof(char *) * neuron_argv_size);
+    neuron_argv = (char **)malloc(sizeof(char *) * neuron_argv_size);
 
     
     
-    /* for(i=0;i<neuron_argv_size;i++){ */
-    /* 	neuron_argv[i] = (char *)malloc(sizeof(char) * 10); */
-    /* 	if(i==0){ */
-    /* 	    sprintf(neuron_argv[i],"%s",option_mpi); */
-    /* 	}else if(i==1){ */
-    /* 	    sprintf(neuron_argv[i],"%s",option_nobanner); */
-    /* 	}else if(i==2 || i==4){ */
-    /* 	    sprintf(neuron_argv[i],"-c"); */
-    /* 	}else if(i==(neuron_argv_size-2)){ */
-    /* 	    //sprintf(neuron_argv[i],"%s",HOCFILE); */
-    /* 	    sprintf(neuron_argv[i],"../hocfile/main.hoc"); */
-    /* 	}else{ */
-    /* 	} */
-    /* } */
+    for(i=0;i<neuron_argv_size;i++){
+    	neuron_argv[i] = (char *)malloc(sizeof(char) * 256);
+    	if(i==0){
+    	    sprintf(neuron_argv[i],"%s",option_mpi);
+    	}else if(i==1){
+    	    sprintf(neuron_argv[i],"%s",option_nobanner);
+    	}else if(i==2 || i==4){
+    	    sprintf(neuron_argv[i],"-c");
+    	}else if(i==(neuron_argv_size-2)){
+    	    sprintf(neuron_argv[i],"%s",HOCFILE);
+    	    //sprintf(neuron_argv[i],"../hocfile/main.hoc");
+    	}else{
+    	}
+    }
 
     
     if(max_iter == -1){
@@ -314,13 +314,13 @@ int main(int argc, char **argv){
     MPI_Bcast(sp_weight, mu, MPI_DOUBLE, root_process_main, firstTimeWorld);
     
     /*setting the argv for spawn*/
-    /* sprintf(neuron_argv[3],"COLOR=%d",color); */
-    /* if(neuron_argv_size > 6){ */
-    /* 	sprintf(neuron_argv[5], "NCELL_CMAES=%d", network_size); */
-    /* 	neuron_argv[neuron_argv_size-1] = NULL; */
-    /* }else{ */
-    /* 	neuron_argv[5] = NULL; */
-    /* } */
+    sprintf(neuron_argv[3],"COLOR=%d",color);
+    if(neuron_argv_size > 6){
+    	sprintf(neuron_argv[5], "NCELL_CMAES=%d", network_size);
+    	neuron_argv[neuron_argv_size-1] = NULL;
+    }else{
+    	neuron_argv[5] = NULL;
+    }
     /*********caution********/
     /*probably the number of split comm is equal to the number of the main process, so the if sequence below may be unnecessary.*/
     /*********caution********/

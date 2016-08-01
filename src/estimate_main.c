@@ -13,7 +13,7 @@
 #define I_AM_ROOT_IN_NRN (spawn_myid == root_process_spawn)
 
 #define TEXT_BUFFER_SIZE 2048
-#define MAX_NUM_PARAM 150
+#define MAX_NUM_PARAM 3000
 #define MAX_NUM_TARGET 5
 
 /* under construction*/
@@ -78,9 +78,9 @@ int main(int argc, char **argv){
     int root_process_main = 0, root_process_split = 0, root_process_spawn = 0;
     int color, key;
     FILE *fp;
-    char specials[] = "special";
+    char specials[] = "./special";
     char **neuron_argv;
-    char option_mpi[] = "-mpi", option_nobanner[] = "-nobanner", HOCFILE[] = "../hocfile/main.hoc";
+    char option_mpi[] = "-mpi", option_nobanner[] = "-nobanner", HOCFILE[] = "./main.hoc";
     //char *neuron_argv[] = {"-mpi", "-nobanner", "-c", "{}", "-c", "{}", "../hocfile/main.hoc", NULL};
     int num_of_pop_per_procs, num_of_pop_per_split;
     int num_of_procs_nrn = 8;//for test
@@ -91,13 +91,13 @@ int main(int argc, char **argv){
     double *arFunvals, *arFunvals_split_buf1, *arFunvals_split_buf2, *const*pop, *xfinal;
     double *arFunvals_whole, *arFunvals_whole_buf;
     double *initialX, *initialSigma;
-    int mu = -1;//64;//-1;
+    int mu = 4096;//64;//-1;
     unsigned int seed = 0;
     unsigned int dimension;
     unsigned int dimension_per_nrnprocs;
     int max_eval = -1, max_iter = -1;
     char initfile[] = "cmaes_initials.par";
-    unsigned int num_of_pop = 4;//1024;//for test
+    unsigned int num_of_pop = 262144;//1024;//for test
     double *pop_sendbuf_nrn_weight, *pop_sendbuf_nrn_delay, *pop_rcvbuf_nrn_weight, *pop_rcvbuf_nrn_delay;
     double *pop_sendbuf_split_whole, *pop_sendbuf_split_weight, *pop_sendbuf_split_delay, *pop_rcvbuf_split_weight, *pop_rcvbuf_split_delay;
 
@@ -124,7 +124,7 @@ int main(int argc, char **argv){
     /* for restart strategy*/
     int n_run=0;
     int countevals, generation;
-    int gen_restart[] = { 1, 2, 3, 4, 50, 100, 150};/* temporary setting */
+    int gen_restart[] = { 3, 8, 13, 4, 50, 100, 150};/* temporary setting */
     double *restartX, *restartSigma;
     double restartSigma_defaults = 2.0;
 
@@ -182,7 +182,7 @@ int main(int argc, char **argv){
     
     if(max_iter == -1){
 	if(max_eval == -1){
-	    max_iter = 1;
+	    max_iter = 15;
 	    max_eval = max_iter * num_of_pop;
 	}else{
 	    max_iter = ceil((double)max_eval / num_of_pop);

@@ -67,11 +67,11 @@ for index = 0, fittingVec.size() - 1 {
 // fittingVec.x(12) = 48
 // fittingVec.x(13) = 32
 
-{load_file("../hocfile/read.hoc")}
-{load_file("../hocfile/cells.hoc")}
-{load_file("../hocfile/connectCells.hoc")}
-{load_file("../hocfile/record.hoc")}
-{load_file("../hocfile/setStim.hoc")}
+{load_file("./read.hoc")}
+{load_file("./cells.hoc")}
+{load_file("./connectCells.hoc")}
+{load_file("./record.hoc")}
+{load_file("./setStim.hoc")}
 
 //caution
 //change of NUM_OF_POP_PER_PROCS is not reflected to global value, so receiveInfo is not available...
@@ -107,7 +107,7 @@ obfunc recieveInfoAndPassVector(){local root localobj vec
 obfunc readParamFile(){ local dim, flg, val localobj f, paramname, sf, vec
     strdef filename, line, tmp
     //sprint(filename, "%s/params%02d.txt", DIR_TARGET, paramfile_suf.x(0))
-    sprint(filename, "../data/params.txt")
+    sprint(filename, "./params.txt")
     vec = new Vector()
     f = new File()
     { f.ropen(filename) }

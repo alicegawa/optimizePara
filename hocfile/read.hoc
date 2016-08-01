@@ -23,7 +23,7 @@ proc read_settings(){local i, j, num_cell
     
     syn_reversal = new Matrix()
     f = new File()
-    f.ropen("../data/rev_potential.dat")
+    f.ropen("./rev_potential.dat")
     syn_reversal.scanf(f, num_cell, num_cell)
     f.close()
     

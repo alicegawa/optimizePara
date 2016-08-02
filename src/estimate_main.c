@@ -138,7 +138,8 @@ int main(int argc, char **argv){
     double *sum_reduce, *sum_for_cov_reduce;/*only use in root_process_main*/
     double divider1, divider2;
     int dim_cov;
-
+    int sum_cov_counter=0;
+    
     /*test variables*/
 //    double *test_sendbuf, *test_rcvbuf;
 //    double *test_arFunval1, *test_arFunval2;
@@ -454,9 +455,11 @@ int main(int argc, char **argv){
 
 	/*calculate for Adapt_C2, flg_diag_off_ver.*/
 	for(k = 0; k < mu; ++k){
+	    sum_cov_counter=0;
 	    for(i = 0; i < dimension; ++i){
 		for(j = 0; j <= i; ++j){
-		    sum_for_cov[i * dimension + j] = (int)(arFunval_rank[i] * divider1) * ((int)(arFunval_rank[i] * divider2)==0) * sp_weight[k] * (pop_split_whole[arFunval_rank[k]%num_of_pop_per_split * dimension + i] - x_mean[i]) *  (pop_split_whole[arFunval_rank[k]%num_of_pop_per_split * dimension + j] - x_mean[j]) * sigmasquare_div;
+		    sum_for_cov[sum_cov_counter] += ((int)(arFunval_rank[k] * divider1)) * ((int)(arFunval_rank[k] * divider2)==0) * sp_weight[k] * (pop_split_whole[arFunval_rank[k]%num_of_pop_per_split * dimension + i] - x_mean[i]) *  (pop_split_whole[arFunval_rank[k]%num_of_pop_per_split * dimension + j] - x_mean[j]) * sigmasquare_div;
+		    ++sum_cov_counter;
 								     
 		}
 	    }

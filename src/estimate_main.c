@@ -253,7 +253,11 @@ int main(int argc, char **argv){
 
     arFunval_rank = (int *)malloc(sizeof(int) * num_of_pop);
     sum_eachprocs = (double *)malloc(sizeof(double) * dimension);
-    divider1 = 1.0 / (num_of_pop_per_split * main_myid);
+    if(I_AM_ROOT_IN_MAIN){
+	divider1 = 1.0;
+    }else{
+	divider1 = 1.0 / (num_of_pop_per_split * main_myid);
+    }
     divider2 = 1.0 / (num_of_pop_per_split * (main_myid + 1));
 
     /*flgdiag off ver.*/
@@ -449,7 +453,7 @@ int main(int argc, char **argv){
 	/*calculate for updateDistribution*/
 	for(i = 0; i < mu; ++i){
 	    for(j = 0; j < dimension; ++j){
-		sum_eachprocs[j] += (int)(arFunval_rank[i] * divider1) * ((int)(arFunval_rank[i] * divider2)==0) * sp_weight[i] * pop_split_whole[arFunval_rank[i]%num_of_pop_per_split * dimension + j];
+		sum_eachprocs[j] += ((arFunval_rank[i]!=0)*((int)(arFunval_rank[i] * divider1)) * ((int)(arFunval_rank[i] * divider2)==0) + (arFunval_rank[i]==0) * (I_AM_ROOT_IN_MAIN)) * sp_weight[i] * pop_split_whole[arFunval_rank[i]%num_of_pop_per_split * dimension + j];
 	    }
 	}
 
@@ -458,7 +462,7 @@ int main(int argc, char **argv){
 	    sum_cov_counter=0;
 	    for(i = 0; i < dimension; ++i){
 		for(j = 0; j <= i; ++j){
-		    sum_for_cov[sum_cov_counter] += ((int)(arFunval_rank[k] * divider1)) * ((int)(arFunval_rank[k] * divider2)==0) * sp_weight[k] * (pop_split_whole[arFunval_rank[k]%num_of_pop_per_split * dimension + i] - x_mean[i]) *  (pop_split_whole[arFunval_rank[k]%num_of_pop_per_split * dimension + j] - x_mean[j]) * sigmasquare_div;
+		    sum_for_cov[sum_cov_counter] += ((arFunval_rank[k]!=0) * ((int)(arFunval_rank[k] * divider1)) * ((int)(arFunval_rank[k] * divider2)==0) + (arFunval_rank[k]==0) * (I_AM_ROOT_IN_MAIN) )* sp_weight[k] * (pop_split_whole[arFunval_rank[k]%num_of_pop_per_split * dimension + i] - x_mean[i]) *  (pop_split_whole[arFunval_rank[k]%num_of_pop_per_split * dimension + j] - x_mean[j]) * sigmasquare_div;
 		    ++sum_cov_counter;
 								     
 		}

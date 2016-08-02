@@ -189,7 +189,7 @@ func detectOutputProc(){local i, proc_id, num_cell, div, nhost
 	proc_id = num_cell - 1
 	return proc_id
     }else{
-	div = int(num_cell / nhost)
+	div = int((num_cell - 1) / nhost)
 	proc_id = num_cell - div * nhost - 1
 	return proc_id
     }

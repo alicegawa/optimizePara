@@ -217,8 +217,8 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
     {pc.barrier()}
     
     //kore iruka??
-    vec = readParamFile()
-    updateParams_tmp(vec)
+    //vec = readParamFile()
+    //updateParams_tmp(vec)
    
     
     output_id = detectOutputProc(NCELL, pc.nhost)

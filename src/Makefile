@@ -3,10 +3,10 @@
 TARGET = \
 	estimate_main \
 
-#CC = mpifccpx
-CC = mpicc
-#CFLAGS = -Kfast
-CFLAGS = -O3
+CC = mpifccpx
+#CC = mpicc
+CFLAGS = -Kfast,parallel,openmp
+#CFLAGS = 
 LDFLAGS = -lm
 INCLUDES = -I.
 LIBS = -lm

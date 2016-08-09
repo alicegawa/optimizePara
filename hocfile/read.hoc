@@ -21,11 +21,22 @@ proc read_settings(){local i, j, num_cell
     // delay.scanf(f, num_cell, num_cell)
     // f.close()
     
-    syn_reversal = new Matrix()
-    f = new File()
-    f.ropen("./rev_potential.dat")
-    syn_reversal.scanf(f, num_cell, num_cell)
-    f.close()
+    // syn_reversal = new Matrix()
+    // f = new File()
+    // f.ropen("./rev_potential.dat")
+    // syn_reversal.scanf(f, num_cell, num_cell)
+    // f.close()
+    
+    syn_reversal = new Matrix(num_cell, num_cell)
+    for i=0, num_cell-1{
+	for j=0, num_cell-1{
+	    if(j%2==0 || j==(num_cell-1)){
+		syn_reversal.x[i][j] = 0
+	    }else{
+		syn_reversal.x[i][j] = -40
+	    }
+	}
+    }
     
     // for i=0, num_cell-1{
     // 	for j=0, num_cell-1{

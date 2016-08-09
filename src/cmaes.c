@@ -1251,7 +1251,7 @@ Adapt_C2_dist(cmaes_t *t, int hsig, double *sum_cov_temp)
 		  + ccov1
 		  * (t->rgpc[i] * t->rgpc[j] 
 		     + (1-hsig)*t->sp.ccumcov*(2.-t->sp.ccumcov) * t->C[i][j]);
-	      t->C[i][j] = ccovmu * sum_cov_temp[count];
+	      t->C[i][j] += ccovmu * sum_cov_temp[count];
 	      ++count;
 	  }
 
@@ -1262,7 +1262,7 @@ Adapt_C2_dist(cmaes_t *t, int hsig, double *sum_cov_temp)
 		  + ccov1
 		  * (t->rgpc[i] * t->rgpc[j]
 		     + (1-hsig)*t->sp.ccumcov*(2.-t->sp.ccumcov) * t->C[i][j]);
-	      t->C[i][j] = ccovmu * sum_cov_temp[count];
+	      t->C[i][j] += ccovmu * sum_cov_temp[count];
 	      ++count;
 	  }
       }
@@ -1898,11 +1898,11 @@ cmaes_TestForTermination( cmaes_t *t)
         if (t->sigma * sqrt(t->C[i][i]) > t->sp.stopTolUpXFactor * t->sp.rgInitialStds[i])
           break;
       }
-      if (i < N) {
-        cp += sprintf(cp, 
-                      "# TolUpX: standard deviation increased by more than %7.2e, larger initial standard deviation recommended \n", 
-                      t->sp.stopTolUpXFactor);
-      }
+      /* if (i < N) { */
+      /*   cp += sprintf(cp,  */
+      /*                 "# TolUpX: standard deviation increased by more than %7.2e, larger initial standard deviation recommended \n",  */
+      /*                 t->sp.stopTolUpXFactor); */
+      /* } */
 
       /* Condition of C greater than dMaxSignifKond */
       if (t->maxEW >= t->minEW * t->dMaxSignifKond) {

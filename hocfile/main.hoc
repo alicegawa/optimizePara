@@ -1,25 +1,12 @@
 {load_file("nrngui.hoc")}
 {if(!name_declared("COLOR")){ COLOR=-1}}
-{if(!name_declared("NCELL_CMAES")){NCELL_CMAES=-1}}
 
-printf("NCELL_CMAES = %d\n", NCELL_CMAES)
-
-if(NCELL_CMAES==-1){
-    NCELL = 8//6//86
-    printf("input error\n")
-    quit()//it may cause the error that the process of CMAES does not finish
-}else if(NCELL_CMAES==0){
-    NCELL = 8
-}else{
-    NCELL = NCELL_CMAES
-}
-printf("NCELL = %d\n", NCELL)
-
+NCELL = 16//8//86
 DIM_CMAES = 2 * NCELL * NCELL
-NUM_OF_POP_PER_PROCS = 16//redefine below according to the setting in the C program
+NUM_OF_POP_PER_PROCS = 16//for first test...(recieve information from cmaes process properly)
 
 v_init = -65
-tstop = 500
+tstop = 2000
 
 iamp = 100
 idelay = 20
@@ -52,20 +39,28 @@ for index = 0, fittingVec.size() - 1 {
     }
 }
 
-// fittingVec.x(0) = 32
-// fittingVec.x(1) = 64
-// fittingVec.x(2) = 100
-// fittingVec.x(3) = 100
-// fittingVec.x(4) = 64
-// fittingVec.x(5) = 32
-// fittingVec.x(6) = 32
-// fittingVec.x(7) = 32
-// fittingVec.x(8) = 64
-// fittingVec.x(9) = 100
-// fittingVec.x(10) = 100
-// fittingVec.x(11) = 64
-// fittingVec.x(12) = 48
-// fittingVec.x(13) = 32
+// fittingVec.x(0) = 120
+// fittingVec.x(1) = 100
+// fittingVec.x(2) = 80
+// fittingVec.x(3) = 60
+// fittingVec.x(4) = 40
+// fittingVec.x(5) = 20
+
+fittingVec.x(0) = 32
+fittingVec.x(1) = 64
+fittingVec.x(2) = 100
+fittingVec.x(3) = 100
+fittingVec.x(4) = 64
+fittingVec.x(5) = 32
+fittingVec.x(6) = 32
+fittingVec.x(7) = 32
+fittingVec.x(8) = 64
+fittingVec.x(9) = 100
+fittingVec.x(10) = 100
+fittingVec.x(11) = 64
+fittingVec.x(12) = 48
+fittingVec.x(13) = 32
+
 
 {load_file("./read.hoc")}
 {load_file("./cells.hoc")}
@@ -148,6 +143,25 @@ func evalFitness(){ local sum, scaleFactor, n, i, tmpFreq localobj hoge
     return sum * scaleFactor
 }
 
+func evalFitness2(){ local sum, scaleFactor, n, i, tmpFreq localobj hoge
+    //define fitness function. under construction
+    sum = 0.0
+    scaleFactor = 0.3 //temporarily
+    
+    // calc the fitness here under construction
+    if(pc.gid_exists(NCELL/2)){
+	for i = 0, fittingVec.size() - 1  {
+	    tmpFreq = getFreq2(recordBin * i, recordBin * 2)//250ms bin overlapped each 125ms
+	    //printf("freq(%d ~ %d) is %d\t", recordBin * i, recordBin * (i+1), tmpFreq) 
+	    sum += (tmpFreq + fittingVec.x(i) - 132) * (tmpFreq + fittingVec.x(i) - 132)
+	}
+	//printf("\n")
+    }
+	
+    return sum * scaleFactor
+}
+
+
 proc updateParams(){ local i, start_idx localobj param_vec
     param_vec = $o1
     start_idx = $2
@@ -189,7 +203,7 @@ func detectOutputProc(){local i, proc_id, num_cell, div, nhost
 	proc_id = num_cell - 1
 	return proc_id
     }else{
-	div = int(num_cell / nhost)
+	div = int((num_cell-1) / nhost)
 	proc_id = num_cell - div * nhost - 1
 	return proc_id
     }
@@ -217,8 +231,8 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
     {pc.barrier()}
     
     //kore iruka??
-    vec = readParamFile()
-    updateParams_tmp(vec)
+    //vec = readParamFile()
+    //updateParams_tmp(vec)
    
     
     output_id = detectOutputProc(NCELL, pc.nhost)
@@ -262,12 +276,14 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	    {setSpikeRecord(NCELL)}
 
 	    stdinit()
-	       
+	    
 	    pc.psolve(timestep)//timestep = tstop in original file
+	    
 	    //printf("end psolove (%d times)\n",start_timing)
 	    start_timing += 1
 	    
 	    tempfit = evalFitness()
+	    tempfit += evalFitness2()
 	    //if fitness converted to log_fitness, write here like below
 	    if(log_fitness == 1){
 		if(tempfit == 0){

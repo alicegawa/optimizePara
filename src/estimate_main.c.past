@@ -16,12 +16,6 @@
 #define MAX_NUM_PARAM 3000
 #define MAX_NUM_TARGET 5
 
-typedef struct bacst_params{
-  long int seed_and_rand[35];
-  short int flgstored;
-  double hold;
-}bcast_params;
-
 /* under construction*/
 int loadRangeFile(char *filename, my_boundary_transformation_t *t){
     int dimension = 0;
@@ -90,23 +84,20 @@ int main(int argc, char **argv){
     char *neuron_argv[] = {"-mpi", "-nobanner", "-c", "{}", "-c", "{}", "./main.hoc", NULL};
     int num_of_pop_per_procs, num_of_pop_per_split;
     int num_of_procs_nrn = 8;//for test
-    double t_start, t_end, t_start0, t_middle;
-    double t_test1, t_test2, t_test3;
+    double t_start, t_end;
     int send_count;
-
-    int spawn_judge;
     
     cmaes_t evo;
     double *arFunvals, *arFunvals_split_buf1, *arFunvals_split_buf2, *const*pop, *xfinal;
     double *arFunvals_whole, *arFunvals_whole_buf;
     double *initialX, *initialSigma;
-    int mu = 1024;//4096;//64;//-1;
+    int mu = 4096;//64;//-1;
     unsigned int seed = 0;
     unsigned int dimension;
     unsigned int dimension_per_nrnprocs;
     int max_eval = -1, max_iter = -1;
     char initfile[] = "cmaes_initials.par";
-    unsigned int num_of_pop = 65536;//262144;//1024;//for test
+    unsigned int num_of_pop = 262144;//1024;//for test
     double *pop_sendbuf_nrn_weight, *pop_sendbuf_nrn_delay, *pop_rcvbuf_nrn_weight, *pop_rcvbuf_nrn_delay;
     double *pop_sendbuf_split_whole, *pop_sendbuf_split_weight, *pop_sendbuf_split_delay, *pop_rcvbuf_split_weight, *pop_rcvbuf_split_delay;
 
@@ -133,14 +124,13 @@ int main(int argc, char **argv){
     /* for restart strategy*/
     int n_run=0;
     int countevals, generation;
-    int gen_restart[] = { 3, 8, 13, 18, 23, 28, 33, 38, 43, 48, 50, 100, 150};/* temporary setting */
+    int gen_restart[] = { 1, 2, 3, 4, 50, 100, 150};/* temporary setting */
     double *restartX, *restartSigma;
-    double restartSigma_defaults = 10.0;//2.0;
+    double restartSigma_defaults = 2.0;
 
     /* distributed pop update*/
     double *rgD, *x_mean, sigma, sigmasquare_div; 
     random_t rand_box;
-    bcast_params rand_box_temp;
     double const *pop_dist;
     double *sp_weight;
     int *arFunval_rank;
@@ -148,7 +138,6 @@ int main(int argc, char **argv){
     double *sum_reduce, *sum_for_cov_reduce;/*only use in root_process_main*/
     double divider1, divider2;
     int dim_cov;
-    int sum_cov_counter=0;
 
     /*test variables*/
 //    double *test_sendbuf, *test_rcvbuf;
@@ -159,8 +148,6 @@ int main(int argc, char **argv){
     MPI_Comm_rank(MPI_COMM_WORLD, &main_myid);
     
     MPI_Comm_get_parent(&parentcomm);
-
-    t_start0 = MPI_Wtime();
 
     /*check input params */
     if(argc >= 2){num_of_pop = atoi(argv[1]);}
@@ -195,7 +182,7 @@ int main(int argc, char **argv){
     
     if(max_iter == -1){
 	if(max_eval == -1){
-	    max_iter = 40;
+	    max_iter = 1;
 	    max_eval = max_iter * num_of_pop;
 	}else{
 	    max_iter = ceil((double)max_eval / num_of_pop);
@@ -218,17 +205,10 @@ int main(int argc, char **argv){
     
     /*initialize for/and cmaes settings*/
 
-    t_test1 = MPI_Wtime();
-    printf("elapse time before load_rangefile is %lf (main_myid = %d)\n", t_test1 - t_start0, main_myid);
-    
     loadRangeFile(range_filename, &my_boundaries);//you must modify the filename of setting file
     dimension = my_boundaries.dimension;
-    
-    
-    t_test2 = MPI_Wtime();
-    printf("elapse time for loadRangefile is %lf, (main_myid = %d)\n", t_test2 - t_test1, main_myid);
-    
 
+    
     dimension_per_nrnprocs = dimension / num_of_procs_nrn; // param dimension of each nrn process(weight and delay)
     num_params_only_weight_or_delay = dimension * num_of_pop / 2;
     
@@ -244,11 +224,10 @@ int main(int argc, char **argv){
     offset_split_scatter = num_of_pop_per_split;
     offset = num_of_params_per_nrnprocs / 2;
 
-    t_test1 = MPI_Wtime();
-    printf("elapse time for set variables is %lf (main_Myid = %d)\n", t_test1 - t_test2, main_myid); 
-    
     if(I_AM_ROOT_IN_MAIN){
 	pop_sendbuf_split_whole = (double *)calloc(dimension * num_of_pop, sizeof(double));
+	//pop_sendbuf_split_weight = (double *)calloc(dimension * (num_of_pop + num_of_pop_per_split) / 2, sizeof(double));
+	//pop_sendbuf_split_delay = (double *)calloc(dimension * (num_of_pop + num_of_pop_per_split) / 2, sizeof(double));
     }
 
     pop_rcvbuf_split_weight = (double *)malloc(sizeof(double) * num_sendparams);
@@ -273,11 +252,7 @@ int main(int argc, char **argv){
 
     arFunval_rank = (int *)malloc(sizeof(int) * num_of_pop);
     sum_eachprocs = (double *)malloc(sizeof(double) * dimension);
-    if(!(I_AM_ROOT_IN_MAIN)){
-      divider1 = 1.0 / (num_of_pop_per_split * main_myid);
-    }else{
-      divider1 = 1;
-    }
+    divider1 = 1.0 / (num_of_pop_per_split * main_myid);
     divider2 = 1.0 / (num_of_pop_per_split * (main_myid + 1));
 
     /*flgdiag off ver.*/
@@ -294,31 +269,18 @@ int main(int argc, char **argv){
     initialSigma = (double *)malloc(sizeof(double) * dimension);
     if(initialSigma==NULL){ printf("memory allocation error for initialSigma \n"); return -1;}
     restartSigma = (double *)malloc( sizeof(double) * dimension);
-
-    t_test2 = MPI_Wtime();
-    printf("elapse time for alloc memories is %lf (main_myid = %d)\n", t_test2 - t_test1, main_myid);
-
-    
     //if(restartSigma == NULL){ printf("memory allocation error for restartSigma\n");}
     srand((unsigned)time(NULL));
     util = 1.0 / ((double)RAND_MAX + 2.0);
     for(i=0; i<dimension; ++i){
 	initialX[i] = 3.0 + (7.0 - 3.0) * (double)(rand() + 1.0) * util;
-	initialSigma[i] = 40;//100;//(10.0 - 0.0) * 0.25;
+	initialSigma[i] = (10.0 - 0.0) * 0.25;
 	restartSigma[i] = restartSigma_defaults;
     }
 
     if(I_AM_ROOT_IN_MAIN){
 	arFunvals = cmaes_init(&evo, dimension, initialX, initialSigma, seed, num_of_pop, mu, max_eval, max_iter, initfile);
 	rand_box = evo.rand;
-	/* rand_box_temp.seed_and_rand[0] = rand_box.startseed; */
-        /* rand_box_temp.seed_and_rand[1] = rand_box.aktseed; */
-        /* rand_box_temp.seed_and_rand[2] = rand_box.aktrand; */
-        /* for(i=0;i<32;++i){ */
-	/*   rand_box_temp.seed_and_rand[i + 3] = rand_box.rgrand[i]; */
-        /* } */
-        /* rand_box_temp.flgstored = rand_box.flgstored; */
-        /* rand_box_temp.hold = rand_box.hold; */
 	for(i=0;i<mu;++i){
 	    sp_weight[i] = evo.sp.weights[i];
 	}
@@ -330,10 +292,6 @@ int main(int argc, char **argv){
     max_iter = (int)cmaes_Get(&evo, "MaxIter");
     max_eval = (int)cmaes_Get(&evo, "maxeval");
 
-    t_test1 = MPI_Wtime();
-    printf("elapse time for initialize alloc memory is %lf (main_myid = %d)\n", t_test1 - t_test2, main_myid);
-
-    
     /* setting MPI_Comm_split section*/
     key = 0;
     color = main_myid;
@@ -344,29 +302,6 @@ int main(int argc, char **argv){
 
     MPI_Comm_dup(MPI_COMM_WORLD, &firstTimeWorld);
 
-    t_test2 = MPI_Wtime();
-    printf("elapse time for split comms is %lf, (main_myid = %d)\n", t_test2 - t_test1, main_myid);
-
-    /* int section[3]; */
-    /* section[0]=35; */
-    /* section[1]=1; */
-    /* section[2]=1; */
-    /* MPI_Datatype partype1, type[3]; */
-    /* type[0] = MPI_LONG; */
-    /* type[1] = MPI_SHORT; */
-    /* type[2] = MPI_DOUBLE; */
-    /* MPI_Aint byte[3], extent0, extent1; */
-    /* byte[0] = 0; */
-    /* MPI_Type_extent(MPI_LONG, &extent0); */
-    /* byte[1] = 35 * extent0; */
-    /* MPI_Type_extent(MPI_SHORT, &extent1); */
-    /* byte[2] = 36 * extent0 + extent1; */
-    /* MPI_Type_struct(3, section, byte, type, &partype1); */
-    /* MPI_Type_commit(&partype1); */
-
-    MPI_Barrier(firstTimeWorld);
-    t_test1 = MPI_Wtime();
-    printf("elapase time for setting sturct sending is %lf (main_Myid = %d)\n",t_test1 - t_test2, main_myid); 
 
     MPI_Bcast(&rand_box.startseed, 1, MPI_LONG, root_process_main, firstTimeWorld);
     MPI_Bcast(&rand_box.aktseed, 1, MPI_LONG, root_process_main, firstTimeWorld);
@@ -374,46 +309,10 @@ int main(int argc, char **argv){
     MPI_Bcast(rand_box.rgrand, 32, MPI_LONG, root_process_main, firstTimeWorld);
     MPI_Bcast(&rand_box.flgstored, 1, MPI_SHORT, root_process_main, firstTimeWorld);
     MPI_Bcast(&rand_box.hold, 1, MPI_DOUBLE, root_process_main, firstTimeWorld);
-
-    //MPI_Bcast(&rand_box_temp, 1, partype1, root_process_main, firstTimeWorld);
-
-    MPI_Barrier(firstTimeWorld);
-    t_test2 = MPI_Wtime();
-    printf("elapse time for bcast randbox is %lf (main_myid = %d)\n", t_test2 - t_test1, main_myid);
-
-    /* if(!I_AM_ROOT_IN_MAIN){ */
-    /*   rand_box.startseed = rand_box_temp.seed_and_rand[0]; */
-    /*   rand_box.aktseed = rand_box_temp.seed_and_rand[1]; */
-    /*   rand_box.aktrand = rand_box_temp.seed_and_rand[2]; */
-    /*   for(i=0;i<32;++i){ */
-    /* 	rand_box.rgrand[i] = rand_box_temp.seed_and_rand[3+i]; */
-    /*   } */
-    /*   rand_box.flgstored = rand_box_temp.flgstored; */
-    /*   rand_box.hold = rand_box_temp.hold; */
-    /*   if(rand_box.hold!=0) */
-    /* 	rand_box.hold = 0.0; */
-    /* } */
-
     rand_box.startseed += main_myid;
     rand_box.aktseed += main_myid;
-
-
     MPI_Bcast(sp_weight, mu, MPI_DOUBLE, root_process_main, firstTimeWorld);
-    /* double s1; */
-    /* for(i=0;i<mu;++i){ */
-    /*   sp_weight[i] = log(mu+1) - log(i+1); */
-    /* } */
-    /* for(i=0, s1=0; i<mu;++i){ */
-    /*   s1 += sp_weight[i]; */
-    /* } */
-
-    /* s1 = 1 / s1; */
-
-    /* for(i=0;i<mu;++i){ */
-    /*   sp_weight[i] *= s1; */
-    /* } */
-    t_test1 = MPI_Wtime();
-    printf("elapse time for set params in random_box is %lf (main_myid = %d)\n", t_test1 - t_test2, main_myid);
+    
     /*setting the argv for spawn*/
     /* sprintf(neuron_argv[3],"COLOR=%d",color); */
     /* if(neuron_argv_size > 6){ */
@@ -427,21 +326,11 @@ int main(int argc, char **argv){
     /*********caution********/
     /*execute MPI_Comm_spawn (from below, until sending finalize signal to nrncomm, the program should not end.*/
     if( I_AM_ROOT_IN_SPLIT){
-      for(i=0;i<main_size;i+=4096){
-	if(main_myid>=i && main_myid<(4096 + i)){
-	  spawn_judge = MPI_Comm_spawn(specials, neuron_argv, num_of_procs_nrn, MPI_INFO_NULL, 0, splitcomm, &intercomm, MPI_ERRCODES_IGNORE);
-	  printf("spawn_judge = %d (main_Myid = %d)\n", spawn_judge, main_myid);
-	  MPI_Intercomm_merge(intercomm, 0, &nrn_comm);
-	  MPI_Comm_size(nrn_comm, &spawn_size);
-	  MPI_Comm_rank(nrn_comm, &spawn_myid);
-	}
-	MPI_Barrier(firstTimeWorld);
-      }
+	MPI_Comm_spawn(specials, neuron_argv, num_of_procs_nrn, MPI_INFO_NULL, 0, splitcomm, &intercomm, MPI_ERRCODES_IGNORE);
+	MPI_Intercomm_merge(intercomm, 0, &nrn_comm);
+	MPI_Comm_size(nrn_comm, &spawn_size);
+	MPI_Comm_rank(nrn_comm, &spawn_myid);
     }
-
-    t_test2 = MPI_Wtime();
-    printf("elapse time for comm spawn is %lf (main_myid = %d)\n", t_test2 - t_test1);
-    
     /*if you want to send information to NEURON in setting, send here*/
     if( I_AM_ROOT_IN_SPLIT){
 	send_count = 1;//3;/*template*/
@@ -451,11 +340,9 @@ int main(int argc, char **argv){
        	MPI_Bcast_to_NEURON(info, send_count, MPI_DOUBLE, root_process_spawn, nrn_comm);
     }
     fflush(stdout);
-    t_test1 = MPI_Wtime();
-    printf("elapse time for bcast to neuron is %lf (main_Myid = %d)\n", t_test1 - t_test2, main_myid);
 
     t_start = MPI_Wtime();
-    printf("main_myid = %d elapse time for initialization is %lf (sec)\n", main_myid, t_start0 - t_start);
+    printf("main_myid = %d \n", main_myid);
 
     /*Start main section of estimation*/
     while(1){
@@ -535,10 +422,7 @@ int main(int argc, char **argv){
 		}
 	    }
 	    
-	    if(I_AM_ROOT_IN_MAIN && loop_count==0){
-	      t_middle = MPI_Wtime();
-	      printf("start 1st time NEURON simulation is %lf\n", t_middle - t_start0);
-	    }
+	    
     	    /* wait for NEURON simulation in worker nodes */
     	    MPI_Gather(arFunvals_split_buf1, num_of_pop_per_split, MPI_DOUBLE, arFunvals_split_buf2, num_of_pop_per_split, MPI_DOUBLE, root_process_spawn, nrn_comm);
 	    MPI_Barrier(firstTimeWorld);
@@ -564,17 +448,15 @@ int main(int argc, char **argv){
 	/*calculate for updateDistribution*/
 	for(i = 0; i < mu; ++i){
 	    for(j = 0; j < dimension; ++j){
-	      sum_eachprocs[j] += ((arFunval_rank[i]!=0) * ((int)(arFunval_rank[i] * divider1)) * ((int)(arFunval_rank[i] * divider2)==0) + (arFunval_rank[i]==0) * (I_AM_ROOT_IN_MAIN)) * sp_weight[i] * pop_split_whole[arFunval_rank[i]%num_of_pop_per_split * dimension + j];
+		sum_eachprocs[j] += (int)(arFunval_rank[i] * divider1) * ((int)(arFunval_rank[i] * divider2)==0) * sp_weight[i] * pop_split_whole[arFunval_rank[i]%num_of_pop_per_split * dimension + j];
 	    }
 	}
 
 	/*calculate for Adapt_C2, flg_diag_off_ver.*/
 	for(k = 0; k < mu; ++k){
-	  sum_cov_counter=0;
 	    for(i = 0; i < dimension; ++i){
 		for(j = 0; j <= i; ++j){
-		  sum_for_cov[sum_cov_counter] += ((arFunval_rank[k]!=0) * ((int)(arFunval_rank[k] * divider1)) * ((int)(arFunval_rank[k] * divider2)==0) + (arFunval_rank[k]==0) * (I_AM_ROOT_IN_MAIN) )* sp_weight[k] * (pop_split_whole[arFunval_rank[k]%num_of_pop_per_split * dimension + i] - x_mean[i]) *  (pop_split_whole[arFunval_rank[k]%num_of_pop_per_split * dimension + j] - x_mean[j]) * sigmasquare_div;
-		    ++sum_cov_counter;
+		    sum_for_cov[i * dimension + j] = (int)(arFunval_rank[i] * divider1) * ((int)(arFunval_rank[i] * divider2)==0) * sp_weight[k] * (pop_split_whole[arFunval_rank[k]%num_of_pop_per_split * dimension + i] - x_mean[i]) *  (pop_split_whole[arFunval_rank[k]%num_of_pop_per_split * dimension + j] - x_mean[j]) * sigmasquare_div;
 								     
 		}
 	    }
@@ -605,21 +487,6 @@ int main(int argc, char **argv){
 	/* 	} */
 	/*     } */
 	/* } */
-
-	if(I_AM_ROOT_IN_MAIN){
-	  printf("#fbest: %f\n", cmaes_Get(&evo, "fbestever"));
-	}
-
-	if(loop_count%5==0){
-	  if( I_AM_ROOT_IN_MAIN){
-	    t_end = MPI_Wtime();
-	    printf("\n# elapsed time: %f\n #fbest: %f\n #xbest:", t_end - t_start, cmaes_Get(&evo, "fbestever"));
-	    my_boundary_transformation(&my_boundaries, (double *)cmaes_GetPtr(&evo, "xbestever"), x_temp, main_myid);
-	    printGene(stdout, x_temp, dimension);
-	    printf("\n");
-	    fflush(stdout);
-	  }
-	}
 	
     	fflush(stdout);
     	/*termination*/

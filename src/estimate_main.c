@@ -13,7 +13,7 @@
 #define I_AM_ROOT_IN_NRN (spawn_myid == root_process_spawn)
 
 #define TEXT_BUFFER_SIZE 2048
-#define MAX_NUM_PARAM 3000
+#define MAX_NUM_PARAM 10000
 #define MAX_NUM_TARGET 5
 
 typedef struct bacst_params{
@@ -89,7 +89,7 @@ int main(int argc, char **argv){
     char option_mpi[] = "-mpi", option_nobanner[] = "-nobanner", HOCFILE[] = "../hocfile/main.hoc";
     char *neuron_argv[] = {"-mpi", "-nobanner", "-c", "{}", "-c", "{}", "./main.hoc", NULL};
     int num_of_pop_per_procs, num_of_pop_per_split;
-    int num_of_procs_nrn = 8;//for test
+    int num_of_procs_nrn = 16;//for test
     double t_start, t_end, t_start0, t_middle;
     double t_test1, t_test2, t_test3;
     int send_count;
@@ -149,6 +149,8 @@ int main(int argc, char **argv){
     double divider1, divider2;
     int dim_cov;
     int sum_cov_counter=0;
+
+    double fbest_now=1000000, fbest_old;
 
     /*test variables*/
 //    double *test_sendbuf, *test_rcvbuf;
@@ -219,14 +221,14 @@ int main(int argc, char **argv){
     /*initialize for/and cmaes settings*/
 
     t_test1 = MPI_Wtime();
-    printf("elapse time before load_rangefile is %lf (main_myid = %d)\n", t_test1 - t_start0, main_myid);
+    //printf("elapse time before load_rangefile is %lf (main_myid = %d)\n", t_test1 - t_start0, main_myid);
     
     loadRangeFile(range_filename, &my_boundaries);//you must modify the filename of setting file
     dimension = my_boundaries.dimension;
     
     
     t_test2 = MPI_Wtime();
-    printf("elapse time for loadRangefile is %lf, (main_myid = %d)\n", t_test2 - t_test1, main_myid);
+    //printf("elapse time for loadRangefile is %lf, (main_myid = %d)\n", t_test2 - t_test1, main_myid);
     
 
     dimension_per_nrnprocs = dimension / num_of_procs_nrn; // param dimension of each nrn process(weight and delay)
@@ -245,7 +247,7 @@ int main(int argc, char **argv){
     offset = num_of_params_per_nrnprocs / 2;
 
     t_test1 = MPI_Wtime();
-    printf("elapse time for set variables is %lf (main_Myid = %d)\n", t_test1 - t_test2, main_myid); 
+    //printf("elapse time for set variables is %lf (main_Myid = %d)\n", t_test1 - t_test2, main_myid); 
     
     if(I_AM_ROOT_IN_MAIN){
 	pop_sendbuf_split_whole = (double *)calloc(dimension * num_of_pop, sizeof(double));
@@ -296,7 +298,7 @@ int main(int argc, char **argv){
     restartSigma = (double *)malloc( sizeof(double) * dimension);
 
     t_test2 = MPI_Wtime();
-    printf("elapse time for alloc memories is %lf (main_myid = %d)\n", t_test2 - t_test1, main_myid);
+    //printf("elapse time for alloc memories is %lf (main_myid = %d)\n", t_test2 - t_test1, main_myid);
 
     
     //if(restartSigma == NULL){ printf("memory allocation error for restartSigma\n");}
@@ -331,7 +333,7 @@ int main(int argc, char **argv){
     max_eval = (int)cmaes_Get(&evo, "maxeval");
 
     t_test1 = MPI_Wtime();
-    printf("elapse time for initialize alloc memory is %lf (main_myid = %d)\n", t_test1 - t_test2, main_myid);
+    //printf("elapse time for initialize alloc memory is %lf (main_myid = %d)\n", t_test1 - t_test2, main_myid);
 
     
     /* setting MPI_Comm_split section*/
@@ -345,7 +347,7 @@ int main(int argc, char **argv){
     MPI_Comm_dup(MPI_COMM_WORLD, &firstTimeWorld);
 
     t_test2 = MPI_Wtime();
-    printf("elapse time for split comms is %lf, (main_myid = %d)\n", t_test2 - t_test1, main_myid);
+    //printf("elapse time for split comms is %lf, (main_myid = %d)\n", t_test2 - t_test1, main_myid);
 
     /* int section[3]; */
     /* section[0]=35; */
@@ -366,7 +368,7 @@ int main(int argc, char **argv){
 
     MPI_Barrier(firstTimeWorld);
     t_test1 = MPI_Wtime();
-    printf("elapase time for setting sturct sending is %lf (main_Myid = %d)\n",t_test1 - t_test2, main_myid); 
+    //printf("elapase time for setting sturct sending is %lf (main_Myid = %d)\n",t_test1 - t_test2, main_myid); 
 
     MPI_Bcast(&rand_box.startseed, 1, MPI_LONG, root_process_main, firstTimeWorld);
     MPI_Bcast(&rand_box.aktseed, 1, MPI_LONG, root_process_main, firstTimeWorld);
@@ -379,7 +381,7 @@ int main(int argc, char **argv){
 
     MPI_Barrier(firstTimeWorld);
     t_test2 = MPI_Wtime();
-    printf("elapse time for bcast randbox is %lf (main_myid = %d)\n", t_test2 - t_test1, main_myid);
+    //printf("elapse time for bcast randbox is %lf (main_myid = %d)\n", t_test2 - t_test1, main_myid);
 
     /* if(!I_AM_ROOT_IN_MAIN){ */
     /*   rand_box.startseed = rand_box_temp.seed_and_rand[0]; */
@@ -398,22 +400,22 @@ int main(int argc, char **argv){
     rand_box.aktseed += main_myid;
 
 
-    MPI_Bcast(sp_weight, mu, MPI_DOUBLE, root_process_main, firstTimeWorld);
-    /* double s1; */
-    /* for(i=0;i<mu;++i){ */
-    /*   sp_weight[i] = log(mu+1) - log(i+1); */
-    /* } */
-    /* for(i=0, s1=0; i<mu;++i){ */
-    /*   s1 += sp_weight[i]; */
-    /* } */
+    //MPI_Bcast(sp_weight, mu, MPI_DOUBLE, root_process_main, firstTimeWorld);
+    double s1;
+    for(i=0;i<mu;++i){
+      sp_weight[i] = log(mu+1) - log(i+1);
+    }
+    for(i=0, s1=0; i<mu;++i){
+      s1 += sp_weight[i];
+    }
 
-    /* s1 = 1 / s1; */
+    s1 = 1 / s1;
 
-    /* for(i=0;i<mu;++i){ */
-    /*   sp_weight[i] *= s1; */
-    /* } */
+    for(i=0;i<mu;++i){
+      sp_weight[i] *= s1;
+    }
     t_test1 = MPI_Wtime();
-    printf("elapse time for set params in random_box is %lf (main_myid = %d)\n", t_test1 - t_test2, main_myid);
+    //printf("elapse time for set params in random_box is %lf (main_myid = %d)\n", t_test1 - t_test2, main_myid);
     /*setting the argv for spawn*/
     /* sprintf(neuron_argv[3],"COLOR=%d",color); */
     /* if(neuron_argv_size > 6){ */
@@ -427,10 +429,12 @@ int main(int argc, char **argv){
     /*********caution********/
     /*execute MPI_Comm_spawn (from below, until sending finalize signal to nrncomm, the program should not end.*/
     if( I_AM_ROOT_IN_SPLIT){
-      for(i=0;i<main_size;i+=4096){
-	if(main_myid>=i && main_myid<(4096 + i)){
+      for(i=0;i<main_size;i+=1024){
+      //for(i=0; i<8; ++i){
+	if(main_myid>=i && main_myid<(1024 + i)){
+	  //if(main_myid%8 == i){
 	  spawn_judge = MPI_Comm_spawn(specials, neuron_argv, num_of_procs_nrn, MPI_INFO_NULL, 0, splitcomm, &intercomm, MPI_ERRCODES_IGNORE);
-	  printf("spawn_judge = %d (main_Myid = %d)\n", spawn_judge, main_myid);
+	  // printf("spawn_judge = %d (main_Myid = %d)\n", spawn_judge, main_myid);
 	  MPI_Intercomm_merge(intercomm, 0, &nrn_comm);
 	  MPI_Comm_size(nrn_comm, &spawn_size);
 	  MPI_Comm_rank(nrn_comm, &spawn_myid);
@@ -440,7 +444,7 @@ int main(int argc, char **argv){
     }
 
     t_test2 = MPI_Wtime();
-    printf("elapse time for comm spawn is %lf (main_myid = %d)\n", t_test2 - t_test1);
+    printf("elapse time for comm spawn is %lf (main_myid = %d)\n", t_test2 - t_test1, main_myid);
     
     /*if you want to send information to NEURON in setting, send here*/
     if( I_AM_ROOT_IN_SPLIT){
@@ -452,10 +456,15 @@ int main(int argc, char **argv){
     }
     fflush(stdout);
     t_test1 = MPI_Wtime();
-    printf("elapse time for bcast to neuron is %lf (main_Myid = %d)\n", t_test1 - t_test2, main_myid);
+    //printf("elapse time for bcast to neuron is %lf (main_Myid = %d)\n", t_test1 - t_test2, main_myid);
 
     t_start = MPI_Wtime();
     printf("main_myid = %d elapse time for initialization is %lf (sec)\n", main_myid, t_start0 - t_start);
+
+    if(!I_AM_ROOT_IN_MAIN){
+      rgD = (double *)malloc(dimension * sizeof(double));
+      x_mean = (double *)malloc(dimension * sizeof(double));
+    }
 
     /*Start main section of estimation*/
     while(1){
@@ -464,9 +473,6 @@ int main(int argc, char **argv){
 	    x_mean = (double *)cmaes_GetPtr(&evo, "xmean");
 	    cmaes_SamplePopulation_diag_dist_update(&evo);
 	    sigma = (double)cmaes_Get(&evo, "sigma");
-	}else{
-	    rgD = (double *)malloc(dimension * sizeof(double));
-	    x_mean = (double *)malloc(dimension * sizeof(double));
 	}
 
 	MPI_Bcast(rgD, dimension, MPI_DOUBLE, root_process_main, firstTimeWorld);
@@ -580,10 +586,14 @@ int main(int argc, char **argv){
 	    }
 	}
 
+	t_test1 = MPI_Wtime();
 	/*send calc results to root_process_main*/
 	MPI_Reduce(sum_eachprocs, sum_reduce, dimension, MPI_DOUBLE, MPI_SUM, root_process_main, firstTimeWorld);
 	MPI_Reduce(sum_for_cov, sum_for_cov_reduce, dim_cov, MPI_DOUBLE, MPI_SUM, root_process_main, firstTimeWorld);
-	
+	t_test2 = MPI_Wtime();
+	if(I_AM_ROOT_IN_MAIN){
+	  printf("elapse time for MPI_Reduce = %lf\n", t_test2 - t_test1);
+	}
 	
 	if(I_AM_ROOT_IN_MAIN){
 	    for(i=0;i<num_of_pop;++i){
@@ -607,19 +617,22 @@ int main(int argc, char **argv){
 	/* } */
 
 	if(I_AM_ROOT_IN_MAIN){
-	  printf("#fbest: %f\n", cmaes_Get(&evo, "fbestever"));
+
+	  fbest_old = fbest_now;
+	  fbest_now = cmaes_Get(&evo, "fbestever");
+	  printf("#fbest: %f\n", fbest_now);
 	}
 
-	if(loop_count%5==0){
-	  if( I_AM_ROOT_IN_MAIN){
-	    t_end = MPI_Wtime();
-	    printf("\n# elapsed time: %f\n #fbest: %f\n #xbest:", t_end - t_start, cmaes_Get(&evo, "fbestever"));
-	    my_boundary_transformation(&my_boundaries, (double *)cmaes_GetPtr(&evo, "xbestever"), x_temp, main_myid);
-	    printGene(stdout, x_temp, dimension);
-	    printf("\n");
-	    fflush(stdout);
-	  }
+	//	if(loop_count%5==0){
+	if( I_AM_ROOT_IN_MAIN && fbest_now!=fbest_old){
+	  t_end = MPI_Wtime();
+	  printf("\n# elapsed time: %f\n #fbest: %f\n #xbest:", t_end - t_start, cmaes_Get(&evo, "fbestever"));
+	  my_boundary_transformation(&my_boundaries, (double *)cmaes_GetPtr(&evo, "xbestever"), x_temp, main_myid);
+	  printGene(stdout, x_temp, dimension);
+	  printf("\n");
+	  fflush(stdout);
 	}
+	  //}
 	
     	fflush(stdout);
     	/*termination*/

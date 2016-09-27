@@ -1,7 +1,7 @@
 {load_file("nrngui.hoc")}
 {if(!name_declared("COLOR")){ COLOR=-1}}
 
-NCELL = 16//8//86
+NCELL = 64//16//8//86
 DIM_CMAES = 2 * NCELL * NCELL
 NUM_OF_POP_PER_PROCS = 16//for first test...(recieve information from cmaes process properly)
 
@@ -209,8 +209,20 @@ func detectOutputProc(){local i, proc_id, num_cell, div, nhost
     }
 }
 
+func detectOutputProc2(){local i, proc_id, num_cell, div, nhost
+    num_cell = $1
+    nhost = $2
+    if((num_cell / 2) < nhost){
+        proc_id = num_cell / 2
+        return proc_id
+    }else{
+        div = int((num_cell / 2) / nhost)
+        proc_id = num_cell/2 - div * nhost
+        return proc_id
+    }
+}
 
-proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num_of_pop_per_procs, dim_cmaes, num_of_targetfile, timestep, log_fitness, output_id, start_timing, loop_counter localobj rcv_pop_vec_weight, rcv_pop_vec_delay, send_fit_vec, nullvec, tempvec, vec
+proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num_of_pop_per_procs, dim_cmaes, num_of_targetfile, timestep, log_fitness, output_id, output_id2, start_timing, loop_counter localobj rcv_pop_vec_weight, rcv_pop_vec_delay, send_fit_vec, nullvec, tempvec, vec, send_fit_vec2
     
     num_of_pop_per_procs = $1
     dim_cmaes = $2
@@ -236,6 +248,8 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
    
     
     output_id = detectOutputProc(NCELL, pc.nhost)
+    output_id2 = detectOutputProc2(NCELL, pc.nhost)
+    
     {pc.set_maxstep(10)}
     {finitialize(v_init)}
     {fcurrent()}
@@ -253,6 +267,7 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	rcv_pop_vec_weight = new Vector()
 	rcv_pop_vec_delay = new Vector()
 	send_fit_vec = new Vector(num_of_pop_per_procs)
+	send_fit_vec2 = new Vector(num_of_pop_per_procs)
 	
 	//printf("num_of_pop_per_procs in execSimulation (in hocfile) is %d\n", num_of_pop_per_procs) 
 	//recieve weight data
@@ -295,8 +310,17 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	    fitness += tempfit
 	    
 	    send_fit_vec.x(i) = fitness
+	    send_fit_vec2.x(i) = fitness
 	}
 	pc.broadcast(send_fit_vec, output_id)
+	pc.broadcast(send_fit_vec2, output_id2)
+	
+	if(output_id!=output_id2){
+            for(i=0; i<num_of_pop_per_procs; i+=1){
+                send_fit_vec.x(i) += send_fit_vec2.x(i)
+            }
+        }
+
 	
 	{pc.set_parent_comm()}
 	pc.gather_d(send_fit_vec, nullvec, num_of_pop_per_procs, root)

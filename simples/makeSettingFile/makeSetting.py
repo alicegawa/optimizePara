@@ -19,7 +19,7 @@ for i in range(0, NCON * 2):
     if i < NCON:
         f.write("weight%d\t0\t1\t0.1\t0\n" % (i+1))
     else:
-        f.write("delay%d\t0.1\t80\t10\t0\n" % (i+1))
+        f.write("delay%d\t0.1\t50\t10\t0\n" % (i+1))
 
 # for i in range(0, 72):
 #     if i < 36:

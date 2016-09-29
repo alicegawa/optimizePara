@@ -1,0 +1,46 @@
+/********************************************************/
+/*    sample code of How to use loadSwc.hoc             */
+/*                                                      */
+/*                                   by nebula          */
+/********************************************************/
+
+{load_file("nrngui.hoc")}
+{load_file("loadSwc.hoc")}
+
+objref cell
+objref stim
+
+objref synstim
+objref nc
+
+cell = new CellSwc("./swc/291-1.CNG.swc", 0, 0, 0)
+printf("Load OK\n")
+
+
+// example of NetStim
+stim = new NetStim()
+stim.number = 10
+stim.interval = 50
+stim.start = 10
+
+synstim = cell.makeSyn(3535, 2, 5, 0)
+nc = new NetCon(stim, synstim, 0.1, 0, 0.1)
+nc.delay = 0.4
+nc.weight = 0.7
+
+
+
+// example of IClamp
+/*
+CellSwc[0].Dend[0] stim = new IClamp(0.5)
+stim.del = 50
+stim.dur = 100
+stim.amp = 0.5
+*/
+
+
+tstop = 200
+dt = 0.05
+load_file("graph.ses")
+
+

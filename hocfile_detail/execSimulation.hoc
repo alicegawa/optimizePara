@@ -1,0 +1,87 @@
+{load_file("nrngui.hoc")}
+{load_file("../hocfile/read.hoc")}
+{load_file("../hocfile/cells.hoc")}
+{load_file("../hocfile/connectCells.hoc")}
+{load_file("../hocfile/record.hoc")}
+{load_file("../hocfile/setStim.hoc")}
+
+
+func evalFitness(){ local sum, scaleFactor, n localobj hoge
+    //define fitness function. under construction
+    sum = 0.0
+    scaleFactor  = 0.3 //temporarily
+    
+    // calc the fitness here under construction
+    
+    return sum * scaleFactor
+}
+
+proc execSimulation(){ local i, j, root, fitness, tempfit, flg_cmaes_terminate, num_of_pop_per_procs, dim_cmaes, num_of_targetfile, timestep, log_fitness localobj rcv_pop_vec, send_fit_vec, nullvec, tempvec, vec
+    
+    num_of_pop_per_procs = $1
+    dim_cmaes = $2
+    num_of_targetfile = $3
+    timestep = $4
+    log_fitness = $5
+    
+    {pc.set_parent_comm()}
+    
+    receiveInfo()
+    //read the setting file here. merge with the main.hoc. list up the contents below
+    
+    // make cells
+    // init model
+    // setStim()
+    // setSPikeRecord()
+    // connectCells()
+    // pc.set_maxstep(10)
+    // stdinit()
+    
+    root = 0
+    nullvec = new Vector()
+    tempvec = new Vector()
+    
+    {pc.set_parent_comm()}
+    {pc.barrier()}
+    
+    while(1) {
+	{pc.set_parent_comm()}
+	
+	rcv_pop_vec = new Vector()
+	send_fit_vec = new Vector(num_of_pop_per_procs)
+	
+	pc.scatter_d(nullvec, rcv_pop_vec, dim_cmaes * num_of_pop_per_procs, root)
+	
+	{pc.set_world_comm()}
+	
+	for(i=0; i<num_of_pop_per_procs; i+=1){
+	    fitness = 0.0
+	    //updatePrams
+	    for(j=0; j<num_of_targetfile; j+=1){
+		//setIClamp
+		//initModel
+		pc.psolve(timestep)//timestep = tstop in original file
+		tempfit = evalFitness()
+		//if fitness converted to log_fitness, write here like below
+		if(log_fitness == 1){
+		    if(tempfit == 0){
+			tempfit = -1e100
+		    }else{
+			tempfit = log10(tempfit)
+		    }
+		}
+		fitness += tempfit
+	    }
+	    send_fit_vec.x(i) = fitness
+	}
+	
+	{pc.set_parent_comm()}
+	pc.gather_d(send_fit_vec, nullvec, num_of_pop_per_procs, root)
+	
+	//check whether terminal criterion of cmaes holds
+	pc.broadcast(tempvec, root)
+	flg_cmaes_terminate = int(tempvec.x(0))
+	//flg_cmaes_termination = 1 //for break test, inevitably breaking the loop
+	if(flg_cmaes_terminate != 0) {break}
+    }
+}

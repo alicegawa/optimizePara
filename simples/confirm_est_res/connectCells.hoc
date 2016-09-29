@@ -19,3 +19,21 @@ proc connectCells(){local i, j localobj syn, nc, nil
 	}
     }
 }
+
+proc connectCells_formultiplecells_per_procs(){local i, j localobj syn, nc, nil
+    num_cell = $1
+    nclist = new List()
+    for i=0, num_cell-1{
+	if(pc.gid_exists(i)){
+	    for j=0, num_cell-1{
+		syn = pc.gid2cell(i).makeSyn(syn_reversal.x[i][j])
+		nc = pc.gid_connect(j, syn)
+		nc.threshold = 0
+		nc.delay = delay.x[(i%8)*2 + 1 * int(i/8)][j]//0.5//temporary initial param
+		nc.weight = weight.x[(i%8)*2 + 1 * int(i/8)][j]//temporary initial param(update by 'updateParam' immediately)
+		printf("weight is %g\n",weight.x[i][j])
+		nclist.append(nc)
+	    }
+	}
+    }
+}

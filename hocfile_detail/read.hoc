@@ -1,0 +1,36 @@
+load_file("nrngui.hoc")
+
+//objref weight, delay, syn_reversal
+objref syn_reversal
+objref f
+strdef filename
+
+proc read_settings(){local i, j, num_cell
+    num_cell = $1
+    
+    weight = new Matrix()
+    f = new File()
+    //read these data from params.txt ??
+    // f.ropen("../data/weight.dat")
+    // weight.scanf(f, num_cell, num_cell)
+    // f.close()
+    
+    // delay = new Matrix()
+    // f = new File()
+    // f.ropen("../data/delay.dat")
+    // delay.scanf(f, num_cell, num_cell)
+    // f.close()
+    
+    syn_reversal = new Matrix()
+    f = new File()
+    f.ropen("../data/rev_potential.dat")
+    syn_reversal.scanf(f, num_cell, num_cell)
+    f.close()
+    
+    // for i=0, num_cell-1{
+    // 	for j=0, num_cell-1{
+    // 	    printf("%d\t",weight.x[i][j])
+    // 	}
+    // 	printf("\n")
+    // }
+}

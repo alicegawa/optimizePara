@@ -1,0 +1,96 @@
+load_file("nrngui.hoc")
+
+begintemplate lal_vpc_single
+
+public soma, synlist, makeSyn, connect2target
+create soma
+objref esyn
+objref synlist
+
+proc init(){local x, y, z, i
+    x = $1
+    y = $2
+    z = $3
+    gnabaR = $4
+    nkdrbaR = $5
+    gL = $6
+    gcatbaR = $7
+    gkcabaR = $8
+    enA = $9
+    eK = $10
+    eL = $11
+    ecA = $12
+    cell_size = $13
+    ga = $14
+    a_sK = $15
+    offseT = $16
+    coef_loG = $17
+    tau_sK = $18
+    coef_scale_c = $19
+    coef_intercepT = $20
+    powerQ = $21
+    qinf_scalE = $22
+    
+    // printf("%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\t%g\n", gnabaR, nkdrbaR, gL, gcatbaR, gkcabaR, enA, eK, eL, ecA)
+    soma {
+	pt3dclear() pt3dadd(0+x, 0+y, 0+z, 12) pt3dadd(15+x, 0+y, 0+z, 12)
+    }
+    
+    soma {
+	printf("ga = %g, a_sK = %g, offseT = %g\n", ga, a_sK, offseT)
+	L = 100//30 * cell_size//100
+	diam = 300 * cell_size//30 * cell_size//4000
+	nseg = 10
+	Ra = 100
+	cm = 1
+	insert GPeA_Belma_park
+
+	gnabar_GPeA_Belma_park = gnabaR//0.12//0.19
+	gkdrbar_GPeA_Belma_park = nkdrbaR//0.06
+	gl_GPeA_Belma_park = gL//0.0001
+	gcatbar_GPeA_Belma_park = gcatbaR//0.005
+	gkcabar_GPeA_Belma_park = gkcabaR//0.004
+	ena_GPeA_Belma_park = enA
+	ek_GPeA_Belma_park = eK		
+	el_GPeA_Belma_park = eL//-54.3
+	eca_GPeA_Belma_park = ecA
+	gA_GPeA_Belma_park = ga
+	a_sk_GPeA_Belma_park = a_sK
+	offset_GPeA_Belma_park = offseT
+	coef_log_GPeA_Belma_park = coef_loG
+	tau_sk_GPeA_Belma_park = tau_sK
+	coef_scale_C_GPeA_Belma_park = coef_scale_c
+	coef_intercept_GPeA_Belma_park = coef_intercepT
+	power_q_GPeA_Belma_park = powerQ
+	qinf_scale_GPeA_Belma_park = qinf_scalE
+    }
+    synlist = new List()
+    soma {
+	esyn = new Exp2Syn(0.5)
+	synlist.append(esyn)//for stimulating by IClamp or Netstim
+    }
+}
+
+obfunc connect2target(){localobj nc
+    soma nc = new NetCon(&v(0.5), $o1)
+    nc.threshold = 0
+    if(numarg()==2){ $o2 = nc }
+    return nc
+}
+
+objref syn_
+
+obfunc makeSyn(){local reversal_v
+    
+    reversal_v = $1
+    
+    soma {
+	syn_ = new Exp2Syn(0.5)
+	synlist.append(syn_)
+	syn_.e = reversal_v
+    }
+    return syn_
+}
+
+endtemplate lal_vpc_single
+

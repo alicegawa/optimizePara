@@ -1,0 +1,46 @@
+load_file("nrngui.hoc")
+
+begintemplate HHneuron
+public soma, esyn
+create soma
+objref esyn
+
+proc init(){
+    soma{
+	L = 30
+	diam = 30
+	nseg = 10
+	insert hh
+    }
+    
+    soma esyn = new Exp2Syn(0.5)
+    esyn.tau1 = 0.5
+    esyn.tau2 = 1.0
+    esyn.e = 0
+}
+
+endtemplate HHneuron
+
+objref cell1, cell2, cell3
+
+cell1 = new HHneuron()
+cell2 = new HHneuron()
+cell3 = new HHneuron()
+
+objref nclist
+objref nc
+
+for i=0, 1{
+//    nclist = new List()
+    if(i==0){
+	nclist = new List()
+	cell1.soma nc = new NetCon(&v(0.5), cell2.esyn, 0, 0.1, 0.3)
+	nclist.append(nc)
+    }else{
+	cell2.soma nc = new NetCon(&v(0.5), cell3.esyn, 0, 0.1, 0.5)
+	nclist.append(nc)
+    }
+}
+
+printf("nclist.count = %d, nclist.weight = %lf\n", nclist.count, nclist.o(nclist.count-1).weight)
+

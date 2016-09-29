@@ -13,3 +13,4 @@ cma_tweann_test/*
 ./data/readData/bilateral_ref
 ./data/readData/bilateral_ref_setting_dur_byHand
 ./test*
+./exec_results/*

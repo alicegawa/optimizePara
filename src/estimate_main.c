@@ -80,7 +80,7 @@ int main(int argc, char **argv){
     FILE *fp;
     char specials[] = "special";
     char **neuron_argv;
-    char option_mpi[] = "-mpi", option_nobanner[] = "-nobanner", HOCFILE[] = "../hocfile/main.hoc";
+    char option_mpi[] = "-mpi", option_nobanner[] = "-nobanner", HOCFILE[] = "../hocfile_detail/main.hoc";
     //char *neuron_argv[] = {"-mpi", "-nobanner", "-c", "{}", "-c", "{}", "../hocfile/main.hoc", NULL};
     int num_of_pop_per_procs, num_of_pop_per_split;
     int num_of_procs_nrn = 8;//for test

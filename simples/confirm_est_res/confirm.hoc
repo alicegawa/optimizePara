@@ -6,9 +6,9 @@ objref pc
 
 pc = new ParallelContext()
 
-tstop = 2000//1000
+tstop = 1000//2000//1000
 dt = 0.025
-NCELL = 32//6
+NCELL = 6//16//32//6
 iamp = 100
 idel = 20
 idur = tstop - idel

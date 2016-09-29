@@ -1,0 +1,163 @@
+load_file("nrngui.hoc")
+
+objref nclist
+
+
+//TODO
+//define dend_pos by setting file or writing the detail
+//and which cells to connect shold also be defined.
+//if the network is fully connected, keep it.
+proc connectCells(){local i, j localobj syn, nc, nil, dend_pos
+    num_cell = $1
+    dend_pos = $o2
+    nclist = new List()
+    for i=0, num_cell-1{
+	if(pc.gid_exists(i)){
+	    for j=0, num_cell-1{
+	//	syn = pc.gid2cell(i).makeSyn(syn_reversal.x[i][j], int(dend_pos[i][j]), dend_pos - int(dend_pos[i][j]))
+	//	nc = pc.gid_connect(j, syn)
+		nc.threshold = 0
+		nc.delay = 0.1//temporary initial param
+		nc.weight = 0//temporary initial param(update by 'updateParam' immediately)
+		nclist.append(nc)
+	    }
+	}
+    }
+}
+
+//used in updateParams_multi
+proc connectCells_update(){local i, j, start_idx, cell_counter localobj syn, nc, nil, dend_pos
+    num_cell = $1
+    dend_pos = $o2
+    start_idx = $3
+    cell_counter = 0
+
+    nclist = new List()
+    for i=0, num_cell-1{
+	if(pc.gid_exists(i)){
+	    for j=0, num_cell-1{
+		syn = pc.gid2cell(i).makeSyn(syn_reversal.x[i][j], int(dend_pos.x(cell_counter * num_cell + start_idx + j)), dend_pos.x(cell_counter * num_cell + start_idx + j) - int(dend_pos.x(cell_counter * num_cell + start_idx + j)))
+		nc = pc.gid_connect(j, syn)
+		nc.threshold = 0
+		nc.delay = 0.1//temporary initial param
+		nc.weight = 0//temporary initial param(update by 'updateParam' immediately)
+		nclist.append(nc)
+	    }
+	    cell_counter += 1
+	}
+    }
+}
+
+//codes below was based on the discussion with MR.DM
+
+//fully connected and select connection by weight 0->nonZero, connect position of each dend is the center of the cylinder
+
+proc connectCells_selectByWeight(){ local i, j, k, cell_counter, num_dend localobj syn, nc, nil
+    num_cell = $1
+    num_dend = $2
+    
+    cell_counter = 0
+    
+    nclist = new List()
+    
+    for i=0, num_cell-1{
+	if(pc.gid_exists(i)){
+	    for j=0, num_cell-1{
+		for k=0, num_dend-1{
+		    syn = pc.gid2cell(i).makeSyn(syn_reversal.x[i][j], k, 0.5)
+		    nc = pc.gid_connect(j, syn)
+		    nc.threshold = 0
+		    nc.delay = 5
+		    nc.weight = 0
+		    nclist.append(nc)
+		}
+	    }
+	}
+    }
+}
+
+//update the parameters (copy to "main.hoc")
+
+proc updateParams_multi(){local i, start_idx, num_dend, which_dend localobj param_vec_weight, param_vec_pos
+    
+    param_vec_weight = $o1
+    param_vec_pos = $o2
+    num_dend = $3
+    start_idx = $4
+    
+    //reset the weight
+    for i=0, nclist.count-1{
+	nclist.o(i).weight = 0
+    }
+    
+    //set the non-zero value to the connecting position
+    for i=0, cells.count - 1{
+	for j=0, NCELL - 1 {
+	    //int(param_vec_pos.x(...)) means "which dend" to connect
+	    nclist.o(i * NCELL * num_dend + j * num_dend + int(param_vec_pos.x(start_idx + NCELL * i + j))).weight = param_vec_weight.x(start_idx + NCELL * i + j)
+	}
+    }
+}
+
+//if you want to use more continuous (not completely continuous, following nseg) value of the param_vec_pos
+
+proc connectCells_selectByWeight_continuous(){ local i, j, k, l, num_seg, start_idx, cell_counter, num_dend, pos_connect_tmp localobj syn, nc, nil
+    num_cell = $1
+    num_dend = $2
+    num_seg = $3
+    start_idx = $4
+    
+    cell_counter = 0
+    pos_connect_tmp = 1.0 / num_seg
+    
+    nclist = new List()
+    
+    for i=0, num_cell-1{
+	if(pc.gid_exists(i)){
+	    for j=0, num_cell-1{
+		for k=0, num_dend-1{
+		    for l=0, num_seg - 1{
+			syn = pc.gid2cell(i).makeSyn(syn_reversal.x[i][j], k, l * pos_connect_tmp)
+			nc = pc.gid_connect(j, syn)
+			nc.threshold = 0
+			nc.delay = 5 // default delay of chemi-synapse was set to 5ms
+			nc.weight = 0
+			nclist.append(nc)
+		    }
+		}
+	    }
+	}
+    }
+}
+
+
+proc updateParams_multi_continuous(){local i, start_idx, num_dend, num_seg localobj param_vec_weight, param_vec_pos, which_dend, where_dend    
+    param_vec_weight = $o1
+    param_vec_pos = $o2
+    num_dend = $3
+    num_seg = $4
+    start_idx = $5
+    
+    which_dend = new Vector(param_vec_pos.size)
+    where_dend = new Vector(param_vec_pos.size)
+    
+    //reset the weight
+    for i=0, nclist.count-1{
+	nclist.o(i).weight = 0
+    }
+    
+    //divide information of param_vec_pos to which_dend and where_dend
+    for i=0, param_vec_pos.size - 1{
+	which_dend.x(i) = int(param_vec_pos.x(i))
+	where_dend.x(i) = param_vec_pos.x(i) - which_dend.x(i)
+	where_dend.x(i) = int(where_dend.x(i) * num_seg)
+    }
+    
+    //set the non-zero value to the connecting position
+    for i=0, cells.count - 1{
+	for j=0, NCELL - 1 {
+	    nclist.o(i * NCELL * num_dend * num_seg + j * num_dend * num_seg + which_dend.x(start_idx + NCELL * i + j) * num_seg + where_dend.x(start_idx + NCELL * i + j)).weight = param_vec_weight.x(start_idx + NCELL * i + j)
+	}
+    }
+}
+

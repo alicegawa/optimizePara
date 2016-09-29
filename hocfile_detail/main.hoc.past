@@ -1,0 +1,368 @@
+{load_file("nrngui.hoc")}
+{if(!name_declared("COLOR")){ COLOR=-1}}
+{if(!name_declared("NCELL_CMAES")){NCELL_CMAES=-1}}
+
+printf("NCELL_CMAES = %d\n", NCELL_CMAES)
+
+if(NCELL_CMAES==-1){
+    NCELL = 8//6//86
+    printf("input error\n")
+    quit()//it may cause the error that the process of CMAES does not finish
+}else if(NCELL_CMAES==0){
+    NCELL = 8
+}else{
+    NCELL = NCELL_CMAES
+}
+printf("NCELL = %d\n", NCELL)
+
+DIM_CMAES = 2 * NCELL * NCELL
+NUM_OF_POP_PER_PROCS = 16//redefine below according to the setting in the C program
+
+v_init = -65
+tstop = 2000
+
+iamp = 100
+idelay = 20
+idur = tstop - idelay
+
+objref pc
+pc = new ParallelContext()
+
+objref paramname_list
+paramname_list = new List()
+objref param_vec
+
+objref weight
+objref delay
+weight = new Matrix(NCELL, NCELL)
+delay = new Matrix(NCELL, NCELL)
+
+//make fitting Vector
+objref fittingVec
+recordBin = 125
+numFitLoop = tstop / recordBin
+fittingVec = new Vector(numFitLoop-2)
+for index = 0, fittingVec.size() - 1 {
+    if(index == 0 || index == (fittingVec.size() - 1)){
+	fittingVec.x(index) = 32
+    }else if( index == 1 || index == (fittingVec.size() - 2)){
+	fittingVec.x(index) = 64
+    }else{
+	fittingVec.x(index) = 100
+    }
+}
+
+fittingVec.x(0) = 32
+fittingVec.x(1) = 64
+fittingVec.x(2) = 100
+fittingVec.x(3) = 100
+fittingVec.x(4) = 64
+fittingVec.x(5) = 32
+fittingVec.x(6) = 32
+fittingVec.x(7) = 32
+fittingVec.x(8) = 64
+fittingVec.x(9) = 100
+fittingVec.x(10) = 100
+fittingVec.x(11) = 64
+fittingVec.x(12) = 48
+fittingVec.x(13) = 32
+
+{load_file("../hocfile/read.hoc")}
+{load_file("../hocfile/cells.hoc")}
+{load_file("../hocfile/connectCells.hoc")}
+{load_file("../hocfile/record.hoc")}
+{load_file("../hocfile/setStim.hoc")}
+
+//caution
+//change of NUM_OF_POP_PER_PROCS is not reflected to global value, so receiveInfo is not available...
+proc receiveInfo(){ local root localobj vec
+    //[num_of_pop_per_procs, targetNum, paramfile_suf]
+    root = 0
+    vec = new Vector(3)
+    pc.broadcast(vec, root)
+    NUM_OF_POP_PER_PROCS = int(vec.x(0))
+    //printf("num_of_pop_per_procs in hocfile is %d\n", NUM_OF_POP_PER_PROCS)
+    SETTINGFILE_SUF = int(vec.x(1))
+    // TARGETFILE_SUF = int(vec.x(1))
+    // PARAMFILE_SUF = int(vec.x(2))
+    // CURRENTFILE_SUF = int(vec.x(3))
+    // ELECTRODEFILE_SUF = int(vec.x(4))
+}
+
+func receiveInfoAndPassData() { local root, num_of_pop_per_split localobj vec
+    root = 0
+    vec = new Vector(3)
+    pc.broadcast(vec, root)
+    num_of_pop_per_split = int(vec.x(0))
+    return num_of_pop_per_split
+}
+
+obfunc recieveInfoAndPassVector(){local root localobj vec
+    root = 0
+    vec = new Vector(3)
+    pc.broadcast(vec, root)
+    return vec
+}
+
+obfunc readParamFile(){ local dim, flg, val localobj f, paramname, sf, vec
+    strdef filename, line, tmp
+    //sprint(filename, "%s/params%02d.txt", DIR_TARGET, paramfile_suf.x(0))
+    sprint(filename, "../data/params.txt")
+    vec = new Vector()
+    f = new File()
+    { f.ropen(filename) }
+    sf = new StringFunctions()
+    dim = 0
+    while( f.gets(line) != -1){
+	if( sf.tail(line, "#", tmp) == 1){ continue }
+	{sscanf(line, "%*s\t%*lf\t%*lf\t%lf%*c\n", &val)}
+	if(dim < (DIM_CMAES * 0.5)){
+	    sprint(tmp, "nclist.o(%d).weight", dim)
+	}else{
+	    sprint(tmp, "nclist.o(%d).delay", (dim - DIM_CMAES * 0.5))
+	}
+	paramname = new String(tmp)
+	paramname_list.append(paramname)
+	vec.append(val)
+	dim += 1
+n    }
+    DIM_CMAES = dim
+    return vec
+}
+
+func evalFitness(){ local sum, scaleFactor, n, i, tmpFreq localobj hoge
+    //define fitness function. under construction
+    sum = 0.0
+    scaleFactor = 0.3 //temporarily
+    
+    // calc the fitness here under construction
+    if(pc.gid_exists(NCELL-1)){
+	for i = 0, fittingVec.size() - 1  {
+	    tmpFreq = getFreq(recordBin * i, recordBin * 2)//250ms bin overlapped each 125ms
+	    //printf("freq(%d ~ %d) is %d\t", recordBin * i, recordBin * (i+1), tmpFreq) 
+	    sum += (tmpFreq - fittingVec.x(i)) * (tmpFreq - fittingVec.x(i))
+	}
+	//printf("\n")
+    }
+	
+    return sum * scaleFactor
+}
+
+proc updateParams(){ local i, start_idx localobj param_vec
+    param_vec = $o1
+    start_idx = $2
+    strdef stmt
+    
+    for(i = 0; i < DIM_CMAES; i += 1){
+	sprint(stmt, paramname_list.o(i).s, param_vec.x(i+start_idex))
+	{execute(stmt)}
+    }
+}
+	
+proc updateParams_tmp(){local i localobj param_vec
+    param_vec = $o1
+    strdef stmt
+    for i=0, cells.count - 1 {
+	for j=0, NCELL-1{
+	    nclist.o(i * NCELL + j).weight = param_vec.x(NCELL*(pc.id + pc.nhost * i) + j)
+	    nclist.o(i * NCELL + j).delay = param_vec.x(NCELL*(NCELL + pc.id + pc.nhost * i) + j)
+	}
+    }
+}
+
+proc updateParams2(){local i, start_idx localobj param_vec_weight, param_vec_delay
+    param_vec_weight = $o1
+    param_vec_delay = $o2
+    start_idx = $3
+    for i=0, cells.count - 1 {
+	for j=0, NCELL-1{
+	    nclist.o(i * NCELL + j).weight = param_vec_weight.x(start_idx + NCELL * i + j)
+	    nclist.o(i * NCELL + j).delay = param_vec_delay.x(start_idx + NCELL * i + j)
+	}
+    }
+}
+
+proc updateParams_multi(){local i, start_idx localobj param_vec_weight, param_vec_pos
+    param_vec_weight = $o1
+    param_vec_pos = $o2
+    start_idx = $3
+    
+    {connectCells_update(NCELL, param_vec_pos, start_idx)}
+    for i=0, cells.count - 1 {
+	for j=0, NCELL-1{
+	    nclist.o(i * NCELL + j).weight = param_vec_weight.x(start_idx + NCELL * i + j)
+	}
+    }
+}
+
+func detectOutputProc(){local i, proc_id, num_cell, div, nhost
+    num_cell = $1
+    nhost = $2
+    if(num_cell <= nhost){
+	proc_id = num_cell - 1
+	return proc_id
+    }else{
+	div = int(num_cell / nhost)
+	proc_id = num_cell - div * nhost - 1
+	return proc_id
+    }
+}
+
+//TODO
+//write the sentense to reset the connection of cells
+//it is OK if I can change the position of synapses
+proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num_of_pop_per_procs, dim_cmaes, num_of_targetfile, timestep, log_fitness, output_id, start_timing, loop_counter localobj rcv_pop_vec_weight, rcv_pop_vec_delay, send_fit_vec, nullvec, tempvec, vec
+    
+    num_of_pop_per_procs = $1
+    dim_cmaes = $2
+    num_of_targetfile = $3
+    timestep = $4
+    log_fitness = $5
+    
+    {pc.set_parent_comm()}
+        
+    //{receiveInfo()}
+    num_of_pop_per_procs = receiveInfoAndPassData()
+    
+    root = 0
+    nullvec = new Vector()
+    tempvec = new Vector()
+    
+    {pc.set_world_comm()}
+    {pc.barrier()}
+    
+    //kore iruka??
+    //vec = readParamFile()
+    //updateParams_tmp(vec)
+   
+    
+    output_id = detectOutputProc(NCELL, pc.nhost)
+    {pc.set_maxstep(10)}
+    {finitialize(v_init)}
+    {fcurrent()}
+    {stdinit()}
+    {setStimShort(NCELL, idur, iamp, idelay, 0 * timestep)}
+    //setNetStimTest(NCELL)
+    
+    loop_counter = 0
+    
+    while(1){
+	loop_counter = loop_counter + 1
+	start_timing = 0
+	{pc.set_parent_comm()}
+	
+	rcv_pop_vec_weight = new Vector()
+	rcv_pop_vec_delay = new Vector()
+	send_fit_vec = new Vector(num_of_pop_per_procs)
+	
+	//printf("num_of_pop_per_procs in execSimulation (in hocfile) is %d\n", num_of_pop_per_procs) 
+	//recieve weight data
+	pc.scatter_d(nullvec, rcv_pop_vec_weight, dim_cmaes * num_of_pop_per_procs, root)
+	//recieve delay data
+	pc.scatter_d(nullvec, rcv_pop_vec_delay, dim_cmaes * num_of_pop_per_procs, root)
+	
+	{pc.set_world_comm()}
+	
+	//the number of loop = the number of particle this process has..
+	for(i=0; i<num_of_pop_per_procs; i+=1){
+		
+	    fitness = 0.0
+	    //updateParams(rcv_pop_vec)
+	    updateParams_multi(rcv_pop_vec_weight, rcv_pop_vec_delay, i * dim_cmaes)
+	    //setStimShort(NCELL, timestep, 100, 10)
+	    //initModel
+	    pc.barrier()
+	    //printf("start psolove (%d times)\n",start_timing)
+	    
+	    {setSpikeRecord(NCELL)}
+
+	    stdinit()
+	       
+	    pc.psolve(timestep)//timestep = tstop in original file
+	    //printf("end psolove (%d times)\n",start_timing)
+	    start_timing += 1
+	    
+	    tempfit = evalFitness()
+	    //if fitness converted to log_fitness, write here like below
+	    if(log_fitness == 1){
+		if(tempfit == 0){
+		    tempfit = -1e100
+		}else{
+		    tempfit = log10(tempfit)
+		}
+	    }
+	    fitness += tempfit
+	    
+	    send_fit_vec.x(i) = fitness
+	}
+	pc.broadcast(send_fit_vec, output_id)
+	
+	{pc.set_parent_comm()}
+	pc.gather_d(send_fit_vec, nullvec, num_of_pop_per_procs, root)
+	
+	//check whether terminal criterion of cmaes holds
+	pc.broadcast(tempvec, root)
+	flg_cmaes_terminate = int(tempvec.x(0))
+	//flg_cmaes_termination = 1 //for break test, inevitably breaking the loop
+	if(flg_cmaes_terminate != 0) {break}
+	//printf("I dont still break (%d times)\n", loop_counter)
+    }
+}
+
+proc stopTest(){local break_loop, confirm_scatter, root, counter localobj nullvec, tempvec, sendvec, rcvvec
+    tempvec = new Vector()
+    nullvec = new Vector()
+    sendvec = new Vector(4)
+    rcvvec = new Vector()
+    break_loop = 0
+    confirm_scatter = 0
+    root = 0
+    counter = 0
+    
+    {connectCells(NCELL)}
+    while(1){
+	printf("infinit loop\n")
+	{ pc.set_parent_comm() }
+	pc.scatter_d(nullvec, rcvvec, 4, root)
+	confirm_scatter = int(rcvvec.x(0))
+	if(confirm_scatter!=0){
+	    printf("success for scatter %d\n", confirm_scatter)
+	}else{
+	    printf("fail for scatter\n")
+	}
+	
+	{ pc.set_world_comm() }
+	for i=0, 3{
+	    sendvec.x(i) = 5.0
+	}
+	{ pc.set_parent_comm() }
+	
+	pc.gather_d(sendvec, nullvec, 4, root)
+	
+	pc.broadcast(tempvec, root)
+	break_loop = int(tempvec.x(0))
+	if(break_loop!=0){
+	    printf("break with broadcast\n")
+	    break
+	}
+	counter += 1
+	if(counter > 1000){
+	    printf("break with max iter\n")
+	    break
+	}
+    }
+}
+
+{read_settings(NCELL)}
+{makeCells(NCELL)}
+{pc.barrier()}
+{connectCells(NCELL)}
+{pc.barrier()}
+//stopTest()
+
+{execSimulation(NUM_OF_POP_PER_PROCS, DIM_CMAES / (pc.nhost * 2), 0, tstop, 0)}
+{writeFiles(pc.id, pc.nhost, NCELL)}
+
+{pc.runworker()}
+{pc.done()}
+quit()

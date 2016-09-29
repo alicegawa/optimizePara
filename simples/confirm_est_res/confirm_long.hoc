@@ -1,0 +1,83 @@
+load_file("nrngui.hoc")
+
+load_file("read.hoc")
+
+objref pc
+
+pc = new ParallelContext()
+
+tstop = 4000//1000
+dt = 0.025
+NCELL = 32//6
+iamp = 100
+idel = 20
+idur = tstop - idel
+
+read_settings(NCELL)
+
+load_file("cells.hoc")
+load_file("connectCells.hoc")
+load_file("record.hoc")
+
+makeCells(NCELL)
+connectCells(NCELL)
+//connectCells_formultiplecells_per_procs(NCELL)
+load_file("setStim.hoc")
+setStimShort(NCELL, idur, iamp, idel, 0)
+
+setSpikeRecord(NCELL)
+
+objref rect, recv
+if(pc.gid_exists(NCELL-1)){
+    rect = new Vector()
+    recv = new Vector()
+    
+    rect.record(&t)
+    recv.record(&pc.gid2cell(NCELL-1).soma.v(0.5))
+}
+
+pc.set_maxstep(10)
+//finitialize(-65)
+//fcurrent()
+stdinit()
+
+pc.barrier()
+
+pc.psolve(tstop)
+
+if(pc.gid_exists(NCELL-1)){
+    for i=0, 29{
+	printf("freq(%d ~ %d) is %d\n", 125*i, 125*(i+1), getFreq(125*i, 250))
+    }
+    for i=0, 15{
+	printf("freq(%d ~ %d) is %d\n", 250*i, 250*(i+1), getFreq(250*i, 250))
+    }
+}
+
+pc.barrier()
+
+if(pc.gid_exists(8)){
+    for i=0, 29{
+	printf("freq(%d ~ %d) is %d\n", 125*i, 125*(i+1), getFreq2(125*i, 250))
+    }
+    for i=0, 15{
+	printf("freq(%d ~ %d) is %d\n", 250*i, 250*(i+1), getFreq2(250*i, 250))
+    }
+}
+	
+
+objref savv
+strdef vname
+if(pc.gid_exists(NCELL-1)){
+    savv = new File()
+    savv.wopen("voltage_result.dat")
+    for i=0, rect.size()-1 {
+	savv.printf("%g\t%g\n",rect.x(i),recv.x(i))
+    }
+    savv.close()
+}
+pc.barrier()
+
+pc.runworker()
+pc.done()
+quit()

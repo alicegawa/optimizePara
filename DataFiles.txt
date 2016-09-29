@@ -1,0 +1,27 @@
+16細胞： k workspace/github/test_serial_spawn
+野中の，k_modify_updown1~3
+
+32細胞：nagoya : workspace/github/testspace/exec/src内，modify_tarfunc_2048, 8192, 22528. o ++++のデータを持ってくる．
+
+（評価関数が片方だけになっていた頃のものは，ろーかるにも持ってきているが，同じフォルダ内にある．たしか，５０３３と６４４５は同じ設定だが，out２の興奮性抑制性を変えたもの．ただし，この部分が評価に入っていなかったので，特に関係はない．）
+
+64細胞：nagoya: workspace/github/testspace/optimizePara/src/optimizePara4.sh
+の403386あたり　
+optimizePara3の402917も１５周くらいはしているが，微妙．
+
+K:workspace/github/optimizePara/src内
+k_modify_64_2.shとか．
+
+8細胞のもの．．．？あったっけ．
+（6/27にメールで記録している，estimation result (num_of_Pop=16384)で確認
+おそらくdecrescendoの結果だと思われる．
+でも多分６細胞のやつの抑制性増やしたヤツのほうがfbestよかったんじゃないかなこれ．
+そんな気がする．（要確認）
+
+６でできていなかったけれど，出来た例として上げられるかも．
+
+あとは見つけたのは，６細胞の抑制性細胞の数を変えたら，
+decrescendoの結果が変化したっぽいもの．（きちんと見なおしてから書くこと！）
+
+やや面倒だが，ファイルの転送を行っておく．
+(exec_results内に）

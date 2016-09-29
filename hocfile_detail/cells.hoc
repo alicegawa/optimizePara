@@ -72,7 +72,7 @@ proc init(){local x, y, z, mode, i
     axon {
 	L = 500
 	diam = 0.2
-	nseg = 20
+	nseg = 10//20
 	
 	pt3dclear()
         pt3dadd(x,y,z,diam)
@@ -97,7 +97,7 @@ proc init(){local x, y, z, mode, i
     for i=0, branchNum-1 dend[i] {
         L = 400
         diam = 3.23//2//2.03
-        nseg = 82
+        nseg = 10//82
 
         pt3dclear()
         pt3dadd(-346.4+x,200*cos(i*2*3.1415/branchNum)+y,200*sin(i*2*3.1415/branchNum)+z,diam)

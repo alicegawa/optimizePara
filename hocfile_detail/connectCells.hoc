@@ -101,12 +101,11 @@ proc updateParams_multi(){local i, start_idx, num_dend, which_dend localobj para
 
 //if you want to use more continuous (not completely continuous, following nseg) value of the param_vec_pos
 
-proc connectCells_selectByWeight_continuous(){ local i, j, k, l, num_seg, start_idx, cell_counter, num_dend, pos_connect_tmp localobj syn, nc, nil
+proc connectCells_selectByWeight_continuous(){ local i, j, k, l, num_seg, cell_counter, num_dend, pos_connect_tmp localobj syn, nc, nil
     num_cell = $1
     num_dend = $2
     num_seg = $3
-    start_idx = $4
-    
+        
     cell_counter = 0
     pos_connect_tmp = 1.0 / num_seg
     

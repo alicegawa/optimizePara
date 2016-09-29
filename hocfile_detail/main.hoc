@@ -289,7 +289,8 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	    fitness = 0.0
 	    //updateParams(rcv_pop_vec)
 	    //	    updateParams2(rcv_pop_vec_weight, rcv_pop_vec_delay, i * dim_cmaes)
-	    updateParams_multi(rcv_pop_vec_weight, rcv_pop_vec_delay, 10, i * dim_cmaes)
+	    //	    updateParams_multi(rcv_pop_vec_weight, rcv_pop_vec_delay, 10, i * dim_cmaes)
+	    updateParams_multi_continuous(rcv_pop_vec_weight, rcv_pop_vec_delay, 10, 10, i*dim_cmaes)
 	    //setStimShort(NCELL, timestep, 100, 10)
 	    //initModel
 	    pc.barrier()
@@ -389,7 +390,8 @@ proc stopTest(){local break_loop, confirm_scatter, root, counter localobj nullve
 {read_settings(NCELL)}
 {makeCells(NCELL)}
 {pc.barrier()}
-{connectCells_selectByWeight(NCELL, 10)}
+//{connectCells_selectByWeight(NCELL, 10)}
+{connectCells_selectByWeight_continuous(NCELL, 10, 10)}
 {pc.barrier()}
 //stopTest()
 

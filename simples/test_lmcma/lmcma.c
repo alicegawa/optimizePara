@@ -1,7 +1,13 @@
+//change to c file and add openmp by fukuda Oct. 2016
+//in openmp func, it may be that reduction should not be used...(slower than without openmp....)
 #include <math.h>
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #define USE_ZIGGURAT 0
 
@@ -88,6 +94,7 @@ long random_Start( random_t *t, long unsigned inseed)
 	if (inseed < 1)
 		inseed = 1; 
 	t->aktseed = inseed;
+#pragma omp parallel for
 	for (i = 39; i >= 0; --i)
 	{
 		tmp = t->aktseed/127773;
@@ -320,6 +327,8 @@ double	time_toc(global_t* t)
 void matrix_eye(double* M, int m)
 {
     int i, j;
+    //if add openmp, slowen the program...
+    //#pragma omp parallel for private(j)
 	for (i=0; i<m; i++)
 		for (j=0; j<m; j++)
 			if (i == j)	M[i*m + j] = 1.0;
@@ -332,6 +341,7 @@ void matrix_mult_vector(double* res, double* a, double* b,int m)
 {
     int i, j;
 	double val = 0.0;
+//#pragma omp parallel for private(j)
 	for (i=0; i<m; i++)
 	{
 		val = 0.0;
@@ -347,6 +357,7 @@ void matrix_mult_matrix(double* res, double* a, double* b,int m)
 {
     int i, j, k;
 	double val;
+#pragma omp parallel for private(j), private(k), reduction(+:val)
 	for (i=0; i<m; i++)
 	    for(j=0; j<m; j++)
 		{
@@ -362,6 +373,7 @@ void matrix_mult_matrix(double* res, double* a, double* b,int m)
 void vector_mult_vector(double* res, double* a, double* b,int m)
 {
     int i,j;
+//#pragma omp parallel for private(j)
 	for (i=0; i<m; i++)
 		for (j=0; j<m; j++)
 			res[i*m + j] = a[i] * b[j];
@@ -373,6 +385,7 @@ void vector_mult_matrix(double* res, double* a, double* b,int m)
 {
     int i, j;
 	double val;
+#pragma omp parallel for private(j), reduction(+:val)
 	for (i=0; i<m; i++)
 	{
 		val = 0;
@@ -386,6 +399,7 @@ double vector_prod(double* a, double* b,int m)
 {
     int i;
 	double res = 0.0;
+//#pragma omp parallel for
 	for (i=0; i<m; i++)
 		res += a[i] * b[i];
 	return res;
@@ -396,9 +410,12 @@ void generateRotationMatrix(double* B, int N, double* tmp1, random_t* rnd)
 	double* pB;
 	int i, j, k;
 
+//#pragma omp parallel for private(j)
 	for (i=0; i<N; i++)
 		for (j=0; j<N; j++)
 			B[i*N + j] = random_Gauss(rnd);
+	
+//'without openmp' is faster than 'with openmp'
 	for (i=0; i<N; i++)
 	{
 		for (j=0; j<i; j++)
@@ -432,11 +449,13 @@ double maxv(double a, double b)
 	else		return b;
 }
 
-
+//konohen reduction ayashii
 double fsphere(double* x, int N)
 {
     int i;
 	double Fit = 0;
+
+#pragma omp parallel for reduction(+:Fit)
 	for (i=0; i<N; i++)
 		Fit += x[i] * x[i];
 	return Fit;
@@ -447,6 +466,7 @@ double felli(double* x, int N)
     int i;
 	double Fit = 0;
 	double alpha = pow(10,6.0);
+#pragma omp parallel for reduction(+,Fit)
 	for (i=0; i<N; i++)
 	    Fit += pow(alpha, (double)i / (double)(N-1) ) * x[i] * x[i];
 	return Fit;
@@ -460,10 +480,11 @@ double felli_fast(double* x, int N, global_t* t)
 	{
 	    t->func_tempdata = (double *)malloc(sizeof(double) * N);
 		double alpha = pow(10,6.0);
+#pragma omp parallel for
 		for (i=0; i<N; i++)
 		    t->func_tempdata[i] = pow(alpha, (double)i / (double)(N-1) );
 	}
-
+#pragma omp parallel for reduction(+:Fit)
 	for (i=0; i<N; i++)
 		Fit += t->func_tempdata[i] * x[i] * x[i];
 	return Fit;
@@ -474,6 +495,7 @@ double fdiscus(double* x, int N)
     int i;
 	double Fit = 0;
 	Fit = 1e+6 * (x[0] * x[0]);
+#pragma omp parallel for reduction(+:Fit)
 	for (i=1; i<N; i++)
 		Fit += x[i]*x[i];
 	return Fit;
@@ -483,6 +505,7 @@ double fcigar(double* x, int N)
 {
     int i;
 	double Fit = 0;
+#pragma omp parallel for reduction(+:Fit)
 	for (i=1; i<N; i++)
 		Fit += x[i]*x[i];
 	Fit = Fit * 1e+6;
@@ -540,6 +563,8 @@ double frosen(double* x, int N)
 	double Fit2 = 0;
 	//for (int i=0; i<N-1; i++)
 	//	Fit += 100 * pow( x[i]*x[i] - x[i+1], 2.0  ) + pow(x[i] - 1.0, 2.0); // function 'pow' is very slow
+	//#pragma omp parallel for reduction(+:Fit1), reduction(+:Fit2)
+	//without is faster than with openmp
 	for (i=0; i<N-1; i++)
 	{
 		tmp1 = x[i]*x[i] - x[i+1];
@@ -665,12 +690,14 @@ void LMCMA(int N, int lambda, int mu, double ccov, double xmin, double xmax, int
 	random_init(&gt.ttime , inseed);
 
 	double sum_weights = 0;
+#pragma omp parallel for reduction(+:sum_weights)
 	for(i=0; i<mu; i++)
 	{
 	    weights[i] = log((double)(mu+0.5)) - log((double)(1+i));
-		sum_weights = sum_weights + weights[i];
+	    sum_weights = sum_weights + weights[i];
 	}
 	double mueff = 0;
+#pragma omp parallel for reduction(+:mueff)
 	for(i=0; i<mu; i++)
 	{
 		weights[i] = weights[i] / sum_weights;

@@ -18,9 +18,9 @@ int main(int argc, char **argv){
     MPI_Comm_get_parent(&parentcomm);
 
     MPI_Intercomm_merge(parentcomm, 1, &spawn_comm);
-    MPI_Comm_size(spawn_comm, &parent_size);
+    MPI_Comm_size(spawn_comm, &parent_size);//this sentense is required. without it, program stops here...
     MPI_Comm_rank(spawn_comm, &parent_rank);
-    printf("parent comm size is %d \n", parent_size);
+    printf("parent comm size is %d (my_rank is %d)\n", parent_size, parent_rank);
 
     //printf("in call_add, main_numproc is %d\n", main_numproc);
 

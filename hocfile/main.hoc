@@ -206,7 +206,6 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
     
     {pc.set_parent_comm()}
         
-    //{receiveInfo()}
     num_of_pop_per_procs = receiveInfoAndPassData()
     
     root = 0
@@ -216,18 +215,12 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
     {pc.set_world_comm()}
     {pc.barrier()}
     
-    //kore iruka??
-    //vec = readParamFile()
-    //updateParams_tmp(vec)
-   
-    
     output_id = detectOutputProc(NCELL, pc.nhost)
     {pc.set_maxstep(10)}
     {finitialize(v_init)}
     {fcurrent()}
     {stdinit()}
     {setStimShort(NCELL, idur, iamp, idelay, 0 * timestep)}
-    //setNetStimTest(NCELL)
     
     loop_counter = 0
     
@@ -248,33 +241,37 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	
 	{pc.set_world_comm()}
 	
+	for myid=0, 7{
+	    if(myid == pc.id){
+		for i=0, dim_cmaes * num_of_pop_per_procs-1 {
+		    printf("rcv_pop_vec_weight[%d] = %lf, rcv_pop_vec_delay[%d] = %lf\n", i+8 * pc.id, rcv_pop_vec_weight.x(i), i+8*pc.id, rcv_pop_vec_delay.x(i))
+		}
+	    }
+	    pc.barrier()
+	}
+	
 	//the number of loop = the number of particle this process has..
 	for(i=0; i<num_of_pop_per_procs; i+=1){
 		
 	    fitness = 0.0
-	    //updateParams(rcv_pop_vec)
 	    updateParams2(rcv_pop_vec_weight, rcv_pop_vec_delay, i * dim_cmaes)
-	    //setStimShort(NCELL, timestep, 100, 10)
-	    //initModel
 	    pc.barrier()
-	    //printf("start psolove (%d times)\n",start_timing)
 	    
 	    {setSpikeRecord(NCELL)}
 
 	    stdinit()
 	       
-	    pc.psolve(timestep)//timestep = tstop in original file
-	    //printf("end psolove (%d times)\n",start_timing)
+//	    pc.psolve(timestep)//timestep = tstop in original file
 	    start_timing += 1
 	    
 	    tempfit = evalFitness()
 	    //if fitness converted to log_fitness, write here like below
 	    if(log_fitness == 1){
-		if(tempfit == 0){
-		    tempfit = -1e100
-		}else{
-		    tempfit = log10(tempfit)
-		}
+	    	if(tempfit == 0){
+	    	    tempfit = -1e100
+	    	}else{
+	    	    tempfit = log10(tempfit)
+	    	}
 	    }
 	    fitness += tempfit
 	    

@@ -148,8 +148,6 @@ int main(int argc, char **argv){
     offset_gather = num_of_pop_per_child;
     offset_scatter = num_of_sendparams_per_child; //avoid confusion, it had better that to delete this setting
     
-    printf("dimension = %d, num_of_weights = %d, num_of_delays = %d, num_of_pop_per_child = %d, num_of_sendparams_per_child = %d, num_of_sendparams_per_child_sep = %d, offset_gather = %d, offset_scatter = %d\n", dimension, num_of_weights, num_of_delays, num_of_pop_per_child, num_of_sendparams_per_child, num_of_sendparams_per_child_sep, offset_gather, offset_scatter); 
-
     /*use only (1) or (2) */
     /* (1) */
     pop_sendbuf_spawn_whole = (double *)calloc(dimension * num_of_pop + num_of_sendparams_per_child, sizeof(double));
@@ -208,10 +206,6 @@ int main(int argc, char **argv){
 	    }
 	}
 
-	for(i=0; i<num_of_sendparams_per_child_sep+num_of_pop*dimension/2; ++i){
-	    //   printf("pop_sendbuf_spawn_weight[%d] = %lf\t", i, pop_sendbuf_spawn_weight[i]);
-	    //printf("pop_sendbuf_spawn_delay[%d] = %lf\n", i, pop_sendbuf_spawn_delay[i]);
-	}
 	/* use only (1) or (2) */
 	/*(1)*/
 	//MPI_Scatter(pop_sendbuf_spawn_whole, num_of_sendparams_per_child, MPI_DOUBLE, pop_rcvbuf_spawn_whole, num_of_sendparams_per_child, MPI_DOUBLE, root_process_spawn, spawn_comm);
@@ -219,13 +213,8 @@ int main(int argc, char **argv){
 	MPI_Scatter(pop_sendbuf_spawn_weight, num_of_sendparams_per_child_sep, MPI_DOUBLE, pop_rcvbuf_spawn_weight, num_of_sendparams_per_child_sep, MPI_DOUBLE, root_process_spawn, spawn_comm);
 	MPI_Scatter(pop_sendbuf_spawn_delay, num_of_sendparams_per_child_sep, MPI_DOUBLE, pop_rcvbuf_spawn_delay, num_of_sendparams_per_child_sep, MPI_DOUBLE, root_process_spawn, spawn_comm);
     
-	printf("in main, finish scatter to child for passing gene information\n");
-
 	/* wait for calculation of child and grandchild processes */
-
-	printf("spawn_comm address = %p \n", spawn_comm);
 	MPI_Gather(arFunvals_whole_buf, num_of_pop_per_child, MPI_DOUBLE, arFunvals_whole, num_of_pop_per_child, MPI_DOUBLE, root_process_spawn, spawn_comm);
-	printf("in main, MPI_Gather of scores from child process finish\n");
 
 	/* register the arFunvals_whole to CMA-ES's arFunval */
 	for(i=0;i<num_of_pop;++i){
@@ -271,7 +260,6 @@ int main(int argc, char **argv){
 	
 	++loop_count;
 	printf("%d times loop of cmaes finished\n", loop_count);
-
 
     }/*end of cmaes loop*/
 

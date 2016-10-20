@@ -71,8 +71,6 @@ int main(int argc, char **argv){
     num_sendparams_to_NEURON = num_of_weights_per_one_nrnproc = num_of_delays_per_one_nrnproc = num_of_only_weights / num_of_procs_nrn;
     offset = num_sendparams_to_NEURON;
 
-    printf("num_sendparams_from_parent = %d, dimension_per_one_nrnproc = %d, dimension_per_one_nrnproc_w = dimension_per_one_nrnproc_d = %d, num_of_only_weights = num_of_only_delays = %d, num_sendparams_to_NEURON = num_of_weights_per_one_nrnproc = num_of_delays_per_one_nrnproc = %d, offset = %d\n", num_sendparams_from_parent, dimension_per_one_nrnproc, dimension_per_one_nrnproc_w, num_of_only_weights, num_sendparams_to_NEURON, offset); 
-
     /* allocate communication arrays (some arrays are not allocated because they do not need in these processes) */
     
     /* use only (1) or (2) */
@@ -120,11 +118,7 @@ int main(int argc, char **argv){
 	/*(2)*/
 	MPI_Scatter(pop_sendbuf_child_weight, num_sendparams_from_parent, MPI_DOUBLE, pop_rcvbuf_child_weight, num_sendparams_from_parent, MPI_DOUBLE, 0, spawn_parent_comm);
 	MPI_Scatter(pop_sendbuf_child_delay, num_sendparams_from_parent, MPI_DOUBLE, pop_rcvbuf_child_delay, num_sendparams_from_parent, MPI_DOUBLE, 0, spawn_parent_comm);
-	for(i=0; i<num_sendparams_from_parent; ++i){
-	    printf("pop_rcvbuf_child_weight[%d] = %lf\t", i, pop_rcvbuf_child_weight[i]);
-	    printf("pop_rcvbuf_child_delay[%d] = %lf\n", i, pop_rcvbuf_child_delay[i]);
-	}
-	printf("in make_neuro_spawn, end of scatter(weight and delay from parent)\n");
+
 	/* transfrom the data structure to suitable manner for communication */
 	for(k=0;k<num_of_procs_nrn;k++){
 	    for(i=0;i<num_of_my_pop;i++){
@@ -134,11 +128,6 @@ int main(int argc, char **argv){
 		}
 	    }
 	}
-
-	for(i=0;i<offset+num_sendparams_from_parent;++i){
-	    printf("pop_sendbuf_nrn_weight[%d] = %lf, pop_sendbuf_nrn_delay[%d] = %lf\n", i, pop_sendbuf_nrn_weight[i], i, pop_sendbuf_nrn_delay[i]);
-	}
-
 
 	MPI_Barrier(MPI_COMM_WORLD);
 
@@ -179,6 +168,8 @@ int main(int argc, char **argv){
     free(pop_rcvbuf_nrn_delay);
     free(arFunvals_child_buf1);
     free(arFunvals_child_buf2);
+    free(arFunvals_whole_buf);
+    free(arFunvals_whole);
     
     MPI_Finalize();
 

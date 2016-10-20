@@ -240,16 +240,7 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	pc.scatter_d(nullvec, rcv_pop_vec_delay, dim_cmaes * num_of_pop_per_procs, root)
 	
 	{pc.set_world_comm()}
-	
-	for myid=0, 7{
-	    if(myid == pc.id){
-		for i=0, dim_cmaes * num_of_pop_per_procs-1 {
-		    printf("rcv_pop_vec_weight[%d] = %lf, rcv_pop_vec_delay[%d] = %lf\n", i+8 * pc.id, rcv_pop_vec_weight.x(i), i+8*pc.id, rcv_pop_vec_delay.x(i))
-		}
-	    }
-	    pc.barrier()
-	}
-	
+		
 	//the number of loop = the number of particle this process has..
 	for(i=0; i<num_of_pop_per_procs; i+=1){
 		
@@ -261,7 +252,7 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 
 	    stdinit()
 	       
-//	    pc.psolve(timestep)//timestep = tstop in original file
+	    pc.psolve(timestep)//timestep = tstop in original file
 	    start_timing += 1
 	    
 	    tempfit = evalFitness()

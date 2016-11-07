@@ -147,12 +147,9 @@ int main(int argc, char **argv){
 
 	/* pass the score information to parent process*/
 	MPI_Gather(arFunvals_whole_buf, num_of_my_pop, MPI_DOUBLE, arFunvals_whole, num_of_my_pop, MPI_DOUBLE, 0, spawn_parent_comm);
-	printf("end of gather to main proc and wait for the Bcast of termination\n");
 	/* recieve and pass the information whether the loop is terminated or not */
 	MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, 0, spawn_parent_comm);
-	printf("recieve terminate info from main in make_neuro_spawn\n");
 	MPI_Bcast_to_NEURON(&flg_termination, 1, MPI_DOUBLE, 0, nrn_comm);
-	printf("send terminate info to NEURON in make_neuro_spawn\n");
 	/* termination*/
 	if((int)flg_termination){
 	    break;

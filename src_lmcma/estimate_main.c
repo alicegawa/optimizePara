@@ -4,6 +4,7 @@
 #include <time.h>
 #include <string.h>
 #include <math.h>
+#include "my_boundary_transformation.h"
 
 #define TEXT_BUFFER_SIZE 2048
 #define MAX_NUM_PARAM 150
@@ -461,6 +462,15 @@ void invAz(int N, double* Av, int iterator_sz, int* iterator, double* v_arr, dou
 	}
 }
 
+/*print gene data to file*/
+int printGene(FILE *fp, const double *x, int dimension){
+    int i;
+    for(i=0; i<dimension; ++i){
+	fprintf(fp, "%f\t", x[i]);
+    }
+    return 0;
+}/*printGene()*/
+
 void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, int nvectors,
 	   int maxsteps, double cc, double val_target, double *sigma, double c_s, double target_f, 
 	   int maxevals, int inseed, double* output, int printToFile, int sample_symmetry, MPI_Comm spawn_comm, int num_of_spawn_comm)
@@ -474,6 +484,7 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
     double* pc = (double *)malloc(sizeof(double) * N );
     double* xmean = (double *)malloc(sizeof(double) * N);
     double* xold = (double *)malloc(sizeof(double) * N);
+    double* xbestever = (double *)malloc(sizeof(double) * N);
     double* z = (double *)malloc(sizeof(double) * N);
     double* Az = (double *)malloc(sizeof(double) * N);
     double* Av = (double *)malloc(sizeof(double) * N);
@@ -497,6 +508,14 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
     double *arFunvals_send, *arFunvals_rcv;
     int num_of_pop_per_spawn = lambda / num_of_spawn_comm;
     double flg_termination = 0;
+
+    my_boundary_transformation_t my_boundaries;
+    double *x_temp;
+    unsigned int *flg_log;
+    flg_log = (unsigned int *)calloc(N, sizeof(unsigned int));
+
+    my_boundary_transformation_init(&my_boundaries, xmin, xmax, flg_log, N);
+    x_temp = (double *)calloc(N, sizeof(double));
 
     scatter_sendvec_w = (double *)malloc(sizeof(double) * (N / 2) * (lambda + num_of_pop_per_spawn));
     scatter_sendvec_d = (double *)malloc(sizeof(double) * (N / 2) * (lambda + num_of_pop_per_spawn));
@@ -559,8 +578,7 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
 	pFile = fopen(filename,"w");
     }
 	
-    printf("in LMCMA, start main loop\n");
-    //for test (delete)
+      //for test (delete)
     for(i=0;i<((N/2) * (lambda + num_of_pop_per_spawn));++i){
 	scatter_sendvec_d[i] = -1;
     }
@@ -599,49 +617,48 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
 	    for(k=0; k<N; k++){	// O(n)
 		arx[i*N + k] = xmean[k] + sign*sigma[k]*Az[k];
 	    }
+	    my_boundary_transformation(&my_boundaries, &arx[i*N], x_temp, 0);
 	    for(k=0; k<(int)(N/2); ++k){
-		scatter_sendvec_w[i*(N/2)+k+(num_of_pop_per_spawn*(int)(N/2))] = 0.25;//(arx[i*N + k] - xmin[k]) * (xmax[k] - xmin[k]) * 0.1 + xmin[k];
-		scatter_sendvec_d[i*(N/2)+k+(num_of_pop_per_spawn*(int)(N/2))] = 5;//(arx[i*N + k + N / 2] - xmin[k+N/2]) * (xmax[k+N/2] - xmin[k+N/2]) * 0.1 + xmin[k+N/2];
+		scatter_sendvec_w[i*(N/2)+k+(num_of_pop_per_spawn*(int)(N/2))] = x_temp[k];
+		scatter_sendvec_d[i*(N/2)+k+(num_of_pop_per_spawn*(int)(N/2))] = x_temp[k+N/2];
 	    }
 		    
 	    if (sample_symmetry)
 		sign = -sign;
 	}//end of generate gene information
-	printf(" end of generating the gene information\n");
-	printf("scatter information: sendnum = %d\n", num_of_pop_per_spawn * N / 2); 
-	for(k=0;k<((N / 2) * (num_of_pop_per_spawn + lambda));++k){
-	    printf("scatter_sendvec_d[%d] = %lf\n", k, scatter_sendvec_d[k]);
-	}
+	
+	//printf("scatter information: sendnum = %d\n", num_of_pop_per_spawn * N / 2); 
+
 	//scatter gene information from parent to child, and from child to grandchild	    
 	MPI_Scatter(scatter_sendvec_w, num_of_pop_per_spawn * N / 2, MPI_DOUBLE, scatter_rcvvec_w, num_of_pop_per_spawn * N / 2, MPI_DOUBLE, 0, spawn_comm); // in main and make_neuro_spawn
-	printf("end of scatter to the neuro_spawning process (weight)\n");
 	MPI_Scatter(scatter_sendvec_d, num_of_pop_per_spawn * N / 2, MPI_DOUBLE, scatter_rcvvec_d, num_of_pop_per_spawn * N / 2, MPI_DOUBLE, 0, spawn_comm); // in main and make_neuro_spawn
 	//MPI_Scatter(,,,nrn_comm); //in make_neuro_spawn and NEURON
-	printf(" end of scatter to the neuro_spawning process (delay)\n");
-
+	
 	//calculation in NEURON process
 	
 	//gather fitness information from grandchild to child and from child to parent
 	//MPI_Gather(,,,nrn_comm);//in make neuro_spawn and NEURON
-	printf("wait for returning the score information from child procs\n");
 	MPI_Gather(arFunvals_send, num_of_pop_per_spawn, MPI_DOUBLE, arFunvals_rcv, num_of_pop_per_spawn, MPI_DOUBLE, 0, spawn_comm);//in main and make_neuro_spawn
-	printf("end of gather the score information\n");
-	
+		
 	for(i=0; i<lambda; ++i){
 	    arfitness[i] = arFunvals_rcv[i+num_of_pop_per_spawn];
 	    counteval = counteval + 1;
 	    if(counteval == 1){
 		BestF = arfitness[i];
+		for(j=0;j<N;++j){
+		    xbestever[j] = arx[i*N+j];
+		}
 	    }
 	    if(BestF > arfitness[i]){
 		BestF = arfitness[i];
+		for(j=0;j<N;++j){
+		    xbestever[j] = arx[i*N+j];
+		}
 	    }
 	}
-	printf("setting the arfitness\n");
-
+	
 	myqsort(lambda, arfitness, arindex, arr_tmp);
 
-	printf("end of myqsort\n");
 	//save the previous information and reinitialize 'xmean'
 	for(i=0; i<N; i++)
 	{			
@@ -664,19 +681,14 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
 	}
 	//calculate inverse of Av
 	invAz(N, Av,iterator_sz, iterator, v_arr, Lj_arr, K);
-	printf("end of make invAz\n");
-
-	printf("itr = %d, nvectors = %d\n", itr, nvectors);
+	
+	//printf("itr = %d, nvectors = %d\n", itr, nvectors);
 	//??? refer to the original paper
 	if (itr < nvectors)
 	{
-	    printf("set t[itr]\n");
 	    t[itr] = itr;	
-	    printf("end of set t\n");
 	}else{
-	    printf("enter ot else\n");
 	    int dmin = vec[t[1]] - vec[t[0]];
-	    printf("set dmin\n");
 	    int imin = 1;
 	    for(j=1; j<(nvectors-1); j++)
 	    {
@@ -687,7 +699,6 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
 		    imin = j + 1;
 		}
 	    }
-	    printf("loop for dcur\n");
 	    if (dmin >= maxsteps)
 		imin = 0;
 	    if (imin != (nvectors-1))
@@ -697,15 +708,13 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
 		    t[j] = t[j+1];
 		t[nvectors-1] = sav;
 	    }
-	    printf("if for t[nvectors-1]\n");
 	}
-	printf("end of itr\n");
+	
 	
 	iterator_sz = itr+1;
 	if (iterator_sz > nvectors)	iterator_sz = nvectors;
 	for(i=0; i<iterator_sz; i++)
 	    iterator[i] = t[i];
-	printf("end of set iterator\n");
 	int newidx = t[iterator_sz-1];
 	vec[newidx] = itr;
 			
@@ -714,9 +723,7 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
 	    pc_arr[newidx*N + i] = pc[i];
 	    v_arr[newidx*N + i] = Av[i];
 	}
-	
-	printf("end of fast half of ???\n");
-		
+				
 	double nv = 0;
 	for(i=0; i<N; i++)
 	    nv += Av[i]*Av[i];
@@ -765,13 +772,24 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
 		stop = 1;
 	if ((printToFile == 1) && (pFile))
 	    fprintf(pFile,"%d %g\n",counteval,BestF);
-	printf("end of the loop\n");
+	if(counteval >= (lambda * N * 5)){
+	    printf("#fbest: %lf\n", BestF);
+	    my_boundary_transformation(&my_boundaries, xbestever, x_temp, 0);
+	    printGene(stdout, x_temp, N); 
+	    printf("\n");
+	}
 	break;
     }
     flg_termination = 1;
     MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, 0, spawn_comm);
-    printf("in main, end of broadcasting the flg_termination\n");
     
+    printf("#fbest: %lf\n", BestF);
+    my_boundary_transformation(&my_boundaries, xbestever, x_temp, 0);
+    printGene(stdout, x_temp, N); 
+    printf("\n");
+    fflush(stdout);
+    my_boundary_transformation_exit(&my_boundaries);
+
     output[0] = counteval;
     output[1] = BestF;
 	
@@ -786,7 +804,8 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
     free(vec);			free(mixed);		free(ranks);	free(ranks_tmp);
     free(Nj_arr);		free(Lj_arr);	
     free_gt(&gt);
-    free(scatter_sendvec_w); free(scatter_sendvec_d); free(arFunvals_rcv);
+    free(scatter_sendvec_w); free(scatter_sendvec_d); free(arFunvals_rcv); free(x_temp);
+    free(flg_log); free(xbestever);
 }
 
 

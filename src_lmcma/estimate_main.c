@@ -532,10 +532,6 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
     // memory initialization
     random_init(&gt.ttime , inseed);
 
-    for(i=0;i<N;++i){
-	printf("xmin[%d] = %lf, xmax[%d] = %lf\n", i, xmin[i], i, xmax[i]);
-    }
-
     double sum_weights = 0;
 #pragma omp parallel for reduction(+:sum_weights)
     for(i=0; i<mu; i++)

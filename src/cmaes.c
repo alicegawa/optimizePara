@@ -1819,7 +1819,7 @@ cmaes_GetPtr( cmaes_t *t, char const *s)
   else if (strncmp(s, "xbestever", 7) == 0)
     return(t->rgxbestever);
   /* recent best solution of the recent population */
-  else if (strncmp(s, "xbest", 5) == 0)
+  else if (strncmp(s, "xbest", 5p) == 0)
     return(t->rgrgx[t->index[0]]);
   /* mean of the recent distribution */
   else if (strncmp(s, "xmean", 1) == 0)

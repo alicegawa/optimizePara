@@ -1,0 +1,84 @@
+load_file("nrngui.hoc")
+load_file("cells.hoc")
+
+begintemplate HHneuron
+public soma, esyn, synlist, connect2target
+create soma
+objref esyn, synlist
+proc init(){
+    synlist = new List()
+    soma {
+	L = 30
+	soma.diam = 30
+	soma.nseg = 1
+	soma insert hh
+	
+    }
+    soma esyn = new ExpSyn(0.5)
+    esyn.tau = 0.3
+    esyn.e = 0
+    synlist.append(esyn)
+}
+
+obfunc connect2target(){localobj nc
+    soma nc = new NetCon(&v(0.5), $o1)
+    nc.threshold = 10
+    if(numarg()==2){ $o2 = nc}
+    return nc
+}
+endtemplate HHneuron
+
+objref cell
+//cell = new lalvpc_single(0,0,0,0)
+cell = new HHneuron()
+
+objref f
+objref spike_timing
+
+spike_timing = new Vector()
+f = new File()
+f.ropen("./spike_list.dat")
+spike_timing.scanf(f)
+f.close()
+
+objref stim
+objref nc, nclist, stimlist
+
+nclist = new List()
+stimlist = new List()
+
+for i=0, spike_timing.size() - 1{
+    printf("spike_timing[%d] = %lf\n", i, spike_timing.x(i))
+}
+
+for i=0, spike_timing.size() - 1{
+    stim = new NetStim(0.5)
+    stim.start = spike_timing.x(i) * 1000 - 1.57 //sec -> milisec
+    stim.interval = 100000
+    stim.number = 1
+    stim.noise = 0
+    stimlist.append(stim)
+    nc = new NetCon(stimlist.o(i), cell.synlist.o(0), 0, 0, 0.02)
+    nclist.append(nc)
+}
+
+objref tvec, idvec
+objref nil
+tvec = new Vector()
+idvec = new Vector()
+nc = cell.connect2target(nil)
+nc.record(tvec, idvec, nc.srcgid)
+
+tstop = 10000
+dt = 0.025
+v_init = -65
+
+load_file("graph.ses")
+run()
+
+printf("comparison: spike num\n")
+printf("target: %d, result: %d\n", spike_timing.size(), tvec.size())
+
+for i=0, tvec.size()-1{
+    printf("tvec[%d] = %lf, spike_timing[%d] = %lf, diff = %lf\n", i, tvec.x(i), i, spike_timing.x(i) * 1000, (tvec.x(i) - spike_timing.x(i) * 1000))
+}

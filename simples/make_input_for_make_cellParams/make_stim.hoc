@@ -11,8 +11,7 @@ proc init(){
 	L = 30
 	soma.diam = 30
 	soma.nseg = 1
-	soma insert hh
-	
+	soma insert hh_k	
     }
     soma esyn = new ExpSyn(0.5)
     esyn.tau = 0.3

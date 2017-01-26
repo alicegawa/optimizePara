@@ -1,0 +1,186 @@
+#include <stdio.h>
+#include <mpi.h>
+#include <stdlib.h>
+
+
+/*definition of the wrapper of MPI_Bcast (function for communication with NEURON) */
+void MPI_Bcast_to_NEURON(void *buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm){
+    /* datatype: now support MPI_DOUBLE only*/
+    MPI_Bcast(&count, 1, MPI_INT, root, comm);
+    MPI_Bcast(buffer, count, datatype, root, comm);
+    fflush(stdout);
+}/*MPI_Bcast_to_NEURON*/
+
+
+int main(int argc, char **argv){
+    int i, j, k;
+    MPI_Comm parentcomm, spawn_parent_comm, intercomm, nrn_comm;
+    int main_size, main_myid;
+    int spawn_parent_size, spawn_parent_rank;
+    int spawn_size, spawn_myid;
+    int num_of_procs_nrn = 8; // change in your environment (local, K, Fx100)
+    int dimension_per_one_nrnproc, num_of_only_weights, num_of_only_delays, num_of_params_of_one_nrnrproc;
+    int dimension_per_one_nrnproc_w, dimension_per_one_nrnproc_d;
+    int num_of_weights_per_one_nrnproc, num_of_delays_per_one_nrnproc;
+    int num_of_my_pop, dimension;
+    int num_sendparams_from_parent, num_sendparams_to_NEURON;
+    int offset;
+
+    double *pop_sendbuf_whold, *pop_rcvbuf_whole;
+    double *pop_sendbuf_child_weight, *pop_sendbuf_child_delay;
+    double *pop_rcvbuf_child_weight, *pop_rcvbuf_child_delay;
+
+    double *pop_sendbuf_nrn_weight, *pop_sendbuf_nrn_delay;
+    double *pop_rcvbuf_nrn_weight, *pop_rcvbuf_nrn_delay;
+
+    double *arFunvals_child_buf1, *arFunvals_child_buf2;
+    double *arFunvals_whole_buf, *arFunvals_whole;
+    
+    int send_count;
+    double flg_termination;
+    
+    char specials[] = "special";
+    char *neuron_argv[] = {"-mpi", "-nobanner", "../hocfile/main.hoc", NULL};
+
+    /* initialize the MPI process*/
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &main_size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &main_myid);
+
+    /* make new intracommunicator for communicating with the parent process*/
+    MPI_Comm_get_parent(&parentcomm);
+    MPI_Intercomm_merge(parentcomm, 1, &spawn_parent_comm);
+    MPI_Comm_size(spawn_parent_comm, &spawn_parent_size);
+    MPI_Comm_rank(spawn_parent_comm, &spawn_parent_rank);
+
+    /* recieve the information of the scale of population from parent process*/
+    /* required: num_of_my_pop, dimension, */
+    if(argc>2){
+	num_of_my_pop = atoi(argv[1]);
+	dimension = atoi(argv[2]);
+    }else{
+	num_of_my_pop = 32;
+	dimension = 72;
+    }
+
+    printf("num_of_my_pop = %d, dimension = %d\n", num_of_my_pop, dimension);
+    /* set variables for communication */
+    num_sendparams_from_parent = dimension / 2 * num_of_my_pop;/* separate weight and delay ver. (for non-separate, delete / 2*/
+    dimension_per_one_nrnproc = dimension / num_of_procs_nrn;
+    dimension_per_one_nrnproc_w = dimension_per_one_nrnproc_d = dimension_per_one_nrnproc / 2;
+    num_of_only_weights = num_of_only_delays = dimension * num_of_my_pop / 2;
+    num_sendparams_to_NEURON = num_of_weights_per_one_nrnproc = num_of_delays_per_one_nrnproc = num_of_only_weights / num_of_procs_nrn;
+    offset = num_sendparams_to_NEURON;
+
+    /* allocate communication arrays (some arrays are not allocated because they do not need in these processes) */
+    
+    /* use only (1) or (2) */
+    /* (1) */
+    pop_rcvbuf_whole = (double *)malloc(sizeof(double) * num_sendparams_from_parent);//if you use this, delete /2 in num_sendparams_from_parent
+    /* (2) */
+    pop_rcvbuf_child_weight = (double *)malloc(sizeof(double) * num_sendparams_from_parent);
+    pop_rcvbuf_child_delay = (double *)malloc(sizeof(double) * num_sendparams_from_parent);
+    
+    pop_sendbuf_nrn_weight = (double *)malloc(sizeof(double) * (offset + num_sendparams_from_parent));
+    pop_sendbuf_nrn_delay = (double *)malloc(sizeof(double) * (offset + num_sendparams_from_parent));
+    pop_rcvbuf_nrn_weight = (double *)malloc(sizeof(double) * num_of_weights_per_one_nrnproc);
+    pop_rcvbuf_nrn_delay = (double *)malloc(sizeof(double) * num_of_delays_per_one_nrnproc);
+
+    arFunvals_child_buf1 = (double *)calloc(num_of_my_pop, sizeof(double));
+    arFunvals_child_buf2 = (double *)calloc(num_of_my_pop * num_of_procs_nrn + num_of_my_pop, sizeof(double));
+
+    /* make spawn of NEURON procs and make new intracommunicator 'nrn_comm'*/
+    /* when it does not work, uncomment the below sentense*/
+    /* for(i=0; i < 8; ++i){ */
+    /* 	if(spawn_parent_rank%8 == i){ */
+    MPI_Comm_spawn(specials, neuron_argv, num_of_procs_nrn, MPI_INFO_NULL, 0, MPI_COMM_SELF, &intercomm, MPI_ERRCODES_IGNORE);
+    MPI_Intercomm_merge(intercomm, 0, &nrn_comm);
+    MPI_Comm_size(nrn_comm, &spawn_size);
+    MPI_Comm_rank(nrn_comm, &spawn_myid);
+    /* 	} */
+    /* 	MPI_Barrier(MPI_COMM_WORLD); */
+    /* } */
+
+    /* send information of the scale of population to NEURON process*/
+    send_count = 1;
+    double info[] = {1.0, 1.0, 1.0};
+    info[0] = num_of_my_pop; 
+    MPI_Bcast_to_NEURON(info, send_count, MPI_DOUBLE, 0, nrn_comm);
+
+    /* infinite loop for estimation (receive information of genes and pass it to NEURON process*/
+    while(1){
+	/* recieve the gene information from parent process*/
+	/* use only (1) or (2)*/
+	/*(1)*/
+	//MPI_Scatter(pop_sendbuf_whold, num_sendparams_from_parent, MPI_DOUBLE, pop_rcvbuf_whole, num_sendparams_from_parent, MPI_DOUBLE, 0, spawn_parent_comm);
+	/*(2)*/
+	MPI_Scatter(pop_sendbuf_child_weight, num_sendparams_from_parent, MPI_DOUBLE, pop_rcvbuf_child_weight, num_sendparams_from_parent, MPI_DOUBLE, 0, spawn_parent_comm);
+	MPI_Scatter(pop_sendbuf_child_delay, num_sendparams_from_parent, MPI_DOUBLE, pop_rcvbuf_child_delay, num_sendparams_from_parent, MPI_DOUBLE, 0, spawn_parent_comm);
+	
+	for(i=0;i<num_sendparams_from_parent;++i){
+	    printf("pop_rcvbuf_child_weight[%d] = %lf, pop_rcvbuf_child_delay[%d] = %lf\n", i, pop_rcvbuf_child_weight[i], i, pop_rcvbuf_child_delay[i]);
+	}
+
+	/* transform the data structure to suitable manner for communication */
+	for(k=0;k<num_of_procs_nrn;k++){
+	    for(i=0;i<num_of_my_pop;i++){
+		for(j=0;j<dimension_per_one_nrnproc_w;j++){
+		    pop_sendbuf_nrn_weight[offset + (num_of_my_pop * dimension_per_one_nrnproc_w) * k + (dimension_per_one_nrnproc_w) * i + j]= pop_rcvbuf_child_weight[ (dimension / 2) * i + j + dimension_per_one_nrnproc_w * k];
+		    pop_sendbuf_nrn_delay[offset + (num_of_my_pop * dimension_per_one_nrnproc_d) * k + (dimension_per_one_nrnproc_d) * i + j]= pop_rcvbuf_child_delay[ (dimension / 2) * i + j + dimension_per_one_nrnproc_d * k];
+		}
+	    }
+	}
+
+
+	for(i=0;i<offset+num_sendparams_to_NEURON*num_of_my_pop;++i){
+	    printf("pop_sendbuf_nrn_weight[%d] = %lf, pop_sendbuf_nrn_delay[%d] = %lf\n", i, pop_sendbuf_nrn_weight[i], i, pop_sendbuf_nrn_delay[i]);
+	}
+	printf("address: pop_sendbuf_nrn_weight[%d] = %p, pop_sendbuf_nrn_delay[0] = %p\n", i, &pop_sendbuf_nrn_weight[i], pop_sendbuf_nrn_delay);
+
+
+	MPI_Barrier(MPI_COMM_WORLD);
+
+	/*pass the gene information to NEURON process*/
+	MPI_Scatter(pop_sendbuf_nrn_weight, num_of_weights_per_one_nrnproc, MPI_DOUBLE, pop_rcvbuf_nrn_weight, num_of_weights_per_one_nrnproc, MPI_DOUBLE, 0, nrn_comm);
+	MPI_Scatter(pop_sendbuf_nrn_delay, num_of_delays_per_one_nrnproc, MPI_DOUBLE, pop_rcvbuf_nrn_delay,  num_of_delays_per_one_nrnproc, MPI_DOUBLE, 0, nrn_comm);
+
+	/* wait for finish calculation in NEURON*/
+
+
+	printf("wait for gather in make_neuro_Spawn\n");
+	MPI_Gather(arFunvals_child_buf1, num_of_my_pop, MPI_DOUBLE, arFunvals_child_buf2, num_of_my_pop, MPI_DOUBLE, 0, nrn_comm);
+	printf("end gather from NEURON in make_neuro_Spawn\n");
+
+	/* tally the score information of my process */
+	for(i=0; i<num_of_my_pop; ++i){
+	    arFunvals_whole_buf[i] = arFunvals_child_buf2[i + num_of_my_pop];
+	}
+	
+	/* pass the score information to parent process*/
+	MPI_Gather(arFunvals_whole_buf, num_of_my_pop, MPI_DOUBLE, arFunvals_whole, num_of_my_pop, MPI_DOUBLE, 0, spawn_parent_comm);
+	
+	/* recieve and pass the information whether the loop is terminated or not */
+	MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, 0, spawn_parent_comm);
+	MPI_Bcast_to_NEURON(&flg_termination, 1, MPI_DOUBLE, 0, nrn_comm);
+	
+	/* termination*/
+	if((int)flg_termination){
+	    break;
+	}
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    /* free the allocated memory */
+    free(pop_rcvbuf_child_weight);
+    free(pop_rcvbuf_child_delay);
+    free(pop_sendbuf_nrn_weight);
+    free(pop_sendbuf_nrn_delay);
+    free(pop_rcvbuf_nrn_weight);
+    free(pop_rcvbuf_nrn_delay);
+    free(arFunvals_child_buf1);
+    free(arFunvals_child_buf2);
+    
+    MPI_Finalize();
+
+    return 0;
+}

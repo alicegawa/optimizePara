@@ -18,7 +18,7 @@ int main(int argc, char **argv){
     int main_size, main_myid;
     int spawn_parent_size, spawn_parent_rank;
     int spawn_size, spawn_myid;
-    int num_of_procs_nrn = 8; // change in your environment (local, K, Fx100)
+    int num_of_procs_nrn = 2; // change in your environment (local, K, Fx100)
     int dimension_per_one_nrnproc, num_of_only_weights,  num_of_params_of_one_nrnrproc;
     int dimension_per_one_nrnproc_w;
     int num_of_weights_per_one_nrnproc;
@@ -39,12 +39,12 @@ int main(int argc, char **argv){
     int send_count;
     double flg_termination;
     
-    char specials[] = "special";
-    char *neuron_argv[] = {"-mpi", "-nobanner", "../hocfile/main.hoc", NULL};
+    char specials[] = "../hocfile_forSB/x86_64/special";
+    char *neuron_argv[] = {"-mpi", "-nobanner", "../hocfile_forSB/networkSimulation.hoc", NULL};
 
     char connection_data[] = "../data/conMat.txt";
     FILE *fp;
-    int dim_conMat=8; //ncell in NEURON
+    int dim_conMat=2; //ncell in NEURON
     int **conMat;
     int num_of_cell_combination = dim_conMat * dim_conMat;
     int gene_id;
@@ -166,7 +166,7 @@ int main(int argc, char **argv){
 	/* tally the score information of my process */
 	for(i=0; i<num_of_my_pop; ++i){
 	    arFunvals_whole_buf[i] = arFunvals_child_buf2[i + num_of_my_pop];
-	    printf("arFunvals_whole_buf[%d] = %lf\n", i, arFunvals_whole_buf[i]);
+	    //printf("arFunvals_whole_buf[%d] = %lf\n", i, arFunvals_whole_buf[i]);
 	}
 	fflush(stdout);
 	MPI_Barrier(MPI_COMM_WORLD);

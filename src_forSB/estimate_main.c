@@ -853,7 +853,7 @@ int main(int argc, char **argv){
     char **spawn_argv;
     int spawn_argv_size=3;
     int num_of_pop_per_child;
-    int spawn_numprocs = 8;/*the number of NEURON circuits*/
+    int spawn_numprocs = 7;/*the number of NEURON circuits*/
     MPI_Comm spawn_comm, intercomm, parentcomm;
     int spawn_size, spawn_myid;
     

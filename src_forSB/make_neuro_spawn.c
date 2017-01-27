@@ -74,8 +74,8 @@ int main(int argc, char **argv){
     num_sendparams_from_parent = dimension * num_of_my_pop;/* separate weight and delay ver. (for non-separate, delete / 2*/
 
     dimension_per_one_nrnproc = num_of_cell_combination / num_of_procs_nrn;
-    dimension_per_one_nrnproc_w = dimension_per_one_nrnproc_d = dimension_per_one_nrnproc;
-    num_of_only_weights = dimension * num_of_my_pop;
+    dimension_per_one_nrnproc_w = dimension_per_one_nrnproc;
+    num_of_only_weights = num_of_cell_combination * num_of_my_pop;
     num_of_weights_per_one_nrnproc = num_of_only_weights / num_of_procs_nrn;
     offset = num_of_weights_per_one_nrnproc;
     num_sendparams_to_NEURON = num_of_cell_combination * num_of_my_pop;
@@ -143,16 +143,16 @@ int main(int argc, char **argv){
 	    }
 	}
 
-	for(k=0;k<num_of_my_pop;++k){
-	    for(i=0;i<dim_conMat;++i){
-		for(j=0;j<dim_conMat;++j){
-		    printf("w[%d][%d] = %lf \t", i, j, pop_sendbuf_nrn_weight[offset + num_of_cell_combination * k + dimension_per_one_nrnproc * i + j]);
+	/* for(k=0;k<num_of_my_pop;++k){ */
+	/*     for(i=0;i<dim_conMat;++i){ */
+	/* 	for(j=0;j<dim_conMat;++j){ */
+	/* 	    printf("w[%d][%d] = %lf \t", i, j, pop_sendbuf_nrn_weight[offset + num_of_cell_combination * k + dimension_per_one_nrnproc * i + j]); */
 
-		}
-		printf("\n");
-	    }
-	    printf("\n\n");
-	}
+	/* 	} */
+	/* 	printf("\n"); */
+	/*     } */
+	/*     printf("\n\n"); */
+	/* } */
 	
 
 	MPI_Barrier(MPI_COMM_WORLD);

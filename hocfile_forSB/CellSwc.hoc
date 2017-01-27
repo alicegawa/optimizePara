@@ -1,0 +1,314 @@
+{load_file("stdlib.hoc")}
+
+begintemplate CellSwc
+public init, shape, translation, subsets, geom, biophys, geom_nseg, biophys_inhomo, makeSyn, makeNetCon
+public Scalex, ScaleY, ScaleZ, Shrinkagex, Shrinkagey, Shrinkagez
+public all, secInput, secOutput
+public SynList
+public Dend, SectionNum
+
+// will be re-created in shape()
+create Dend[1]
+
+//------------------------------------------------------------------------------
+// swc header informations
+//------------------------------------------------------------------------------
+strdef HeaderOriginalSource
+strdef HeaderCreature
+strdef HeaderRegion
+strdef HeaderFieldLayer
+strdef HeaderType
+strdef HeaderContributor
+strdef HeaderReference
+strdef HeaderRaw
+strdef HeaderExtras
+strdef HeaderSomaArea
+strdef HeaderShrinkageCorrection
+strdef HeaderVersionNumber
+strdef HeaderVersionDate
+strdef HeaderScale
+ScaleX = ScaleY = ScaleZ = 1
+Shrinkagex = Shrinkagey = Shrinkagez = 1
+SectionNum = 1
+
+//------------------------------------------------------------------------------
+// Section lists
+//------------------------------------------------------------------------------
+objref all, secInput, secOutput
+
+//------------------------------------------------------------------------------
+// synaptic points
+//------------------------------------------------------------------------------
+objref SynList
+objref SynNo
+
+//------------------------------------------------------------------------------
+// geometry
+//------------------------------------------------------------------------------
+tranlationX = translationY = translationZ = 0
+
+//------------------------------------------------------------------------------
+// procedures / functions interface
+//------------------------------------------------------------------------------
+// proc init()
+// proc shape()
+// proc translation()
+// proc subsets()
+// proc geom()
+// proc biophys()
+// proc geom_nseg()
+// proc biophys_inhomo()
+// obfunc makeSyn()
+// obfunc makeNetCon
+
+//
+proc init() {
+	SynList = new List()
+	SynNo = new Vector()
+	
+	all = new SectionList()
+	secInput = new SectionList()
+	secOutput = new SectionList()
+
+	shape($s1)
+	subsets()
+	geom()
+	biophys()
+	geom_nseg()
+}
+proc shape() { localobj strFunc, fobj strdef str, strName, strValue, strTemp
+	fobj = new File()
+	{fobj.ropen($s1)}
+	strFunc = new StringFunctions()
+	
+	//--------------------------------------------------------------------------
+	// load header information
+	//--------------------------------------------------------------------------
+	curLine = 0
+	dataLineOverHead = 0
+	while (!fobj.eof()) {
+		fobj.gets(str)
+		strFunc.head(str, " ", strName)
+		strFunc.tail(strName, "#", strName)
+		strFunc.tail(str, " ", strValue)
+		strFunc.head(strValue, "\n", strValue)
+		
+		strFunc.head(str, "[^#]", strTemp)
+		if (0 != strcmp("#", strTemp)) {
+			dataLineOverHead = curLine
+			break
+		}
+		
+		if (!strcmp(strName, "ORIGINAL_SOURCE")) {
+			HeaderOriginalSource = strValue
+		}
+		if (!strcmp(strName, "CREATURE")) {
+			HeaderCreature = strValue
+		}
+		if (!strcmp(strName, "REGION")) {
+			HeaderRegion = strValue
+		}
+		if (!strcmp(strName, "FIELD/LAYER")) {
+			HeaderFieldLayer = strValue
+		}
+		if (!strcmp(strName, "TYPE")) {
+			HeaderType = strValue
+		}
+		if (!strcmp(strName, "CONTRIBUTOR")) {
+			HeaderContributor = strValue
+		}
+		if (!strcmp(strName, "REFERENCE")) {
+			HeaderReference = strValue
+		}
+		if (!strcmp(strName, "RAW")) {
+			HeaderRaw = strValue
+		}
+		if (!strcmp(strName, "EXTRAS")) {
+			HeaderExtras = strValue
+		}
+		if (!strcmp(strName, "SOMA_AREA")) {
+			HeaderSomaArea = strValue
+		}
+		if (!strcmp(strName, "SHRINKAGE_CORRECTION")) {
+			HeaderShrinkageCorrection = strValue
+			sscanf(HeaderShrinkageCorrection, "%f %f %f", &ShrinkageX, &ShrinkageY, &ShrinkageZ)
+		}
+		if (!strcmp(strName, "VERSION_NUMBER")) {
+			HeaderVersionNumber = strValue
+		}
+		if (!strcmp(strName, "VERSION_DATE")) {
+			HeaderVersionDate = strValue
+		}
+		if (!strcmp(strName, "SCALE")) {
+			HeaderScale = strValue
+			sscanf(HeaderScale, "%f %f %f", &ScaleX, &ScaleY, &ScaleZ)
+			//printf("Scale (%f, %f, %f)\n", ScaleX, ScaleY, ScaleZ)
+		}
+		
+		curLine += 1
+	}
+	
+	SectionNum = 0
+	while (!fobj.eof()) {
+		SectionNum = fobj.scanvar()-1
+		for i = 2, 7 {
+			fobj.scanvar()
+		}
+	}
+	
+	{fobj.close()}
+	
+	{fobj.ropen($s1)}
+	
+	curLine = 0
+	while (curLine < dataLineOverHead) {
+		fobj.gets(strTemp)
+		curLine += 1
+	}
+	
+	//--------------------------------------------------------------------------------
+	// create multi-compartment model
+	//---------------------------------------------------------------------------------
+	create Dend[SectionNum]
+	
+	// root node
+	rootNo = fobj.scanvar() - 2
+	type_root = fobj.scanvar()
+	x_root = fobj.scanvar()
+	y_root = fobj.scanvar()
+	z_root = fobj.scanvar()
+	d_root = fobj.scanvar()
+	parentNo_root = fobj.scanvar() - 2
+	
+	while (1) { // while current node's connected to the root node
+		curNo = fobj.scanvar() - 2
+		type = fobj.scanvar()
+		x = fobj.scanvar()
+		y = fobj.scanvar()
+		z = fobj.scanvar()
+		d = fobj.scanvar()
+		parentNo = fobj.scanvar() - 2
+		if (parentNo != rootNo) { break }
+		Dend[curNo] {
+			pt3dclear()
+			pt3dadd(x_root * ScaleX, y_root * ScaleY, z_root * ScaleZ, d_root)
+			pt3dadd(x * ScaleX, y * ScaleY, z * ScaleZ, d)
+		}
+	}
+	
+	Dend[parentNo] {
+		parentX = x3d(1)
+		parentY = y3d(1)
+		parentZ = z3d(1)
+		parentDiam = diam3d(1)
+	}
+	Dend[curNo] {
+		pt3dclear()
+		pt3dadd(parentX, parentY, parentZ, parentDiam)
+		pt3dadd(x * ScaleX, y * ScaleY, z * ScaleZ, d)		
+	}
+	connect Dend[curNo](0), Dend[parentNo](1)
+	
+	while (!fobj.eof()) {
+		curNo = fobj.scanvar() - 2
+		type = 	fobj.scanvar()
+		x = fobj.scanvar()
+		y = fobj.scanvar()
+		z = fobj.scanvar()
+		d = fobj.scanvar()
+		parentNo = fobj.scanvar() - 2
+		Dend[parentNo] {
+			parentX = x3d(1)
+			parentY = y3d(1)
+			parentZ = z3d(1)
+			parentDiam = diam3d(1)
+		}
+		Dend[curNo] {
+			pt3dclear()
+			pt3dadd(parentX, parentY, parentZ, parentDiam)
+			pt3dadd(x * ScaleX, y * ScaleY, z * ScaleZ, d)		
+		}
+		connect Dend[curNo](0), Dend[parentNo](1)
+	}
+	
+	{fobj.close()}
+	
+	print "load : ", $s1, " ok"
+} // shape()
+
+proc translation() {
+	translationX = $1
+	translationY = $2
+	translationZ = $3
+	forall {
+		x0 = x3d(0)
+		y0 = y3d(0)
+		z0 = z3d(0)
+		diam0 = diam3d(0)
+		x1 = x3d(1)
+		y1 = y3d(1)
+		z1 = z3d(1)
+		diam1 = diam3d(1)
+		pt3dclear()
+		pt3dadd(translationX + x0, translationY + y0, translationZ + z0, diam0)
+		pt3dadd(translationX + x1, translationY + y1, translationZ + z1, diam1)
+	}
+}
+
+proc subsets() {
+	Dend[0] all.wholetree()
+}
+
+proc geom() {
+}
+
+proc biophys() {
+	// forall {
+	// 	Ra = 100
+	// 	cm = 1
+	// }
+}
+
+external lambda_f
+proc geom_nseg() {
+	forall { nseg = int((L / (0.1 * lambda_f(100)) + .9) / 2) * 2 + 1 }
+}
+
+proc biophys_inhomo() {}
+
+objref syn_
+obfunc makeSyn() { local targetno localobj r
+	// args : targetSectionNo, tau1, tau2, e
+	for i = 0, SynNo.size-1 {
+		if ($1 == SynNo.x[i]) return SynList.object(i)
+	}
+	if ($1 == -1) {
+		r = new Random()
+		r.uniform(0, SectionNum-1)
+		targetno = int(r.repick())
+	} else {
+		targetno = $1
+	}
+	SynNo.append(targetno)
+	Dend[targetno] syn_ = new Exp2Syn(0.5) SynList.append(syn_)
+	syn_.tau1 = $2
+	syn_.tau2 = $3
+	syn_.e = $4
+	return syn_
+}
+
+obfunc makeNetCon() { local targetno localobj nc, r
+	// args : sourceSectionNo, targetSyn, threshold, delay, weight
+	if ($1 == -1) {
+		r = new Random()
+		r.uniform(0, SectionNum)
+		targetno = int(r.repick())
+	} else {
+		targetno = $1
+	}
+	// NetCon(source, target, threshold, delay, weight)
+	Dend[targetno] nc = new NetCon(&v(0.5), $o2, $3, $4, $5)
+	return nc
+}
+
+endtemplate CellSwc

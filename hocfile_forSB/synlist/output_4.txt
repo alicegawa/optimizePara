@@ -1,0 +1,6 @@
+CellSwc[1] CellSwc[1]
+----------
+1 1 Chemi ACh 99 127
+0 0 Chemi ACh 12 128
+2 2 Chemi ACh 13 200
+3 3 Chemi ACh 15 201

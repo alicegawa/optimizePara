@@ -1,0 +1,5 @@
+CellSwc[1] CellSwc[0]
+----------
+0 1 Chemi ACh 40 111
+2 3 Chemi ACh 10 150
+3 4 Chemi GABA 15 151

@@ -1,0 +1,6 @@
+//this file is created by csv2list.py 
+//------------------------------------
+readsl("../hocfile_forSB/synlist/output_1.txt")
+readsl("../hocfile_forSB/synlist/output_2.txt")
+readsl("../hocfile_forSB/synlist/output_3.txt")
+readsl("../hocfile_forSB/synlist/output_4.txt")

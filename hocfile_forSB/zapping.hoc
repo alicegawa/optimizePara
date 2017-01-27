@@ -1,0 +1,39 @@
+/////////////////
+// zapping.hoc
+/////////////////
+// This file is included in zapPlotSimulation.hoc & zapRestoreSimulation.hoc
+
+// Zapping Objects
+objref zaplist[NCELLS]
+objref restlist[NCELLS]
+double zapnum[NCELLS]
+
+// Zapping Degree
+//  ( -> 1 : allsections)
+zapdegree = 4
+    
+proc zapping(){ local i, j
+    for j = 0, cells.count - 1 {
+	i = 0
+	zapnum[j] = 0
+	zaplist[j] = new SectionList()
+	restlist[j] = new SectionList()
+	forsec cells.object[j].all {
+	    if(numchild() >= 2){
+		zaplist[j].append()
+		zapnum[j] += 1
+	    } else {		
+		i += 1
+		if ( i % zapdegree == 0 ) {
+		    zaplist[j].append()
+		    zapnum[j] += 1
+		} else {
+		    restlist[j].append()
+		}
+	    }
+	}
+    }
+}
+
+
+

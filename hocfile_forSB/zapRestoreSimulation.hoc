@@ -1,0 +1,204 @@
+//*************************
+// zapRestoreSimulation
+// 2011/12/01
+// Yusuke Mori
+//*************************
+
+//--- for debug ---
+debugon = 0
+
+//--- int for no voltage data ---
+nodata = 0
+
+//--- parallel --- 
+objref pc
+pc = new ParallelContext()
+
+//--- define cell classes ---
+{load_file("ParaCellSwc.hoc")}
+
+//--- for load ---
+objref allvm
+allvm = new Vector()
+
+//-----------------------------
+// make cells
+// (code is in ParaCellSwc.hoc)
+p_mkcells("list/neuronlist.txt", 1)
+//-----------------------------
+
+
+//-----------------------------
+// shape plot init
+//
+objref sh
+sh = new PlotShape(0)
+
+/* view(mleft, mbottom, mwidth, mheight, sleft, stop,swidth, sheight) */
+sh.view(-400,-400,800,800,-500,500,1000,1000)
+sh.exec_menu("Whole Scene")
+sh.exec_menu("Shape Plot")
+
+nframe = 0
+//-----------------------------
+
+objref fv
+fv = new File()
+strdef filename
+strdef command
+
+func numchild() { local ii localobj sl
+    ii = 0
+    sl = new SectionList()
+    sl.children()
+    forsec sl {
+	ii += 1
+    }
+    return ii
+}
+
+//------------------------------
+// zapping
+//
+
+// for zapping
+{load_file("zapping.hoc")}
+zapping(zapdegree)
+//------------------------------
+
+//-----------------------------
+// search
+//
+
+strdef searchname
+objref sr_p, sr_c
+
+func find_v_parent(){ local count
+    count = 0
+    sr_p = new SectionRef()
+
+    // find parent
+    while(1){	
+	if(!sr_p.has_parent) {
+	    return 0
+	}
+	count += 1
+	
+	if(sr_p.parent.v(.5) != nodata){
+	    return count
+	}
+	sr_p.parent sr_p = new SectionRef() // go up the steps
+    }    
+}
+
+func find_v_child(){ local count
+    count = 0
+    sr_c = new SectionRef()
+    // find child
+    while(1){	
+	if(!sr_c.nchild) {
+	    return 0
+	}
+	count += 1
+	
+	if (sr_c.child[0].v(.5) != nodata){
+	    return count
+	}
+	sr_c.child[0] sr_c = new SectionRef() // go down the steps
+    }
+}
+//-----------------------------
+
+//-----------------------------
+// complement
+//
+
+proc complement() { local num_p, num_c
+    num_p = find_v_parent()
+    num_c = find_v_child()
+    
+    if(num_p == 0 && num_c == 0){
+	v(.5) = -65
+    } else if (num_p == 0) {
+	v(.5) = sr_c.child[0].v(.5)
+    } else if (num_c == 0) {
+	v(.5) = sr_p.parent.v(.5)
+    } else if (num_c != 0 && num_p != 0) {
+	v(.5) = ( num_p * sr_c.child[0].v(.5) + num_c * sr_p.parent.v(.5) ) / ( num_p + num_c )
+    }
+}
+
+//-----------------------------
+// load
+//
+
+proc vload(){ local ii
+    shotframe = $1
+    init()
+    
+    for j = 0, cells.count - 1 {	
+	if (zapdegree == 1) {
+	    sprint(filename, "values/%s_%04d.val", cellnames.object[j].s, shotframe)
+	} else {
+	    sprint(filename, "values/%s_zap%d_%04d.val", cellnames.object[j].s, zapdegree, shotframe)
+	}		
+	if (debugon) {print filename}
+	fv.ropen(filename)
+	allvm.resize(0)
+	allvm.vread(fv)
+	
+	// set dafault ( no data )
+	forsec cells.object[j].all {
+	    v(.5) = nodata
+	}
+	
+	ii = 0
+	// zap
+	forsec zaplist[j] {
+	    v(.5) = allvm.x[ii]
+	    ii += 1
+	}	
+	// complement
+	forsec restlist[j] {
+	    complement()
+	    // v(.5) = -65
+	}
+    }	
+    sh.flush()
+    
+    // snapshot ps
+    if (1) {
+	sh.printfile("temp.ps")
+	sprint(command, "mv temp.ps frames/zap%d_%04d.ps", zapdegree, shotframe)
+	system(command)
+	if (debugon) {printf(".")}
+    }
+}
+
+//--------------------
+
+
+tstop = 10
+dt = 0.01         // number of calculation
+nstep_steprun = 1 // number of steps
+
+steps = tstop / dt
+{printf("steps = %d\n", steps)}
+
+proc saverun() {
+    printf("Print every %d step from %d to %d ......", $3, $1, $2)
+    for (i = $1; i <= $2; i += $3) {
+	if (i > steps || i == 0){
+	    return
+	}
+	vload( i )
+	{printf(".")}
+    }
+}
+
+
+
+if(!debugon){
+    saverun(5, steps, 5)
+    quit()
+}

@@ -1,0 +1,10 @@
+#NEURON LIST
+#--------------------
+#<NCELLS>
+#<CELLname>, <cellswc>
+#--------------------
+#DATE : 2012/01/28
+
+2
+N001 swc/StandardBrain/LAL-input/9999/090815_4_sn_reg.swc
+N002 swc/StandardBrain/LAL-bilateral/0019/0019.swc

@@ -1,0 +1,121 @@
+// get distance of two sections
+
+chPoint = 0.5
+
+func checkNear(){
+    // set origin
+    $o1.sec distance(0, chPoint)
+    // get length
+    $o2.sec len = distance(1, chPoint)
+    
+    return len
+}
+
+func calc() { local dx, dy, dz, dist, x1, x2, y1, y2, z1, z2    
+    $o1.sec {
+	x1 = x3d(.5)
+	y1 = y3d(.5)
+	z1 = z3d(.5)
+    }
+    $o2.sec {
+	x2 = x3d(.5) 
+	y2 = y3d(.5) 
+	z2 = z3d(.5) 
+    }
+    
+    dx = x1 - x2
+    dy = y1 - y2
+    dz = z1 - z2
+
+    dist = dx * dx + dy * dy + dz * dz
+    //    print dist
+    return dist // square of the true distance
+}
+
+obfunc calcPos() { local meanx, meany, meanz localobj vec,cell
+    // argument
+    // $o1 : CellSwc
+    cell = $o1
+    vec = new Vector()
+
+    for i = 0, cell.SectionNum - 1 cell.Dend[i] {
+	meanx += x3d(0)
+	meany += y3d(0)
+	meanz += z3d(0)
+    }
+    meanx /= cell.SectionNum
+    meany /= cell.SectionNum
+    meanz /= cell.SectionNum
+    
+    vec.append(meanx)
+    vec.append(meany)
+    vec.append(meanz)
+    return vec
+}
+
+func center2centerDist() { local dist, dx, dy, dz localobj vec1, vec2
+// argument
+// $o1: cell1
+// $o2: cell2
+    vec1 = new Vector()
+    vec2 = new Vector()
+
+    vec1 = calcPos($o1)
+    vec2 = calcPos($o2)
+    
+    dx = vec1.x(0) - vec2.x(0)
+    dy = vec1.x(1) - vec2.x(1)
+    dz = vec1.x(2) - vec2.x(2)
+
+    dist = dx * dx + dy * dy + dz * dz
+    return dist
+}
+
+
+strdef filename
+strdef cell1, cell2
+strdef tmp1, tmp2
+
+//-----------------------------
+// get distance of o1 and o2
+//
+proc getcandidate(){ local posdist, tmpdist, i localobj nr1, nr2, fdist
+// argument
+// $o1: cell1
+// $o2: cell2
+// $3: type_region
+
+    fdist = new File()
+    $o1.Dend[0] cell1 = secname()
+    $o2.Dend[0] cell2 = secname()
+    printf("%s <------> %s \n", cell1, cell2)
+    sprint(filename, "data.csv")
+    fdist.wopen(filename)
+    tmpC2Cdist = center2centerDist($o1, $o2)
+
+    i = 0
+    forsec $o1.all {
+	if (type_region != $3) {
+	    continue
+	}
+	nr1 = new SectionRef()
+	tmp1 = secname()
+	volume1 = (diam / 2.0) * (diam / 2.0) * L
+	forsec $o2.all {
+	    if (type_region != $3) {
+		continue
+	    } 
+	    nr2 = new SectionRef()
+	    tmp2 = secname()
+	    volume2 = (diam / 2.0) * (diam / 2.0) * L
+	    tmpdist = calc(nr1, nr2)
+	    
+	    fdist.printf("%s,%s,%f,%f,%f\n", tmp1, tmp2, tmpdist, volume1, volume2)
+	    i += 1	    
+	}
+    }
+    fdist.close()
+    print "the number of rows : ", i
+}
+ 
+

@@ -1,0 +1,92 @@
+//*************************
+// readSynList.hoc
+// 2012/01/27
+// Yusuke Mori
+//*************************
+
+{load_file("nrngui.hoc")}
+
+objref synfile
+strdef buf
+
+//--- syn param (GLOBAL) ---
+s_pre_cell = 0
+s_post_cell = 0
+s_pre_comp = 0
+s_post_comp = 0
+strdef s_type
+strdef s_subtype
+s_sth = 0
+
+objref num_synapse_mat
+num_synapse_mat = new Matrix(NCELLS, NCELLS)
+for i=0, NCELLS-1{
+    for j=0, NCELLS-1{
+	num_synapse_mat.x[i][j] = 0
+    }
+} 
+
+//--- syn global od
+
+proc readsl() {local connect_gid
+    synfile = new File()
+    synfile.ropen($s1)
+    /* read cell ID */
+    synfile.scanstr(buf)          // CellSwc[?]
+
+    //--- pre synapse
+    sscanf(buf, "CellSwc[%d]", &s_pre_cell)
+    //--- post synapse
+    synfile.scanstr(buf)
+    sscanf(buf, "CellSwc[%d]", &s_post_cell)    
+    
+    synfile.scanstr(buf)
+    
+    /* read data */
+    while(!synfile.eof()){
+	//--- pre synapse
+	s_pre_comp = synfile.scanvar()
+	//--- post synapse
+	s_post_comp = synfile.scanvar()
+	//--- type
+	synfile.scanstr(s_type)
+	//--- subtype
+	synfile.scanstr(s_subtype)
+	//--- strength
+	s_sth = synfile.scanvar()
+	//--- connection gid
+	connect_gid = synfile.scanvar()
+	
+	num_synapse_mat.x[s_post_cell][s_pre_cell] += 1
+	
+	if(!strcmp (s_type,"Chemi")){
+	    if(!strcmp (s_subtype,"GABA")){
+		{p_setChemiSyn(-30, -65, s_sth, connect_gid)}
+	    } else {
+		{p_setChemiSyn(-30, 0, s_sth, connect_gid)}
+	    }
+	}
+	if(!strcmp (s_type,"Gap")) {
+	   // {p_setGapJunc(0.1)}
+	   printf("--- NO GAP SETTING !!---\n")
+	}
+    }
+    //--- init gap junction ---
+    pc.setup_transfer()
+    synfile.close()
+}
+
+proc p_setChemiSyn(){
+    // argument
+    // $1 :netcon threshold
+    // $2 :reversal potential 
+    // $3 :netcon weight
+    // $4: connection gid
+    par_chemi_create(s_pre_cell, s_pre_comp, s_post_cell, s_post_comp, $1, $2, $3, $4)
+}
+
+proc p_setGapJunc(){
+    // argument
+    // $1 : gap strength
+    par_gap_create(s_pre_cell, s_pre_comp, s_post_cell, s_post_comp, $1)
+}

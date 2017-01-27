@@ -1,0 +1,10 @@
+#NEURON LIST
+#--------------------
+#<NCELLS>
+#<CELLname>, <cellswc>
+#--------------------
+#DATE : 2012/01/28
+
+2
+N001 ../hocfile_forSB/swc/test/test.swc
+N002 ../hocfile_forSB/swc/test/test2.swc

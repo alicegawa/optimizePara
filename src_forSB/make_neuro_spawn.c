@@ -143,6 +143,15 @@ int main(int argc, char **argv){
 	    }
 	}
 
+	for(k=0;k<num_of_my_pop;++k){
+	  for(i=0;i<dim_conMat;++i){
+		for(j=0;j<dim_conMat;++j){
+		  printf("pop_sendvec_makeneurospawn[%d][%d] = %lf\n", i, j, pop_sendbuf_nrn_weight[offset + num_of_cell_combination * k + dimension_per_one_nrnproc * i + j]);
+		}
+	    }
+	}
+
+	
 	/* for(k=0;k<num_of_my_pop;++k){ */
 	/*     for(i=0;i<dim_conMat;++i){ */
 	/* 	for(j=0;j<dim_conMat;++j){ */
@@ -166,7 +175,7 @@ int main(int argc, char **argv){
 	/* tally the score information of my process */
 	for(i=0; i<num_of_my_pop; ++i){
 	    arFunvals_whole_buf[i] = arFunvals_child_buf2[i + num_of_my_pop];
-	    //printf("arFunvals_whole_buf[%d] = %lf\n", i, arFunvals_whole_buf[i]);
+	    printf("arFunvals_whole_buf[%d] = %lf\n", i, arFunvals_whole_buf[i]);
 	}
 	fflush(stdout);
 	MPI_Barrier(MPI_COMM_WORLD);

@@ -299,7 +299,9 @@ proc update_weight(){local i, j, syn_count, cell_count, start_idx localobj updat
 	if(pc.gid_exists(i)){
 	    for j=0, NCELLS - 1{
 		for k=0, num_synapse_mat.x[i][j] - 1{
-		    nclist_chemi.o(syn_count).weight = update_vec.x(start_idx*NCELLS*cells.count+cell_count*NCELLS+j)
+		    printf("update_vec.x(%d) = %lf\n", start_idx * NCELLS * cells.count + cell_count * NCELLS + j, update_vec.x(start_idx * NCELLS * cells.count + cell_count * NCELLS + j))
+		    nclist_chemi.o(syn_count).weight = update_vec.x(start_idx*NCELLS*cells.count + cell_count*NCELLS + j)
+		    printf("nclist_chemi.o(%d).weight = %lf\n", syn_count, nclist_chemi.o(syn_count).weight)
 		    syn_count += 1
 		}
 	    }
@@ -358,6 +360,7 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 	//printf("num_of_pop_per_procs in execSimulation (in hocfile) is %d\n", num_of_pop_per_procs)
 	//recieve weight data
 	pc.scatter_d(nullvec, rcv_pop_vec_weight, dim_cmaes * num_of_pop_per_procs, root)
+	printf("rcv_pop_vec_weight.size = %d\n", rcv_pop_vec_weight.size())
 	//recieve delay data
 	elapse_time = startsw() - elapse_time
 	if(pc.id==0){
@@ -412,6 +415,10 @@ proc execSimulation(){ local i, root, fitness, tempfit, flg_cmaes_terminate, num
 		send_fit_vec.x(i) += send_fit_vec2.x(i)
 	    }
 	}
+	for(i=0; i<num_of_pop_per_procs; i+=1){
+	    printf("send_fit_vec.x(%d) = %lf\n", i, send_fit_vec.x(i))
+	}
+
 	
 	elapse_time = startsw() - elapse_time
 	if(pc.id==0){
@@ -453,10 +460,10 @@ proc pcontinue() {local time, timestep, i strdef recfilename
     for(time=0;time<tstop;time+=timestep){
 	pc.psolve(time+timestep)
 	pc.barrier()
-	for(i=0;i<cells.count;i+=1){
-	    sprint(recfilename, "../hocfile_forSB/visualize/%dCell_t_%.6f.dat", pc.id + i * pc.nhost, t)
-	    cells.o(i).saveData(recfilename)
-	}
+	// for(i=0;i<cells.count;i+=1){
+	//     sprint(recfilename, "../hocfile_forSB/visualize/%dCell_t_%.6f.dat", pc.id + i * pc.nhost, t)
+	//     cells.o(i).saveData(recfilename)
+	// }
     }
 }
 

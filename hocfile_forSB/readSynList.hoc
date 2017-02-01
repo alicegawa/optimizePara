@@ -68,6 +68,7 @@ proc readsl() {local connect_gid
 	}
 	if(!strcmp (s_type,"Gap")) {
 	   // {p_setGapJunc(0.1)}
+	   num_synapse_mat.x[s_post_cell][s_pre_cell] -= 1
 	   printf("--- NO GAP SETTING !!---\n")
 	}
     }

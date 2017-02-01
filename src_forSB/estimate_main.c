@@ -604,9 +604,11 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
 		    double* pc_j = &pc_arr[jcur*N];
 		    double* v_j = &v_arr[jcur*N];
 		    double v_j_mult_z = 0;
-		    for(p=0; p<N; p++)	
+		    for(p=0; p<N; p++){
 			v_j_mult_z = v_j_mult_z + v_j[p] * z[p];
-		    v_j_mult_z = Nj_arr[jcur] * v_j_mult_z; 				
+		    }
+		    v_j_mult_z = Nj_arr[jcur] * v_j_mult_z;
+		    printf("\n\n\nNj_arr[%d] = %lf\n\n\n\n", jcur, Nj_arr[jcur]);
 		    for(p=0; p<N; p++)
 			Az[p] = M * Az[p] + v_j_mult_z * pc_j[p];
 		}
@@ -616,6 +618,7 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
 	    //this section was not different from the current implementation largely
 	    for(k=0; k<N; k++){	// O(n)
 		arx[i*N + k] = xmean[k] + sign*sigma[k]*Az[k];
+		//		printf("arx[%d] = %lf\n", i*N+k, arx[i*N+k]);
 	    }
 	    my_boundary_transformation(&my_boundaries, &arx[i*N], x_temp, 0);
 	    /* for(k=0; k<(int)(N/2); ++k){ */
@@ -731,6 +734,7 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
 	double nv = 0;
 	for(i=0; i<N; i++)
 	    nv += Av[i]*Av[i];
+	printf("1-ccov = %lf, nv = %lf, 1+(ccov/(1-ccov))*nv = %lf\n", 1-ccov, nv, 1+(ccov/(1-ccov))*nv); 
 	Nj_arr[newidx] = (sqrt(1-ccov)/nv)*(sqrt(1+(ccov/(1-ccov))*nv)-1);
 	Lj_arr[newidx] = (1/(sqrt(1-ccov)*nv))*(1-(1/sqrt(1+((ccov)/(1-ccov))*nv)));
 
@@ -841,6 +845,7 @@ int loadRangeFile(char *filename, double *xmin_vec, double *xmax_vec, int *N){
     for(i=0;i<(*N);++i){
 	xmin_vec[i] = lowerBounds[i];
 	xmax_vec[i] = upperBounds[i];
+	printf("lowerBounds[%d] = %lf, upperBounds[%d] = %lf, flg_log[%d] = %d\n", i, lowerBounds[i], i, upperBounds[i], i, flg_log[i]);
     }
     fclose(fp);
     return 0;
@@ -860,7 +865,7 @@ int main(int argc, char **argv){
     int N;                  //      problem dimension
     int lambda;
     int mu;
-    double ccov = 1/(10*log((double)N+1.0));//      learning rate for covariance matrix, e.g., 1/(10*log(N+1))
+    double ccov;// = 1/(10*log((double)N+1.0));//      learning rate for covariance matrix, e.g., 1/(10*log(N+1))
     double xmin = -5;//     x parameters lower bound
     double xmax = 5;//      x parameters upper bound
     double *xmin_vec, *xmax_vec;
@@ -873,7 +878,7 @@ int main(int argc, char **argv){
     double *sigma_vec;
     double c_s = 0.3;       //      decay factor for step-size adaptation, e.g., 0.3
     double target_f = 1e-10;        // target fitness function value, e.g., 1e-10
-    int maxevals = 2;            // maximum number of function evaluations allowed, e.g., 1e+6
+    int maxevals = 5;            // maximum number of function evaluations allowed, e.g., 1e+6
     int inseed = 1;         // initial seed for random number generator, e.g., 1
     int algorithmType = 10; // 0:LMCMA, 10:LMCMA_fixed+features, 1:sepCMA, 2:Cholesky-CMA, 3: baseline CMA-ES
     int printToFile = 0; // 1 or 0
@@ -907,7 +912,7 @@ int main(int argc, char **argv){
     nvectors = lambda;
     maxsteps = nvectors;
     cc = (double)(1.0/(double)nvectors);
-
+    ccov = 1/(10*log((double)N+1.0));
     maxevals *= lambda;
     printf("N = %d, lambda = %d, mu = %d\n", N, lambda, mu);
     sprintf(spawn_argv[0], "%d", num_of_pop_per_child);

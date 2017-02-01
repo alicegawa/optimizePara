@@ -1,0 +1,4 @@
+#NAME MIN MAX TARGET(sim) LOG
+weight1	0	1	0.1	0
+weight2	0	1	0.1	0
+weight3	0	1	0.1	0

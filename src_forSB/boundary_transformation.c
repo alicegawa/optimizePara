@@ -76,40 +76,45 @@ void boundary_transformation(boundary_transformation_t *t,
 	}
 }
 void boundary_transformation_shift_into_feasible_preimage(
-			boundary_transformation_t *t, double const *x, double *y, unsigned long len)
+							  boundary_transformation_t *t, double const *x, double *y, unsigned long len)
 {
-	double lb, ub, al, au, r, xlow, xup;
-	unsigned long i;
+  double lb, ub, al, au, r, xlow, xup;
+  unsigned long i;
 
-	for(i = 0; i < len; ++i) {
-		lb = t->lower_bounds[_index(t, i)];
-		ub = t->upper_bounds[_index(t, i)];
-		al = t->al[_index(t, i)];
-		au = t->al[_index(t, i)]; // bug?
-		xlow = lb - 2 * al - (ub - lb) / 2.0;
-		xup = ub + 2 * au + (ub - lb) / 2.0;
-        r = 2 * (ub - lb + al + au); /* == xup - xlow == period of the transformation */
+  for(i = 0; i < len; ++i) {
+    lb = t->lower_bounds[_index(t, i)];
+    ub = t->upper_bounds[_index(t, i)];
+    al = t->al[_index(t, i)];
+    au = t->al[_index(t, i)]; // bug?
+    xlow = lb - 2 * al - (ub - lb) / 2.0;
+    xup = ub + 2 * au + (ub - lb) / 2.0;
+    r = 2 * (ub - lb + al + au); /* == xup - xlow == period of the transformation */
 
-        y[i] = x[i];
+    y[i] = x[i];
 
-		if (y[i] < xlow) { /* shift up */
-			y[i] += r * (1 + (int)((xlow - y[i]) / r));
-		}
-		if (y[i] > xup) { /* shift down */
-			y[i] -= r * (1 + (int)((y[i] - xup) / r));
-			/* printf(" \n%f\n", fmod(y[i] - ub - au, r)); */
-		}
-		if (y[i] < lb - al) /* mirror */
-			y[i] += 2 * (lb - al - y[i]);
-        if (y[i] > ub + au)
-        	y[i] -= 2 * (y[i] - ub - au);
+    if (y[i] < xlow) { /* shift up */
+      y[i] += r * (1 + (int)((xlow - y[i]) / r));
+    }
+    if (y[i] > xup ) { /* shift down */
+      if(y[i] > 20000000000){
+	y[i] = 20000000000;
+	//printf("change y\n");
+      }
+      y[i] -= r * (1 + (int)((y[i] - xup) / r));
+      /* printf(" \n%f\n", fmod(y[i] - ub - au, r)); */
+    }
+    //printf("y[%d] = %lf\n", (int)i, y[i]);
+    if (y[i] < lb - al) /* mirror */
+      y[i] += 2 * (lb - al - y[i]);
+    if (y[i] > ub + au)
+      y[i] -= 2 * (y[i] - ub - au);
 
-		if ((y[i] < lb - al - 1e-15) || (y[i] > ub + au + 1e-15)) {
-			printf("BUG in boundary_transformation_shift_into_feasible_preimage: lb=%f, ub=%f, al=%f au=%f, y=%f\n",
-				   lb, ub, al, au, y[i]);
-			_FatalError("BUG");
-		}
-	}
+    if ((y[i] < lb - al - 1e-15) || (y[i] > ub + au + 1e-15)) {
+      printf("BUG in boundary_transformation_shift_into_feasible_preimage: lb=%f, ub=%f, al=%f au=%f, y=%f\n",
+	     lb, ub, al, au, y[i]);
+      _FatalError("BUG");
+    }
+  }
 }
 void boundary_transformation_inverse(boundary_transformation_t *t,
 		double const *x, double *y, unsigned long len)

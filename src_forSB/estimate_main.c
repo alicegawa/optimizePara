@@ -471,6 +471,14 @@ int printGene(FILE *fp, const double *x, int dimension){
     return 0;
 }/*printGene()*/
 
+int printGene2(FILE *fp, const double *x, int dimension){
+    int i;
+    for(i=0; i<dimension; ++i){
+	fprintf(fp, "%f\n", x[i]);
+    }
+    return 0;
+}/*printGene2()*/
+
 void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, int nvectors,
 	   int maxsteps, double cc, double val_target, double *sigma, double c_s, double target_f, 
 	   int maxevals, int inseed, double* output, int printToFile, int sample_symmetry, MPI_Comm spawn_comm, int num_of_spawn_comm)
@@ -583,6 +591,7 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
 	scatter_sendvec_d[i] = -1;
     }
 
+    int loop_count = 0;
     while(stop == 0)
     {
 	int sign = 1; 
@@ -608,7 +617,7 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
 			v_j_mult_z = v_j_mult_z + v_j[p] * z[p];
 		    }
 		    v_j_mult_z = Nj_arr[jcur] * v_j_mult_z;
-		    printf("\n\n\nNj_arr[%d] = %lf\n\n\n\n", jcur, Nj_arr[jcur]);
+		    //printf("\n\n\nNj_arr[%d] = %lf\n\n\n\n", jcur, Nj_arr[jcur]);
 		    for(p=0; p<N; p++)
 			Az[p] = M * Az[p] + v_j_mult_z * pc_j[p];
 		}
@@ -734,7 +743,7 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
 	double nv = 0;
 	for(i=0; i<N; i++)
 	    nv += Av[i]*Av[i];
-	printf("1-ccov = %lf, nv = %lf, 1+(ccov/(1-ccov))*nv = %lf\n", 1-ccov, nv, 1+(ccov/(1-ccov))*nv); 
+	//printf("1-ccov = %lf, nv = %lf, 1+(ccov/(1-ccov))*nv = %lf\n", 1-ccov, nv, 1+(ccov/(1-ccov))*nv); 
 	Nj_arr[newidx] = (sqrt(1-ccov)/nv)*(sqrt(1+(ccov/(1-ccov))*nv)-1);
 	Lj_arr[newidx] = (1/(sqrt(1-ccov)*nv))*(1-(1/sqrt(1+((ccov)/(1-ccov))*nv)));
 
@@ -770,25 +779,42 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
 	for(i=0; i<lambda; i++)
 	    prev_arfitness[i] = arfitness[i];
 				
-	if (arfitness[0] < target_f)
+	if (arfitness[0] < target_f){
+	  stop = 1;
+	  printf("arfitness is small adequately\n");
+	}
+	if (counteval >= maxevals){
 	    stop = 1;
-	if (counteval >= maxevals)
-	    stop = 1;
+	    printf("evaluation is max times\n");
+	}
 	itr = itr + 1;
-	for(i=0;i<N;++i)	
-	    if (sigma[i] < 1e-20)
-		stop = 1;
+	for(i=0;i<N;++i){	
+	  if (sigma[i] < 1e-20){
+	    stop = 1;
+	    printf("sigma is small adequately\n");
+	  }
+	  if(sigma[i] > 10000000){
+	    sigma[i] = 80000;
+	  }
+	  if(loop_count%100==0){
+	    sigma[i] = 1000;
+	  }
+	}
 	if ((printToFile == 1) && (pFile))
 	    fprintf(pFile,"%d %g\n",counteval,BestF);
-	if(counteval >= (lambda * N * 5)){
-	    printf("#fbest: %lf\n", BestF);
-	    my_boundary_transformation(&my_boundaries, xbestever, x_temp, 0);
-	    printGene(stdout, x_temp, N); 
-	    printf("\n");
-	}
+	/* if(counteval >= (lambda * N * 5)){ */
+	/*     printf("#fbest: %lf\n", BestF); */
+	/*     my_boundary_transformation(&my_boundaries, xbestever, x_temp, 0); */
+	/*     printGene(stdout, x_temp, N);  */
+	/*     printf("\n"); */
+	/* } */
 	if(stop==1){
 	    flg_termination = 1;
+	    printf("something fulfilled the terminate condition\n");
 	}
+	loop_count++;
+	printf("%d times loop finish. fbest = %lf\n", loop_count, BestF);
+	//flg_termination=1;
 	MPI_Bcast(&flg_termination, 1, MPI_DOUBLE, 0, spawn_comm);
 	//break;
     }
@@ -797,7 +823,13 @@ void LMCMA(int N, int lambda, int mu, double ccov, double *xmin, double *xmax, i
     
     printf("#fbest: %lf\n", BestF);
     my_boundary_transformation(&my_boundaries, xbestever, x_temp, 0);
-    printGene(stdout, x_temp, N); 
+    printGene(stdout, x_temp, N);
+    FILE *fp_result;
+    if((fp_result=fopen("result.txt", "w"))==NULL){
+      printf("file open error occurs @fp_result\n");
+    }
+    printGene2(fp_result, x_temp, N);
+    fclose(fp_result);
     printf("\n");
     fflush(stdout);
     my_boundary_transformation_exit(&my_boundaries);
@@ -856,12 +888,16 @@ int main(int argc, char **argv){
     int main_myid, main_size;
     char command[] = "./make_neuro_spawn";
     char **spawn_argv;
-    int spawn_argv_size=3;
+    int spawn_argv_size=7;
     int num_of_pop_per_child;
     int spawn_numprocs = 7;/*the number of NEURON circuits*/
     MPI_Comm spawn_comm, intercomm, parentcomm;
     int spawn_size, spawn_myid;
-    
+    int num_of_nrn_procs=4;
+    char *exec_prog=NULL;
+    int dim_con_mat;
+    char *connection_data=NULL;
+
     int N;                  //      problem dimension
     int lambda;
     int mu;
@@ -877,7 +913,7 @@ int main(int argc, char **argv){
     double sigma = 0.5*(xmax - xmin);       // initial step-size, e.g., 0.5
     double *sigma_vec;
     double c_s = 0.3;       //      decay factor for step-size adaptation, e.g., 0.3
-    double target_f = 1e-10;        // target fitness function value, e.g., 1e-10
+    double target_f = 1e-5;        // target fitness function value, e.g., 1e-10
     int maxevals = 5;            // maximum number of function evaluations allowed, e.g., 1e+6
     int inseed = 1;         // initial seed for random number generator, e.g., 1
     int algorithmType = 10; // 0:LMCMA, 10:LMCMA_fixed+features, 1:sepCMA, 2:Cholesky-CMA, 3: baseline CMA-ES
@@ -887,7 +923,7 @@ int main(int argc, char **argv){
 
     double output[2];
 
-    char range_filename[] = "../data/params_onlyWeight.txt";
+    char range_filename[256] = "../data/params_onlyWeight.txt";
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &main_size);
@@ -903,11 +939,37 @@ int main(int argc, char **argv){
       spawn_argv[i] = (char *)malloc(sizeof(char) * 256);
     }
     spawn_argv[spawn_argv_size-1] = NULL;
+    exec_prog = (char *)malloc(sizeof(char) * 256);
+    if(exec_prog==NULL){
+      printf("memory allocation error occurs @{exec_prog}\n");
+    }
+    connection_data = (char *)malloc(sizeof(char) * 256);
+    if(connection_data==NULL){
+      printf("memory allocation error occurs @{connection_data}\n");
+    }
+
+    /* for test input*/
+    if(argc > 7){
+      dim_con_mat = atoi(argv[7]);
+      sprintf(connection_data, "%s", argv[8]);
+      sprintf(range_filename, "%s", argv[9]);
+    }
     
     loadRangeFile(range_filename, xmin_tmp, xmax_tmp, &N);
-
-    lambda = 4+floor(3*log((double)N)); //      population size, e.g., 4+floor(3*log(N));
-    mu = (int)(lambda / 2); // number of parents, e.g., floor(lambda /2);
+    
+    if(argc < 2){
+      lambda = 4+floor(3*log((double)N)); //      population size, e.g., 4+floor(3*log(N));
+      mu = (int)(lambda / 2); // number of parents, e.g., floor(lambda /2);
+    }else{
+      lambda = atoi(argv[1]);
+      mu = atoi(argv[2]);
+      spawn_numprocs = atoi(argv[3]);
+      maxevals = atoi(argv[4]);
+      maxevals *= lambda;
+      num_of_nrn_procs = atoi(argv[5]);
+      sprintf(exec_prog, "%s", argv[6]);
+    }
+    
     num_of_pop_per_child = lambda / spawn_numprocs;
     nvectors = lambda;
     maxsteps = nvectors;
@@ -917,6 +979,10 @@ int main(int argc, char **argv){
     printf("N = %d, lambda = %d, mu = %d\n", N, lambda, mu);
     sprintf(spawn_argv[0], "%d", num_of_pop_per_child);
     sprintf(spawn_argv[1], "%d", N);
+    sprintf(spawn_argv[2], "%d", num_of_nrn_procs);
+    sprintf(spawn_argv[3], "%s", exec_prog);
+    sprintf(spawn_argv[4], "%d", dim_con_mat);
+    sprintf(spawn_argv[5], "%s", connection_data);
 
     xmin_vec = (double *)malloc(sizeof(double) * N);
     xmax_vec = (double *)malloc(sizeof(double) * N);
@@ -948,6 +1014,8 @@ int main(int argc, char **argv){
 
     free(xmax_vec); xmax_vec = NULL;
     free(xmin_vec); xmin_vec = NULL;
+    free(exec_prog); exec_prog = NULL;
+    free(connection_data); connection_data=NULL;
 
     MPI_Finalize();
     return 0;

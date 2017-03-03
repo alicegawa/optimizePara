@@ -913,7 +913,7 @@ int main(int argc, char **argv){
     double sigma = 0.5*(xmax - xmin);       // initial step-size, e.g., 0.5
     double *sigma_vec;
     double c_s = 0.3;       //      decay factor for step-size adaptation, e.g., 0.3
-    double target_f = 1e-5;        // target fitness function value, e.g., 1e-10
+    double target_f = 1e-4;        // target fitness function value, e.g., 1e-10
     int maxevals = 5;            // maximum number of function evaluations allowed, e.g., 1e+6
     int inseed = 1;         // initial seed for random number generator, e.g., 1
     int algorithmType = 10; // 0:LMCMA, 10:LMCMA_fixed+features, 1:sepCMA, 2:Cholesky-CMA, 3: baseline CMA-ES
@@ -956,6 +956,18 @@ int main(int argc, char **argv){
     }
     
     loadRangeFile(range_filename, xmin_tmp, xmax_tmp, &N);
+
+    if((dim_con_mat * dim_con_mat)!=N){
+      dim_con_mat = 1;
+      while(1){
+	if((dim_con_mat * dim_con_mat)>=N){
+	  break;
+	}else{
+	  dim_con_mat++;
+	}
+      }
+    }
+    printf("dim_con_mat = %d\n", dim_con_mat);
     
     if(argc < 2){
       lambda = 4+floor(3*log((double)N)); //      population size, e.g., 4+floor(3*log(N));

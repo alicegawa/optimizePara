@@ -3,7 +3,7 @@
 #include <math.h>
 #include <mpi.h>
 
-void read_answers(double *ref, int main_myid, int gene_dim, int eval_dim){
+void read_answers(double *ref, int main_myid, int gene_dim, int true_dim, int eval_dim){
   int i;
   FILE *fp;
   double *ref_full=NULL;
@@ -13,7 +13,11 @@ void read_answers(double *ref, int main_myid, int gene_dim, int eval_dim){
   }
   ref_full = (double *)malloc(sizeof(double) * gene_dim);
   for(i=0;i<gene_dim;++i){
-    fscanf(fp, "%lf", &ref_full[i]);
+    if(i<true_dim){
+      fscanf(fp, "%lf", &ref_full[i]);
+    }else{
+      ref_full[i] = 0;
+    }
   }
   for(i=0;i<eval_dim;++i){
     ref[i] = ref_full[eval_dim * main_myid + i];
@@ -39,6 +43,7 @@ int main(int argc, char **argv){
 
   int num_of_my_pop;
   int gene_dim = 36;
+  int true_dim;
   int eval_dim_per_proc;
   double *gene_info=NULL, *ref=NULL;
   double *gene_info_full;/*defined only in parent procs*/
@@ -65,11 +70,13 @@ int main(int argc, char **argv){
     printf("set \"num_of_my_pop\" and \"gene_dim\" default value\n");
     num_of_my_pop = 1;
     gene_dim = 36;
+    true_dim = 36;
   }else{
     num_of_my_pop = atoi(argv[1]);
     gene_dim = atoi(argv[2]);
+    true_dim = atoi(argv[3]);
   }
-  //printf("info: num_of_my_pop=%d, gene_dim=%d, main_size=%d\n", num_of_my_pop, gene_dim, main_size);
+  //printf("info: num_of_my_pop=%d, gene_dim=%d, true_dim = %d, main_size=%d\n", num_of_my_pop, gene_dim, true_dim, main_size);
   eval_dim_per_proc = gene_dim / main_size;
   //printf("eval_dim_per_proc = %d\n", eval_dim_per_proc);
 
@@ -96,7 +103,7 @@ int main(int argc, char **argv){
   }
 
   /* read setting file*/
-  read_answers(ref, main_myid, gene_dim, eval_dim_per_proc);
+  read_answers(ref, main_myid, gene_dim, true_dim, eval_dim_per_proc);
 
   /* for(i=0;i<gene_dim;++i){ */
   /*   printf("ref[%d] = %lf\t", i, ref[i]); */
@@ -116,7 +123,7 @@ int main(int argc, char **argv){
     /* 	fbest_idx = i; */
     /*   } */
     /* } */
-    /* if(fbest < 0.02){ */
+    /* if(fbest < 1){ */
     /*   printf("fbest=%lf\n", fbest); */
     /*   for(i=0;i<eval_dim_per_proc;++i){ */
     /* 	printf("@%d proc, gene_value = %lf(fbest=%lf)\n", main_myid, gene_info[fbest_idx * eval_dim_per_proc+i], fbest); */

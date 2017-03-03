@@ -41,7 +41,7 @@ int main(int argc, char **argv){
     
     char *exec_prog=NULL;
     char **spawn_argvs=NULL;
-    int spawn_argv_size=3;
+    int spawn_argv_size=4;
 
     char specials[] = "../hocfile_forSB/x86_64/special";
     char *neuron_argv[] = {"-mpi", "-nobanner", "../hocfile_forSB/networkSimulation.hoc", NULL};
@@ -77,6 +77,7 @@ int main(int argc, char **argv){
     if(argc > 3){
       num_of_procs_nrn = atoi(argv[3]);
     }
+
     exec_prog = (char *)malloc(sizeof(char) * 512);
     if(exec_prog==NULL){
       printf("memory allocation error occurs @{exec_prog} in make_neuro_spawn\n");
@@ -95,8 +96,8 @@ int main(int argc, char **argv){
 	}
       }
       sprintf(spawn_argvs[0], "%d", num_of_my_pop);
-      sprintf(spawn_argvs[1], "%d", dimension);
-      spawn_argvs[2] = NULL;
+      sprintf(spawn_argvs[2], "%d", dimension);
+      spawn_argvs[3] = NULL;
     }else{
       sprintf(exec_prog, "%s", specials);
       spawn_argvs = neuron_argv;
@@ -108,15 +109,18 @@ int main(int argc, char **argv){
     if(argc > 5){
       dim_conMat = atoi(argv[5]);
       num_of_cell_combination = dim_conMat * dim_conMat;
+      sprintf(spawn_argvs[1], "%d", num_of_cell_combination);
     }
-
+    num_of_procs_nrn = dim_conMat;
     if(argc > 6){
       sprintf(connection_data, "%s", argv[6]);
       printf("connection_data = %s\n", connection_data);
     }
 
-    /* printf("info@make_neuro_spawn:\n"); */
-    /* printf("num_of_my_pop=%d, dimension=%d, num_of_procs_nrn=%d, exec_prog=%s, dim_conMat=%d, connection_data=%s\n", num_of_my_pop, dimension, num_of_procs_nrn, exec_prog, dim_conMat, connection_data); */
+    printf("dimension = %d, num_of_cell_combination = %d\n", dimension, num_of_cell_combination);
+
+    printf("info@make_neuro_spawn:\n");
+    printf("num_of_my_pop=%d, dimension=%d, num_of_procs_nrn=%d, exec_prog=%s, dim_conMat=%d, connection_data=%s\n", num_of_my_pop, dimension, num_of_procs_nrn, exec_prog, dim_conMat, connection_data);
 
     /* set variables for communication */
     num_sendparams_from_parent = dimension * num_of_my_pop;/* separate weight and delay ver. (for non-separate, delete / 2*/
@@ -147,16 +151,34 @@ int main(int argc, char **argv){
     for(i=0;i<dim_conMat;++i){
 	conMat[i] = (int *)malloc(sizeof(int) * dim_conMat);
     }
-    if((fp=fopen(connection_data, "r"))==NULL){
+    if(neuron_mode){
+      if((fp=fopen(connection_data, "r"))==NULL){
 	printf("connection file open error\n");
 	exit(EXIT_FAILURE);
-    }
-    for(i=0;i<dim_conMat;++i){
+      }
+    
+      for(i=0;i<dim_conMat;++i){
 	for(j=0;j<dim_conMat;++j){
-	    fscanf(fp, "%d", &conMat[i][j]);
+	  fscanf(fp, "%d", &conMat[i][j]);
 	}
+      }
+    
+      fclose(fp);
+    }else{
+      for(i=0;i<dim_conMat;++i){
+	for(j=0;j<dim_conMat;++j){
+	  if((i*dim_conMat+j)<dimension){
+	    conMat[i][j] = 1;
+	    //printf("%d\t", conMat[i][j]);
+	  }else{
+	    conMat[i][j] = 0;
+	    //printf("%d\t", conMat[i][j]);
+	  }
+	}
+	//printf("\n");
+      }
+      //printf("\n");
     }
-    fclose(fp);
 
     /* make spawn of NEURON procs and make new intracommunicator 'nrn_comm'*/
     /* when it does not work, uncomment the below sentense*/
@@ -262,10 +284,10 @@ int main(int argc, char **argv){
 	
 
 	MPI_Barrier(MPI_COMM_WORLD);
-
+	
 	/*pass the gene information to NEURON process*/
 	MPI_Scatter(pop_sendbuf_nrn_weight, num_of_weights_per_one_nrnproc, MPI_DOUBLE, pop_rcvbuf_nrn_weight, num_of_weights_per_one_nrnproc, MPI_DOUBLE, 0, nrn_comm);
-
+	
 	/* wait for finish calculation in NEURON*/
 	MPI_Gather(arFunvals_child_buf1, num_of_my_pop, MPI_DOUBLE, arFunvals_child_buf2, num_of_my_pop, MPI_DOUBLE, 0, nrn_comm);
 

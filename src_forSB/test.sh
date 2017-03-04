@@ -1,3 +1,5 @@
+make clean
+rm estimate_main
 ./compile.sh
 num_of_pop=128
 mu=64

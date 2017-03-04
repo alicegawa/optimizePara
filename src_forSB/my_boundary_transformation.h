@@ -4,7 +4,7 @@
 
 #include "boundary_transformation.h"
 
-#define MAX_NUM_PARAM 150
+//#define MAX_NUM_PARAM 150
 
 /*
   CMAES inside values (from -inf to inf, almost from 0 to 10)
